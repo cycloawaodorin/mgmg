@@ -344,7 +344,8 @@ module Mgmg
 			(@mat.col_size-1).downto(0) do |c|
 				bar = []
 				(@mat.row_size-1).downto(0) do |s|
-					baz = str(@mat.body[s][c], fmt)
+					value = @mat.body[s][c]
+					baz = str(value, fmt)
 					case s
 					when 0
 						# nothing to do
@@ -353,9 +354,16 @@ module Mgmg
 					else
 						baz << "S^#{s}"
 					end
-					bar << baz
+					bar << baz if value != 0
 				end
-				bar = "(#{bar.join('+')})"
+				case bar.length
+				when 0
+					next
+				when 1
+					bar = bar[0]
+				else
+					bar = "(#{bar.join('+')})"
+				end
 				case c
 				when 0
 					# nothing to do
@@ -369,13 +377,18 @@ module Mgmg
 			foo.join('+')
 		end
 		private def str(value, fmt)
-			case fmt
+			ret = case fmt
 			when nil
 				value.to_s
 			when String
 				fmt % value
 			when :inspect
 				value.inspect
+			end
+			if ret[0] == '-'
+				"(#{ret})"
+			else
+				ret
 			end
 		end
 	end
