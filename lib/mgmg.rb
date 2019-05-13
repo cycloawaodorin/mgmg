@@ -112,6 +112,9 @@ class String
 	def build(smith, comp=smith, left_associative: true)
 		Mgmg::Equip.build(self, smith, comp, left_associative: left_associative)
 	end
+	def poly(para, left_associative: true)
+		Mgmg::TPolynomial.build(self, para, left_associative: left_associative)
+	end
 	def show(smith, comp=smith, left_associative: true)
 		builded = self.build(smith, comp, left_associative: left_associative)
 		pstr = '%.3f' % builded.fpower

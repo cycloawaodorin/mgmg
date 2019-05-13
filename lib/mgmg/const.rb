@@ -127,7 +127,7 @@ module Mgmg
 			end
 		end
 		
-		[:attack, :phydef, :magdef, :hp, :mp, :str, :dex, :speed, :magic].each.with_index do |s, i|
+		%i|attack phydef magdef hp mp str dex speed magic|.each.with_index do |s, i|
 			define_method(s){ @para[i] }
 		end
 		def atkstr
@@ -217,6 +217,224 @@ module Mgmg
 				[self.class.new(28, 0, Vec.new(6, 0), 12, 12, Vec.new(9, 0), Vec.new(3, 0)), self]
 			else
 				raise TypeError, "Mgmg::Equip can't be coerced into other than 0"
+			end
+		end
+	end
+	class Mat
+		def initialize(m, n, value=nil)
+			if block_given?
+				@body = Array.new(m) do |i|
+					Array.new(n) do |j|
+						yield(i, j)
+					end
+				end
+			else
+				@body = Array.new(m) do
+					Array.new(n, value)
+				end
+			end
+		end
+		attr_accessor :body
+		def initialize_copy(obj)
+			@body = obj.body.map(&:dup)
+		end
+		def row_size
+			@body.length
+		end
+		def col_size
+			@body[0].length
+		end
+		def each_with_index
+			@body.each.with_index do |row, i|
+				row.each.with_index do |e, j|
+					yield(e, i, j)
+				end
+			end
+			self
+		end
+		def map_with_index!
+			@body.each.with_index do |row, i|
+				row.map!.with_index do |e, j|
+					yield(e, i, j)
+				end
+			end
+			self
+		end
+		def map_with_index(&block)
+			dup.map_with_index!(&block)
+		end
+		def submat_add!(is, js, other)
+			i_s, i_e = index_treatment(is, row_size)
+			j_s, j_e = index_treatment(js, col_size)
+			i_s.upto(i_e).with_index do |i, io|
+				row = @body[i]
+				o_row = other.body[io]
+				j_s.upto(j_e).with_index do |j, jo|
+					row[j] += o_row[jo]
+				end
+			end
+			self
+		end
+		private def index_treatment(idx, max)
+			case idx
+			when Integer
+				[idx, idx]
+			when Range
+				if idx.exclude_end?
+					[idx.first, idx.last-1]
+				else
+					[idx.first, idx.last]
+				end
+			when Array
+				[idx[0], idx[0]+idx[1]-1]
+			when nil
+				[0, max]
+			else
+				raise ArgumentError, "#{idx.class} is not available for Mat index"
+			end.map! do |i|
+				i < 0 ? max-i : i
+			end
+		end
+		def scalar(value)
+			dup.map_with_index! do |e, i, j|
+				e * value
+			end
+		end
+		def sum
+			@body.map(&:sum).sum
+		end
+		def pprod(other)
+			r, c = row_size, col_size
+			ret = self.class.new(r+other.row_size-1, c+other.col_size-1, 0)
+			other.each_with_index do |o, i, j|
+				ret.submat_add!(i...(i+r), j...(j+c), scalar(o))
+			end
+			ret
+		end
+		def padd(other)
+			ret = self.class.new([row_size, other.row_size].max, [col_size, other.col_size].max, 0)
+			ret.submat_add!(0...row_size, 0...col_size, self)
+			ret.submat_add!(0...(other.row_size), 0...(other.col_size), other)
+		end
+	end
+	class << Mat
+		def v_array(*ary)
+			new(ary.length, 1) do |i, j|
+				ary[i]
+			end
+		end
+		def h_array(*ary)
+			new(1, ary.length) do |i, j|
+				ary[j]
+			end
+		end
+	end
+	class TPolynomial
+		def initialize(mat, kind, star, main_m, sub_m)
+			@mat, @kind, @star, @main, @sub = mat, kind, star, main_m, sub_m
+		end
+		attr_accessor :mat, :kind, :star, :main, :sub
+		def estimate(smith, comp=smith)
+			@mat.map_with_index do |e, i, j|
+				e * (smith**i) * (comp**j)
+			end.sum
+		end
+		def to_s(fmt=nil)
+			foo = []
+			(@mat.col_size-1).downto(0) do |c|
+				bar = []
+				(@mat.row_size-1).downto(0) do |s|
+					baz = str(@mat.body[s][c], fmt)
+					case s
+					when 0
+						# nothing to do
+					when 1
+						baz << 'S'
+					else
+						baz << "S^#{s}"
+					end
+					bar << baz
+				end
+				bar = "(#{bar.join('+')})"
+				case c
+				when 0
+					# nothing to do
+				when 1
+					bar << 'C'
+				else
+					bar << "C^#{c}"
+				end
+				foo << bar
+			end
+			foo.join('+')
+		end
+		private def str(value, fmt)
+			case fmt
+			when nil
+				value.to_s
+			when String
+				fmt % value
+			when :inspect
+				value.inspect
+			end
+		end
+	end
+	class << TPolynomial
+		ParamIndex = Hash.new
+		%i|attack phydef magdef hp mp str dex speed magic|.each.with_index do |s, i|
+			ParamIndex.store(s, i)
+			ParamIndex.store(i, i)
+			ParamIndex.store(Equip::ParamList[i], i)
+		end
+		def from_equip(equip, para)
+			new(Mat.new(1, 1, equip.para[ParamIndex[para]]), equip.kind, equip.star, equip.main, equip.sub)
+		end
+		def smith(str, para)
+			unless m = /\A(.+)\((.+\d+),?(.+\d+)\)\Z/.match(str)
+				raise ArgumentError.new('given argument is unparsable')
+			end
+			kind = EquipIndex[m[1].to_sym]
+			main_m, main_s, main_mc = Equip.__send__(:parse_material, m[2])
+			sub_m, sub_s, sub_mc = Equip.__send__(:parse_material, m[3])
+			para = ParamIndex[para]
+			
+			c = ( Equip9[kind][para] * Main9[main_m][para] ).quo( main_mc==sub_mc ? 20000 : 10000 )
+			new(Mat.v_array(c*Sub9[sub_m][para], c), kind, (main_s+sub_s).div(2), main_mc, sub_mc)
+		end
+		def compose(main, sub, para)
+			main_k, sub_k = main.kind, sub.kind
+			main_s, sub_s = main.star, sub.star
+			main_main, sub_main = main.main, sub.main
+			main_sub, sub_sub = main.sub, sub.sub
+			para = ParamIndex[para]
+			
+			c = ( 100 + Equip9[main_k][para] - Equip9[sub_k][para] + Material9[main_main][para] - Material9[sub_main][para] +
+				(main_s-sub_s)*5 - ( ( main_main==sub_main && main_main != 9 ) ? 30 : 0 ) ).quo( main_k==sub_k ? 40000 : 20000 )
+			mat = main.mat.padd(sub.mat.pprod(Mat.h_array(c*Equip9[main_k][para], c)))
+			new(mat, main_k, main_s+sub_s, main_sub, sub_main)
+		end
+		def build(str, para, left_associative: true)
+			para = ParamIndex[para]
+			stack, str = build_sub0([], str, para)
+			build_sub(stack, str.gsub(/[\s　]/, ''), para, left_associative)
+		end
+		private def build_sub0(stack, str, para)
+			SystemEquip.each do |k, v|
+				stack << from_equip(v, para)
+				str = str.gsub(k, "<#{stack.length-1}>")
+			end
+			[stack, str]
+		end
+		private def build_sub(stack, str, para, lassoc)
+			if m = /\A(.*\+?)\[([^\[\]]+)\](\+?[^\[]*)\Z/.match(str)
+				stack << build_sub(stack, m[2], para, lassoc)
+				build_sub(stack, "#{m[1]}<#{stack.length-1}>#{m[3]}", para, lassoc)
+			elsif m = ( lassoc ? /\A(.+)\+(.+?)\Z/ : /\A(.+?)\+(.+)\Z/ ).match(str)
+				compose(build_sub(stack, m[1], para, lassoc), build_sub(stack, m[2], para, lassoc), para)
+			elsif m = /\A\<(\d+)\>\Z/.match(str)
+				stack[m[1].to_i]
+			else
+				smith(str, para)
 			end
 		end
 	end
