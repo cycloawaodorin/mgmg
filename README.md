@@ -72,7 +72,7 @@ puts %w|本(金3骨1)+[弓(骨1綿1)+[杖(金3金3)+[弓(綿1綿1)+[杖(宝10金
 
 複数のレシピ文字列からなる`self`の各要素を製作し，そのすべてを装備したときの`Mgmg::Equip`を返します．製作では`鍛冶Lv=smith`, `防具製作Lv=armor`, `道具製作Lv=comp`とします．`left_associative`はそのまま`String#build`に渡されます．武器複数など，同時装備が不可能な場合でも，特にチェックはされません．
 
-### `String#poly(para, left_associative: true)
+### `String#poly(para, left_associative: true)`
 
 レシピ文字列である`self`を解釈し，`para`で指定した9パラ値について，丸めを無視した鍛冶・防具製作Lvと道具製作Lvの2変数からなる多項式関数を示す`Mgmg::TPolynomial`クラスのインスタンスを生成し，返します．`para`は次のシンボルのいずれかを指定します．
 ```ruby
@@ -154,6 +154,7 @@ puts %w|本(金3骨1)+[弓(骨1綿1)+[杖(金3金3)+[弓(綿1綿1)+[杖(宝10金
 鍛冶・防具製作LvをS，道具製作LvをCとして，`self`を表す数式文字列を返します．係数`coeff`を文字列に変換する際，`fmt`の値に応じて次の方法を用います．
 
 |`fmt`のクラス|変換法|
+|:-|:-|
 |`NilClass`|`coeff.to_s`|
 |`String`|`fmt % [coeff]`|
 |`Symbol`|`coeff.__send__(fmt)`|
