@@ -72,6 +72,14 @@ puts %w|本(金3骨1)+[弓(骨1綿1)+[杖(金3金3)+[弓(綿1綿1)+[杖(宝10金
 
 複数のレシピ文字列からなる`self`の各要素を製作し，そのすべてを装備したときの`Mgmg::Equip`を返します．製作では`鍛冶Lv=smith`, `防具製作Lv=armor`, `道具製作Lv=comp`とします．`left_associative`はそのまま`String#build`に渡されます．武器複数など，同時装備が不可能な場合でも，特にチェックはされません．
 
+### `String#poly(para, left_associative: true)
+
+レシピ文字列である`self`を解釈し，`para`で指定した9パラ値について，丸めを無視した鍛冶・防具製作Lvと道具製作Lvの2変数からなる多項式関数を示す`Mgmg::TPolynomial`クラスのインスタンスを生成し，返します．`para`は次のシンボルのいずれかを指定します．
+```ruby
+:attack, :phydef, :magdef, :hp, :mp, :str, :dex, :speed, :magic
+```
+これらは，`Mgmg::Equip`から当該属性値を取得するためのメソッド名と同一です．`left_associative`は`String#build`の場合と同様です．
+
 ### `Mgmg::Equip`
 
 前述の`String#build`によって生成される装備品のクラスです．複数装備の合計値を表す「複数装備」という種別の装備品の場合もあります．以下のようなインスタンスメソッドが定義されています．
@@ -138,6 +146,26 @@ puts %w|本(金3骨1)+[弓(骨1綿1)+[杖(金3金3)+[弓(綿1綿1)+[杖(宝10金
 
 ### `Mgmg::Equip#+(other)`
 `self`と`other`を装備した「複数装備」の`Mgmg::Equip`を返します．`self`と`other`はいずれも単品でも「複数装備」でも構いません．武器複数などの装備可否チェックはされません．
+
+### `Mgmg::TPolynomial`
+前述の`String#poly`によって生成される二変数多項式のクラスです．最初のTはtwo-variableのTです．以下のようなメソッドが定義されています．
+
+### `Mgmg::TPolynomial#to_s(fmt=nil)`
+鍛冶・防具製作LvをS，道具製作LvをCとして，`self`を表す数式文字列を返します．係数`coeff`を文字列に変換する際，`fmt`の値に応じて次の方法を用います．
+
+|`fmt`のクラス|変換法|
+|`NilClass`|`coeff.to_s`|
+|`String`|`fmt % [coeff]`|
+|`Symbol`|`coeff.__send__(fmt)`|
+|`Proc`|`fmt.call(coeff)`|
+
+通常，係数は`Rational`であるため，`'%.2e'`などを指定するのがオススメです．
+
+### `Mgmg::TPolynomial#inspect(fmt=->(r){"Rational(#{r.numerator}, #{r.denominator})"})`
+`Mgmg::TPolynomial#to_s`と同様ですが，鍛冶・防具製作Lvを`s`，道具製作Lvを`c`としたRubyの式として解釈可能な文字列を返します．つまり，係数を掛け算を`*`で表現しています．`fmt`は`Mgmg::TPolynomial#to_s`と同様で，適当な値を指定することでRuby以外の言語でも解釈可能になります．例えば，精度が問題でないならば，`'%e'`とすると，大抵の言語で解釈可能な文字列を生成できます．
+
+### `Mgmg::TPolynomial#evaluate(smith, comp=smith)`
+鍛冶・防具製作Lvを`smith`，道具製作Lvを`comp`として値を計算します．丸めを無視しているため，実際の合成結果以上の値が返ります．
 
 ## 謝辞
 面白いゲームを作ってくださった耕様および，高精度なシミュレータを作製し，本ライブラリの作製を可能とした，Excel版装備計算機の作者様に感謝いたします．

@@ -334,7 +334,7 @@ module Mgmg
 			@mat, @kind, @star, @main, @sub = mat, kind, star, main_m, sub_m
 		end
 		attr_accessor :mat, :kind, :star, :main, :sub
-		def estimate(smith, comp=smith)
+		def evaluate(smith, comp=smith)
 			@mat.map_with_index do |e, i, j|
 				e * (smith**i) * (comp**j)
 			end.sum
@@ -378,18 +378,43 @@ module Mgmg
 		end
 		private def str(value, fmt)
 			ret = case fmt
-			when nil
+			when NilClass
 				value.to_s
 			when String
 				fmt % value
-			when :inspect
-				value.inspect
+			when Symbol
+				value.__send__(fmt)
+			when Proc
+				fmt.call(value)
+			else
+				raise
 			end
-			if ret[0] == '-'
+			if ret[0] == '-' || ( /\//.match(ret) && ret[0] != '(' )
 				"(#{ret})"
 			else
 				ret
 			end
+		end
+		def inspect(fmt=->(r){"Rational(#{r.numerator}, #{r.denominator})"})
+			foo = []
+			(@mat.col_size-1).downto(0) do |c|
+				bar = []
+				(@mat.row_size-1).downto(0) do |s|
+					value = @mat.body[s][c]
+					bar << str(value, fmt)
+				end
+				buff = bar[0]
+				buff = "#{buff}*s+#{bar[1]}" if 1 < bar.length
+				2.upto(bar.length-1) do |i|
+					buff = "(#{buff})*s+#{bar[i]}"
+				end
+				foo << buff
+			end
+			ret = foo[0]
+			1.upto(foo.length-1) do |i|
+				ret = "(#{ret})*c+#{foo[i]}"
+			end
+			ret
 		end
 	end
 	class << TPolynomial
