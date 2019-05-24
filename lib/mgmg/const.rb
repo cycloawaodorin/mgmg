@@ -416,6 +416,39 @@ module Mgmg
 			end
 			ret
 		end
+		def smith_balance(other, order=-1)
+			o_org = order
+			order += @mat.col_size if order < 0
+			if order < 0 || @mat.col_size <= order || other.mat.col_size <= order then
+				raise ArgumentError, "given order #{o_org} is out of range [-max(#{@mat.col_size}, #{other.mat.col_size}), max(#{@mat.col_size}, #{other.mat.col_size})-1]"
+			end
+			a, b, c, d = @mat.body[1][order], @mat.body[0][order], other.mat.body[1][order], other.mat.body[0][order]
+			if a == c
+				return( b == d )
+			else
+				return( (d-b).quo(a-c) )
+			end
+		end
+		def smith_fix(smith, fmt=nil)
+			foo = []
+			(@mat.col_size-1).downto(0) do |c|
+				bar = 0
+				(@mat.row_size-1).downto(0) do |s|
+					bar += ( @mat.body[s][c] * (smith**s) )
+				end
+				bar = str(bar, fmt)
+				case c
+				when 0
+					# nothing to do
+				when 1
+					bar << 'C'
+				else
+					bar << "C^#{c}"
+				end
+				foo << bar
+			end
+			foo.join('+')
+		end
 	end
 	class << TPolynomial
 		ParamIndex = Hash.new
