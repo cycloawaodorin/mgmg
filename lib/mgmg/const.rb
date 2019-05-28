@@ -163,7 +163,7 @@ module Mgmg
 			end
 		end
 		def magmag
-			magdef()*2+magic
+			magdef()*2+magic()
 		end
 		def fpower
 			if @kind < 8
