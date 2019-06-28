@@ -21,15 +21,23 @@ module Mgmg
 				stack << build_sub(stack, m[2], s_level, c_level, lassoc)
 				build_sub(stack, "#{m[1]}<#{stack.length-1}>#{m[3]}", s_level, c_level, lassoc)
 			elsif m = ( lassoc ? /\A(.+)\+(.+?)\Z/ : /\A(.+?)\+(.+)\Z/ ).match(str)
-				compose(build_sub(stack, m[1], s_level, c_level, lassoc), build_sub(stack, m[2], s_level, c_level, lassoc), c_level)
+				if c_level < 0
+					compose(build_sub(stack, m[1], s_level, c_level, lassoc), build_sub(stack, m[2], s_level, c_level, lassoc), 0, true)
+				else
+					compose(build_sub(stack, m[1], s_level, c_level, lassoc), build_sub(stack, m[2], s_level, c_level, lassoc), c_level, false)
+				end
 			elsif m = /\A\<(\d+)\>\Z/.match(str)
 				stack[m[1].to_i]
 			else
-				smith(str, s_level)
+				if s_level < 0
+					smith(str, 0, true)
+				else
+					smith(str, s_level, false)
+				end
 			end
 		end
 		
-		def compose(main, sub, level)
+		def compose(main, sub, level, outsourcing)
 			main_k, sub_k = main.kind, sub.kind
 			main_s, sub_s = main.star, sub.star
 			main_main, sub_main = main.main, sub.main
@@ -54,10 +62,13 @@ module Mgmg
 			ele.e_mul!([75, level].min).e_div!( main_k==sub_k ? 200 : 100 )
 			ele.add!(main.element)
 			
-			new(main_k, main.weight+sub.weight, main_s+sub_s, main_sub, sub_main, para, ele)
+			ret = new(main_k, main.weight+sub.weight, main_s+sub_s, main_sub, sub_main, para, ele)
+			ret.total_cost.add!(main.total_cost).add!(sub.total_cost)
+			ret.total_cost[1] += ret.comp_cost(outsourcing)
+			ret
 		end
 		
-		def smith(str, level)
+		def smith(str, level, outsourcing)
 			unless m = /\A(.+)\((.+\d+),?(.+\d+)\)\Z/.match(str)
 				raise ArgumentError.new('given argument is unparsable')
 			end
@@ -81,7 +92,13 @@ module Mgmg
 			# 重量
 			weight = ( ( EquipWeight[kind] + SubWeight[sub_m] - level.div(2) ) * ( MainWeight[main_m] ) ).div(10000)
 			
-			new(kind, ( weight<1 ? 1 : weight ), (main_s+sub_s).div(2), main_mc, sub_mc, para, ele)
+			ret = new(kind, ( weight<1 ? 1 : weight ), (main_s+sub_s).div(2), main_mc, sub_mc, para, ele)
+			if kind < 8
+				ret.total_cost[0] = ret.smith_cost(outsourcing)
+			else
+				ret.total_cost[2] = ret.smith_cost(outsourcing)
+			end
+			ret
 		end
 		
 		def min_level(str, weight=1)
@@ -121,7 +138,7 @@ class String
 		pstr.sub!(/\.?0+\Z/, '')
 		puts "Building"
 		puts "  #{self}"
-		puts "with levels (#{smith}, #{comp}) yields (#{pstr})"
+		puts "with levels (#{smith}, #{comp}) yields (#{pstr}, #{builded.total_cost})"
 		puts "  #{builded}"
 	end
 end
