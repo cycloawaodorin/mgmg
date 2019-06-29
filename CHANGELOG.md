@@ -32,3 +32,8 @@ githubに登録．gem化し，rubygems.orgに登録．
 ## 1.0.9 2019/05/30
 丸めを無視した多項式近似(変数は製作レベル)を表す `Mgmg::TPolynomial`
 およびこれを生成するメソッド String#poly を追加．
+
+## 1.0.10 2019/06/29
+消費エレメント量を返す`Mgmg::Equip#total_cost`を追加．
+`Mgmg::Equip#inspect`の返り値にこれを含める．
+`String#build`等において，製作Lvを負の値にすると，街の製作屋に依頼した場合のコストを計算するように変更．

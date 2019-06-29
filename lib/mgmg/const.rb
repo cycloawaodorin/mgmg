@@ -87,8 +87,9 @@ module Mgmg
 		EqPosList = %w|武 頭 胴 腕 足 飾|
 		def initialize(kind, weight, star, main_m, sub_m, para, element)
 			@kind, @weight, @star, @main, @sub, @para, @element = kind, weight, star, main_m, sub_m, para, element
+			@total_cost = Vec[0, 0, 0]
 		end
-		attr_accessor :kind, :weight, :star, :main, :sub, :para, :element
+		attr_accessor :kind, :weight, :star, :main, :sub, :para, :element, :total_cost
 		def initialize_copy(other)
 			@kind = other.kind
 			@weight = other.weight
@@ -97,10 +98,11 @@ module Mgmg
 			@sub = other.sub
 			@para = other.para.dup
 			@element = other.element.dup
+			@total_cost = other.total_cost.dup
 		end
 		
-		def compose(other, level)
-			self.class.compose(self, other, level)
+		def compose(other, level, outsourcing=false)
+			self.class.compose(self, other, level, outsourcing)
 		end
 		
 		def to_s
@@ -119,11 +121,12 @@ module Mgmg
 		def inspect
 			par = @para.map.with_index{|e, i| "#{ParamList[i]}:#{e}"}
 			par << ( "EL:" + @element.map.with_index{|e, i| "#{ElementList[i]}#{e}"}.join('') )
+			tc = "<コスト:" + @total_cost.map.with_index{|e, i| "#{ElementList[i]}#{e}"}.join('') + '>'
 			if @kind == 28
 				ep = @star.map.with_index{|e, i| "#{EqPosList[i]}:#{e}"}
-				"複数装備#{@weight}(#{ep.join(', ')})[#{par.join(', ')}]"
+				"複数装備#{@weight}(#{ep.join(', ')})[#{par.join(', ')}]#{tc}"
 			else
-				"#{EquipName[@kind]}#{@weight}☆#{@star}(#{MaterialClass[@main]}#{MaterialClass[@sub]})[#{par.join(', ')}]"
+				"#{EquipName[@kind]}#{@weight}☆#{@star}(#{MaterialClass[@main]}#{MaterialClass[@sub]})[#{par.join(', ')}]#{tc}"
 			end
 		end
 		
@@ -173,15 +176,27 @@ module Mgmg
 			end
 		end
 		
-		def smith_cost
-			if @kind < 8
-				((@star**2)*2+@para.sum+hp().cdiv(4)-hp()+mp().cdiv(4)+mp()).div(2)
+		def smith_cost(outsourcing=false)
+			if outsourcing
+				if @kind < 8
+					(@star**2)*2+@para.sum+hp().cdiv(4)-hp()+mp().cdiv(4)+mp()
+				else
+					(@star**2)+@para.sum+hp().cdiv(4)-hp()+mp().cdiv(4)+mp()
+				end
 			else
-				((@star**2)+@para.sum+hp().cdiv(4)-hp()+mp().cdiv(4)+mp()).div(2)
+				if @kind < 8
+					((@star**2)*2+@para.sum+hp().cdiv(4)-hp()+mp().cdiv(4)+mp()).div(2)
+				else
+					((@star**2)+@para.sum+hp().cdiv(4)-hp()+mp().cdiv(4)+mp()).div(2)
+				end
 			end
 		end
-		def comp_cost
-			[((@star**2)*5+@para.sum+hp().cdiv(4)-hp()+mp().cdiv(4)+mp()).div(2), 0].max
+		def comp_cost(outsourcing=false)
+			if outsourcing
+				[(@star**2)*5+@para.sum+hp().cdiv(4)-hp()+mp().cdiv(4)+mp(), 0].max
+			else
+				[((@star**2)*5+@para.sum+hp().cdiv(4)-hp()+mp().cdiv(4)+mp()).div(2), 0].max
+			end
 		end
 		alias :cost :comp_cost
 		
@@ -207,6 +222,7 @@ module Mgmg
 			@sub = 12
 			@para.add!(other.para)
 			@element.add!(other.element)
+			@total_cost.add!(other.total_cost)
 			self
 		end
 		def +(other)
