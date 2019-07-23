@@ -4,8 +4,9 @@ require 'mgmg/const'
 module Mgmg
 	class << Equip
 		def build(str, s_level, c_level, left_associative: true)
+			str = Mgmg.check_string(str)
 			stack, str = build_sub0([], str)
-			build_sub(stack, str.gsub(/[\s　]/, ''), s_level, c_level, left_associative)
+			build_sub(stack, str, s_level, c_level, left_associative)
 		end
 		private def build_sub0(stack, str)
 			SystemEquip.each do |k, v|
@@ -69,6 +70,7 @@ module Mgmg
 		end
 		
 		def smith(str, level, outsourcing)
+			str = Mgmg.check_string(str)
 			unless m = /\A(.+)\((.+\d+),?(.+\d+)\)\Z/.match(str)
 				raise ArgumentError.new('given argument is unparsable')
 			end
@@ -102,6 +104,7 @@ module Mgmg
 		end
 		
 		def min_level(str, weight=1)
+			str = Mgmg.check_string(str)
 			unless m = /\A(.+)\((.+\d+),?(.+\d+)\)\Z/.match(str)
 				raise ArgumentError.new('given argument is unparsable')
 			end

@@ -508,9 +508,10 @@ module Mgmg
 			new(mat, main_k, main_s+sub_s, main_sub, sub_main)
 		end
 		def build(str, para, left_associative: true)
+			str = Mgmg.check_string(str)
 			para = ParamIndex[para]
 			stack, str = build_sub0([], str, para)
-			build_sub(stack, str.gsub(/[\s　]/, ''), para, left_associative)
+			build_sub(stack, str, para, left_associative)
 		end
 		private def build_sub0(stack, str, para)
 			SystemEquip.each do |k, v|
@@ -531,6 +532,56 @@ module Mgmg
 				smith(str, para)
 			end
 		end
+	end
+	class InvalidCharacterError < StandardError
+		def new(match)
+			@wchar = match[0]
+			super("`#{@wchar}' is not a valid character for recipes")
+		end
+		attr_accessor :wchar
+	end
+	class InvalidBracketError < StandardError; end
+	CharacterList = /[^\(\)\+0123456789\[\]あきくしすたてなねのびりるイウガクグサジスタダチツデトドニノフブペボムラリルロンヴー一万二光兜典刀剣劣匠双古名吹咆品哮地大天太子安宝小帽弓弩当息悪戦手指斧書服木本杖業樹歴殺水氷法火炎牙物玉王産用界異的皮盾短石砕竜紫綿耳聖脛腕腿般良色衣袋覇質軍軽輝輪重量金鉄鎧闇陽靴額飾首骨鬼龍]/
+	module_function def check_string(str)
+		if m = CharacterList.match(str)
+			raise InvalidCharacterError.new(m)
+		end
+		levels = [0, 0]
+		str.each_char do |c|
+			if c == '('
+				if levels[0] == 0
+					levels[0] = 1
+				else
+					raise InvalidBracketError.new("parentheses cannot be nested")
+				end
+			elsif c == ')'
+				if levels[0] == 0
+					raise InvalidBracketError.new("parentheses must be opened before closing")
+				else
+					levels[0] -= 1
+				end
+			elsif c == '['
+				if levels[0] != 0
+					raise InvalidBracketError.new("brackets cannot be nested in parentheses")
+				else
+					levels[1] += 1
+				end
+			elsif c == ']'
+				if levels[0] != 0
+					raise InvalidBracketError.new("parentheses must be closed before closing brackets")
+				elsif levels[1] == 0
+					raise InvalidBracketError.new("brackets must be opened before closing")
+				else
+					levels[1] -= 1
+				end
+			end
+		end
+		if levels[0] != 0
+			raise InvalidBracketError.new("parentheses must be closed")
+		elsif levels[1] != 0
+			raise InvalidBracketError.new("brackets must be closed")
+		end
+		str.gsub(/[\s　]/, '')
 	end
 	MaterialIndex = {
 		'鉄1':  0, '鉄2':  1, '鉄3':  2, '鉄4':  3, '鉄5':  4, '鉄6':  5, '鉄7':  6, '鉄8':  7, '鉄9':  8, '鉄10':  9,
