@@ -1,52 +1,51 @@
 # 更新履歴
 
 ## 1.0.0 2018/12/22
-初版．
+- 初版．
 
 ## 1.0.1 2018/12/23
-魔水の副重量が間違っていたバグを修正．
-`Mgmg::Equip#magmag`を追加．
+- 魔水の副重量が間違っていたバグを修正．
+- `Mgmg::Equip#magmag`を追加．
 
 ## 1.0.2 2018/12/23
-`Mgmg::Equip#+`を追加し，`Array#equip`を削除．
-`Enumerable#map(&:build).sum`的なことをする`Enumerable#build`を追加した．
+- `Mgmg::Equip#+`を追加し，`Array#equip`を削除．
+- `Enumerable#map(&:build).sum`的なことをする`Enumerable#build`を追加した．
 
 ## 1.0.3 2018/12/30
-`Integer`へのモンキーパッチを`Refinements`に置き換えた(外部から見えなくなった)．無駄に2倍にしていたエレメント値の主原料値を戻した．
+- `Integer`へのモンキーパッチを`Refinements`に置き換えた(外部から見えなくなった)．無駄に2倍にしていたエレメント値の主原料値を戻した．
 
 ## 1.0.4 2019/01/11
-`Mgmg::Equip#power`では数字が大きくなり，わかりにくくなるため，`Float`にして正規の威力値を返す`Mgmg::Equip#fpower`を追加した．
+- `Mgmg::Equip#power`では数字が大きくなり，わかりにくくなるため，`Float`にして正規の威力値を返す`Mgmg::Equip#fpower`を追加した．
 
 ## 1.0.5 2019/01/12
-HPの材質値を5倍にしてしまっていたバグを修正．
+- HPの材質値を5倍にしてしまっていたバグを修正．
 
 ## 1.0.6 2019/01/13
-消費エレメント計算において，WikiではHPのみ1/4倍となっていたところ，Excel版ではMPも1/4倍されていたため，MPも1/4倍となるように修正．
+- 消費エレメント計算において，WikiではHPのみ1/4倍となっていたところ，Excel版ではMPも1/4倍されていたため，MPも1/4倍となるように修正．
 
 ## 1.0.7 2019/02/26
-githubに登録．gem化し，rubygems.orgに登録．
+- githubに登録．gem化し，rubygems.orgに登録．
 
 ## 1.0.8 2019/03/15
-マニュアル等の不備を修正．
+- マニュアル等の不備を修正．
 
 ## 1.0.9 2019/05/30
-丸めを無視した多項式近似(変数は製作レベル)を表す `Mgmg::TPolynomial`
-およびこれを生成するメソッド String#poly を追加．
+- 丸めを無視した多項式近似(変数は製作レベル)を表す `Mgmg::TPolynomial`およびこれを生成するメソッド String#poly を追加．
 
 ## 1.0.10 2019/06/29
-消費エレメント量を返す`Mgmg::Equip#total_cost`を追加．
-`Mgmg::Equip#inspect`の返り値にこれを含める．
-`String#build`等において，製作Lvを負の値にすると，街の製作屋に依頼した場合のコストを計算するように変更．
+- 消費エレメント量を返す`Mgmg::Equip#total_cost`を追加．
+	- `Mgmg::Equip#inspect`の返り値にこれを含めるように変更．
+	- `String#build`等において，製作Lvを負の値にすると，街の製作屋に依頼した場合のコストを計算するように変更．
 
 ## 1.0.11 2019/06/29
-ローブの表記ゆれとして，法衣の入力を許容するように．
+- ローブの表記ゆれとして，法衣の入力を許容するように．
 
 ## 1.1.0 
-量産品の本と一般的な本の魔力が入れ替わっていたバグを修正．
-MPを持つ装備の消費エレメント量計算が間違っていたバグを修正．
-`Enumerable#build()`の引数が2個だけ入力された場合のレベル設定を，
-`comp=[smith,armor].max`から`comp=armor.tap{armor=smith}`に変更．
-魔防が最大の防具に対する`Mgmg::Equip#fpower`の返り値を実効魔防値に変更．
-複数装備に対する`Mgmg::Equip#fpower`の返り値を9パラ合計値(HPとMPは1/4倍)に変更．
-`Mgmg::Equip#power`の返り値も，その2倍または4倍の整数値に変更．
-その他，README.mdの細部を修正．
+- 量産品の本と一般的な本の魔力が入れ替わっていたバグを修正．
+- MPを持つ装備の消費エレメント量計算が間違っていたバグを修正．
+- `Enumerable#build()`の引数が2個だけ入力された場合のレベル設定を，`comp=[smith,armor].max`から`comp=armor.tap{armor=smith}`に変更．
+- `Mgmg::Equip#fpower`および`Mgmg::Equip#power`の仕様を変更．
+	- 魔防が最大の防具に対する`Mgmg::Equip#fpower`の返り値を実効魔防値に変更．
+	- 複数装備に対する`Mgmg::Equip#fpower`の返り値を9パラ合計値(HPとMPは1/4倍)に変更．
+	- `Mgmg::Equip#power`の返り値も，その2倍または4倍の整数値に変更．
+- その他，README.md，CHANGELOG.mdの細部を修正．
