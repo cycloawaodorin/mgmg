@@ -40,3 +40,13 @@ githubに登録．gem化し，rubygems.orgに登録．
 
 ## 1.0.11 2019/06/29
 ローブの表記ゆれとして，法衣の入力を許容するように．
+
+## 1.1.0 
+量産品の本と一般的な本の魔力が入れ替わっていたバグを修正．
+MPを持つ装備の消費エレメント量計算が間違っていたバグを修正．
+`Enumerable#build()`の引数が2個だけ入力された場合のレベル設定を，
+`comp=[smith,armor].max`から`comp=armor.tap{armor=smith}`に変更．
+魔防が最大の防具に対する`Mgmg::Equip#fpower`の返り値を実効魔防値に変更．
+複数装備に対する`Mgmg::Equip#fpower`の返り値を9パラ合計値(HPとMPは1/4倍)に変更．
+`Mgmg::Equip#power`の返り値も，その2倍または4倍の整数値に変更．
+その他，README.mdの細部を修正．

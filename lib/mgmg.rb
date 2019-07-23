@@ -143,7 +143,7 @@ class String
 	end
 end
 module Enumerable
-	def build(smith, armor=smith, comp=[smith, armor].max, left_associative: true)
+	def build(smith, armor=smith, comp=armor.tap{armor=smith}, left_associative: true)
 		self.map do |str|
 			m = /\A\[*([^\+]+)/.match(str)
 			if Mgmg::EquipPosition[m[1].build(0).kind] == 0

@@ -161,41 +161,48 @@ module Mgmg
 				dex_as()*2
 			when 6, 7
 				[magic()*8, atkstr()*4].max
+			when 28
+				(@para.sum*4)-((hp()+mp())*3)
 			else
-				@para.max
+				ret = @para.max
+				if ret == magdef()
+					ret*2+magic()
+				else
+					ret*2
+				end
 			end
 		end
 		def magmag
 			magdef()*2+magic()
 		end
 		def fpower
-			if @kind < 8
+			if @kind < 8 || @kind == 28
 				power().fdiv(4)
 			else
-				power()
+				power().fdiv(2)
 			end
 		end
 		
 		def smith_cost(outsourcing=false)
 			if outsourcing
 				if @kind < 8
-					(@star**2)*2+@para.sum+hp().cdiv(4)-hp()+mp().cdiv(4)+mp()
+					(@star**2)*2+@para.sum+hp().cdiv(4)-hp()+mp().cdiv(4)-mp()
 				else
-					(@star**2)+@para.sum+hp().cdiv(4)-hp()+mp().cdiv(4)+mp()
+					(@star**2)+@para.sum+hp().cdiv(4)-hp()+mp().cdiv(4)-mp()
 				end
 			else
 				if @kind < 8
-					((@star**2)*2+@para.sum+hp().cdiv(4)-hp()+mp().cdiv(4)+mp()).div(2)
+					((@star**2)*2+@para.sum+hp().cdiv(4)-hp()+mp().cdiv(4)-mp()).div(2)
 				else
-					((@star**2)+@para.sum+hp().cdiv(4)-hp()+mp().cdiv(4)+mp()).div(2)
+					((@star**2)+@para.sum+hp().cdiv(4)-hp()+mp().cdiv(4)-mp()).div(2)
 				end
 			end
 		end
 		def comp_cost(outsourcing=false)
 			if outsourcing
-				[(@star**2)*5+@para.sum+hp().cdiv(4)-hp()+mp().cdiv(4)+mp(), 0].max
+				[(@star**2)*5+@para.sum+hp().cdiv(4)-hp()+mp().cdiv(4)-mp(), 0].max
 			else
-				[((@star**2)*5+@para.sum+hp().cdiv(4)-hp()+mp().cdiv(4)+mp()).div(2), 0].max
+				[((@star**2)*5+@para.sum+hp().cdiv(4)-hp()+mp().cdiv(4)-mp()).div(2), 0].max
 			end
 		end
 		alias :cost :comp_cost
