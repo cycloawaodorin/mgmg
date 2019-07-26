@@ -534,13 +534,34 @@ module Mgmg
 		end
 	end
 	class InvalidCharacterError < StandardError
-		def new(match)
+		def initialize(match)
 			@wchar = match[0]
 			super("`#{@wchar}' is not a valid character for recipes")
 		end
 		attr_accessor :wchar
 	end
 	class InvalidBracketError < StandardError; end
+	class InvalidSmithError < StandardError
+		def initialize(str)
+			@recipe = str
+			super("`#{@recipe}' is not a valid recipe for smithing")
+		end
+		attr_accessor :recipe
+	end
+	class InvalidMaterialError < StandardError
+		def initialize(str)
+			@material = str
+			super("`#{@material}' is not a valid material name")
+		end
+		attr_accessor :material
+	end
+	class InvalidEquipClassError < StandardError
+		def initialize(str)
+			@equip = str
+			super("`#{@equip}' is not a valid equip class name")
+		end
+		attr_accessor :equip
+	end
 	CharacterList = /[^\(\)\+0123456789\[\]あきくしすたてなねのびりるイウガクグサジスタダチツデトドニノフブペボムラリルロンヴー一万二光兜典刀剣劣匠双古名吹咆品哮地大天太子安宝小帽弓弩当息悪戦手指斧書服木本杖業樹歴殺水氷法火炎牙物玉王産用界異的皮盾短石砕竜紫綿耳聖脛腕腿般良色衣袋覇質軍軽輝輪重量金鉄鎧闇陽靴額飾首骨鬼龍]/
 	module_function def check_string(str)
 		if m = CharacterList.match(str)

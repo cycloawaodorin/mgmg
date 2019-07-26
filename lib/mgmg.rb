@@ -72,9 +72,12 @@ module Mgmg
 		def smith(str, level, outsourcing)
 			str = Mgmg.check_string(str)
 			unless m = /\A(.+)\((.+\d+),?(.+\d+)\)\Z/.match(str)
-				raise ArgumentError.new('given argument is unparsable')
+				raise InvalidSmithError.new(str)
 			end
 			kind = EquipIndex[m[1].to_sym]
+			unless kind
+				raise InvalidEquipClassError.new(m[1])
+			end
 			main_m, main_s, main_mc = parse_material(m[2])
 			sub_m, sub_s, sub_mc = parse_material(m[3])
 			para = Vec.new(9, 0)
@@ -106,7 +109,7 @@ module Mgmg
 		def min_level(str, weight=1)
 			str = Mgmg.check_string(str)
 			unless m = /\A(.+)\((.+\d+),?(.+\d+)\)\Z/.match(str)
-				raise ArgumentError.new('given argument is unparsable')
+				raise InvalidSmithError.new(str)
 			end
 			kind = EquipIndex[m[1].to_sym]
 			main_m, main_s, = parse_material(m[2])
@@ -120,6 +123,9 @@ module Mgmg
 		private def parse_material(str)
 			m = /\A.+?(\d+)\Z/.match(str)
 			mat = MaterialIndex[str.to_sym]
+			if m.nil? || mat.nil?
+				raise InvalidMaterialError.new(str)
+			end
 			[mat, m[1].to_i, mat<90 ? mat.div(10): 9]
 		end
 	end
