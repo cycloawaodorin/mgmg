@@ -490,7 +490,7 @@ module Mgmg
 			self.class.new(mat, 28, 0, 12, 12)
 		end
 		def -(other)
-			mat = @mat.padd(-other.mat)
+			mat = @mat.padd(other.mat.scalar(-1))
 			self.class.new(mat, 28, 0, 12, 12)
 		end
 		def scalar(val)
