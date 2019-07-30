@@ -206,6 +206,18 @@ puts '小竜咆哮'.build(-1)
 ### `Mgmg::TPolynomial#smith_fix(smith, fmt=nil)`
 鍛冶・防具製作Lvを`smith`で固定し，道具製作Lvのみを変数とする多項式として，`to_s(fmt)`したような文字列を返します．
 
+### `Mgmg::TPolynomial#scalar(value)`
+多項式として`value`倍した式を返します．
+alias として`*`があるほか`scalar(1.quo(value))`として`quo`，`/`，`scalar(1)`として`+@`，`scalar(-1)`として`-@`が定義されています．
+
+### `Mgmg::TPolynomial#+(other)`, `Mgmg::TPolynomial#-(other)`
+多項式として`self+other`または`self-other`を計算し，結果を返します．
+`other`は`Mgmg::TPolynomial`であることが想定されており，スカラー値は使えません．
+
+### `Mgmg::TPolynomial#partial_derivative(variable)`
+多項式として偏微分し，その微分係数を返します．
+`variable`はどの変数で偏微分するかを指定するもので，`"s"`なら鍛冶・防具製作Lv，`"c"`なら道具製作Lvで偏微分します．
+
 ## 謝辞
 面白いゲームを作ってくださった耕様および，高精度なシミュレータを作製し，本ライブラリの作製を可能とした，Excel版装備計算機の作者様に感謝いたします．
 

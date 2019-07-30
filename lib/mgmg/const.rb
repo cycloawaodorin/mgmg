@@ -318,10 +318,13 @@ module Mgmg
 				i < 0 ? max-i : i
 			end
 		end
-		def scalar(value)
-			dup.map_with_index! do |e, i, j|
+		def scalar!(value)
+			self.map_with_index! do |e, i, j|
 				e * value
 			end
+		end
+		def scalar(value)
+			self.dup.scalar!(value)
 		end
 		def sum
 			@body.map(&:sum).sum
@@ -357,6 +360,9 @@ module Mgmg
 			@mat, @kind, @star, @main, @sub = mat, kind, star, main_m, sub_m
 		end
 		attr_accessor :mat, :kind, :star, :main, :sub
+		def initialize_copy(obj)
+			@mat, @kind, @star, @main, @sub = obj.mat.dup, obj.kind, obj.star, obj.main, obj.sub
+		end
 		def evaluate(smith, comp=smith)
 			@mat.map_with_index do |e, i, j|
 				e * (smith**i) * (comp**j)
@@ -471,6 +477,58 @@ module Mgmg
 				foo << bar
 			end
 			foo.join('+')
+		end
+		
+		alias :+@ :dup
+		def -@
+			ret = self.dup
+			ret.mat.scalar!(-1)
+			ret
+		end
+		def +(other)
+			mat = @mat.padd(other.mat)
+			self.class.new(mat, 28, 0, 12, 12)
+		end
+		def -(other)
+			mat = @mat.padd(-other.mat)
+			self.class.new(mat, 28, 0, 12, 12)
+		end
+		def scalar(val)
+			ret = self.dup
+			ret.mat.scalar!(val)
+			ret
+		end
+		alias :* :scalar
+		def quo(val)
+			ret = self.dup
+			ret.mat.scalar!(1.quo(val))
+			ret
+		end
+		alias :/ :quo
+		
+		def partial_derivative(variable)
+			case variable.to_s
+			when /\Ac/i
+				if @mat.col_size <= 1
+					self.class.new(Mat.new(1, 1, 0), 28, 0, 12, 12)
+				else
+					mat = Mat.new(@mat.row_size, @mat.col_size-1) do |i, j|
+						@mat.body[i][j+1] * (j+1)
+					end
+					self.class.new(mat, 28, 0, 12, 12)
+				end
+			when /\As/i
+				if @mat.row_size <= 1
+					self.class.new(Mat.new(1, 1, 0), 28, 0, 12, 12)
+				else
+					mat = Mat.new(@mat.row_size-1, @mat.col_size) do |i, j|
+						@mat.body[i+1][j] * (i+1)
+					end
+					self.class.new(mat, 28, 0, 12, 12)
+				end
+			else
+				raise ArgumentError, "the argument must be `s' or `c', not `#{variable}'"
+			end
 		end
 	end
 	class << TPolynomial

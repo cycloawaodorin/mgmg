@@ -139,7 +139,20 @@ class String
 		Mgmg::Equip.build(self, smith, comp, left_associative: left_associative)
 	end
 	def poly(para, left_associative: true)
-		Mgmg::TPolynomial.build(self, para, left_associative: left_associative)
+		case para
+		when :atkstr
+			self.poly(:attack) + self.poly(:str)
+		when :atk_sd
+			self.poly(:attack) + self.poly(:str).quo(2) + self.poly(:dex).quo(2)
+		when :dex_as
+			self.poly(:dex) + self.poly(:attack).quo(2) + self.poly(:str).quo(2)
+		when :mag_das
+			self.poly(:magic) + self.poly(:dex_as).quo(2)
+		when :magmag
+			self.poly(:magdef) + self.poly(:magic).quo(2)
+		else
+			Mgmg::TPolynomial.build(self, para, left_associative: left_associative)
+		end
 	end
 	def show(smith, comp=smith, left_associative: true)
 		builded = self.build(smith, comp, left_associative: left_associative)
