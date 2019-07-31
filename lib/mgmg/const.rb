@@ -543,7 +543,7 @@ module Mgmg
 		end
 		def smith(str, para)
 			unless m = /\A(.+)\((.+\d+),?(.+\d+)\)\Z/.match(str)
-				raise ArgumentError.new('given argument is unparsable')
+				raise ArgumentError.new("given string `#{str}' is unparsable as a smithing recipe")
 			end
 			kind = EquipIndex[m[1].to_sym]
 			main_m, main_s, main_mc = Equip.__send__(:parse_material, m[2])
@@ -567,9 +567,12 @@ module Mgmg
 		end
 		def build(str, para, left_associative: true)
 			str = Mgmg.check_string(str)
-			para = ParamIndex[para]
-			stack, str = build_sub0([], str, para)
-			build_sub(stack, str, para, left_associative)
+			_para = ParamIndex[para]
+			if _para.nil?
+				raise ArgumentError, "unknown parameter symbol `#{para.inspect}' given"
+			end
+			stack, str = build_sub0([], str, _para)
+			build_sub(stack, str, _para, left_associative)
 		end
 		private def build_sub0(stack, str, para)
 			SystemEquip.each do |k, v|
