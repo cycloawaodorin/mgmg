@@ -625,6 +625,7 @@ module Mgmg
 	end
 	CharacterList = /[^\(\)\+0123456789\[\]あきくしすたてなねのびりるイウガクグサジスタダチツデトドニノフブペボムラリルロンヴー一万二光兜典刀剣劣匠双古名吹咆品哮地大天太子安宝小帽弓弩当息悪戦手指斧書服木本杖業樹歴殺水氷法火炎牙物玉王産用界異的皮盾短石砕竜紫綿耳聖脛腕腿般良色衣袋覇質軍軽輝輪重量金鉄鎧闇陽靴額飾首骨鬼龍]/
 	module_function def check_string(str)
+		str = str.gsub(/[\s　\\]/, '')
 		if m = CharacterList.match(str)
 			raise InvalidCharacterError.new(m)
 		end
@@ -663,7 +664,7 @@ module Mgmg
 		elsif levels[1] != 0
 			raise InvalidBracketError.new("brackets must be closed")
 		end
-		str.gsub(/[\s　]/, '')
+		str
 	end
 	MaterialIndex = {
 		'鉄1':  0, '鉄2':  1, '鉄3':  2, '鉄4':  3, '鉄5':  4, '鉄6':  5, '鉄7':  6, '鉄8':  7, '鉄9':  8, '鉄10':  9,
