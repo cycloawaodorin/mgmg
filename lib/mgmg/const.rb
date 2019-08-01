@@ -550,8 +550,8 @@ module Mgmg
 			sub_m, sub_s, sub_mc = Equip.__send__(:parse_material, m[3])
 			para = ParamIndex[para]
 			
-			c = ( Equip9[kind][para] * Main9[main_m][para] ).quo( main_mc==sub_mc ? 20000 : 10000 )
-			new(Mat.v_array(c*Sub9[sub_m][para], c), kind, (main_s+sub_s).div(2), main_mc, sub_mc)
+			c = ( Equip9[kink][para] * Main9[main_m][para] ).cdiv(100)
+			new(Mat.v_array(c*Sub9[sub_m][para], c).scalar!(1.quo( main_mc==sub_mc ? 200 : 100 )), kind, (main_s+sub_s).div(2), main_mc, sub_mc)
 		end
 		def compose(main, sub, para)
 			main_k, sub_k = main.kind, sub.kind
