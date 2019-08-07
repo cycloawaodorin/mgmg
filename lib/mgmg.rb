@@ -151,8 +151,11 @@ class String
 		when :magmag
 			self.poly(:magdef) + self.poly(:magic).quo(2)
 		when :cost
+			if SystemEquip.keys.include?(self)
+				return Mgmg::TPolynomial.new(Mgmg::Mat.new(1, 1, 0.quo(1)), 28, 0, 12, 12)
+			end
 			built = self.build(-1)
-			const = (built.star**2) * ( built.kind < 8 ? 2 : 1 )
+			const = (built.star**2) * ( /\+/.match(self) ? 5 : ( built.kind < 8 ? 2 : 1 ) )
 			ret = poly(:attack) + poly(:phydef) + poly(:magdef)
 			ret += poly(:hp).quo(4) + poly(:mp).quo(4)
 			ret += poly(:str) + poly(:dex) + poly(:speed) + poly(:magic)
@@ -163,8 +166,8 @@ class String
 		end
 	end
 	def show(smith, comp=smith, left_associative: true)
-		builded = self.build(smith, comp, left_associative: left_associative)
-		pstr = '%.3f' % builded.fpower
+		built = self.build(smith, comp, left_associative: left_associative)
+		pstr = '%.3f' % built.fpower
 		pstr.sub!(/\.?0+\Z/, '')
 		puts "Building"
 		puts "  #{self}"

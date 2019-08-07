@@ -403,7 +403,7 @@ module Mgmg
 				end
 				foo << bar
 			end
-			foo.join('+')
+			foo.join('+').tap{|r| break str(0.quo(1), fmt) if r==''}
 		end
 		private def str(value, fmt)
 			ret = case fmt
@@ -550,8 +550,8 @@ module Mgmg
 			sub_m, sub_s, sub_mc = Equip.__send__(:parse_material, m[3])
 			para = ParamIndex[para]
 			
-			c = ( Equip9[kind][para] * Main9[main_m][para] ).cdiv(100)
-			new(Mat.v_array(c*Sub9[sub_m][para], c).scalar!(1.quo( main_mc==sub_mc ? 200 : 100 )), kind, (main_s+sub_s).div(2), main_mc, sub_mc)
+			c = ( Equip9[kind][para] * Main9[main_m][para] ).cdiv(100).quo( main_mc==sub_mc ? 200 : 100 )
+			new(Mat.v_array(c*Sub9[sub_m][para], c), kind, (main_s+sub_s).div(2), main_mc, sub_mc)
 		end
 		def compose(main, sub, para)
 			main_k, sub_k = main.kind, sub.kind
@@ -560,8 +560,12 @@ module Mgmg
 			main_sub, sub_sub = main.sub, sub.sub
 			para = ParamIndex[para]
 			
-			c = ( 100 + Equip9[main_k][para] - Equip9[sub_k][para] + Material9[main_main][para] - Material9[sub_main][para] +
-				(main_s-sub_s)*5 - ( ( main_main==sub_main && main_main != 9 ) ? 30 : 0 ) ).quo( main_k==sub_k ? 40000 : 20000 )
+			if Equip9[main_k][para] == 0
+				c = 0.quo(1)
+			else
+				c = ( 100 + Equip9[main_k][para] - Equip9[sub_k][para] + Material9[main_main][para] - Material9[sub_main][para] +
+					(main_s-sub_s)*5 - ( ( main_main==sub_main && main_main != 9 ) ? 30 : 0 ) ).quo( main_k==sub_k ? 40000 : 20000 )
+			end
 			mat = main.mat.padd(sub.mat.pprod(Mat.h_array(c*Equip9[main_k][para], c)))
 			new(mat, main_k, main_s+sub_s, main_sub, sub_main)
 		end
