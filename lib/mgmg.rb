@@ -151,7 +151,7 @@ class String
 		when :magmag
 			self.poly(:magdef) + self.poly(:magic).quo(2)
 		when :cost
-			if SystemEquip.keys.include?(self)
+			if Mgmg::SystemEquip.keys.include?(self)
 				return Mgmg::TPolynomial.new(Mgmg::Mat.new(1, 1, 0.quo(1)), 28, 0, 12, 12)
 			end
 			built = self.build(-1)
