@@ -150,6 +150,14 @@ class String
 			self.poly(:magic) + self.poly(:dex_as).quo(2)
 		when :magmag
 			self.poly(:magdef) + self.poly(:magic).quo(2)
+		when :cost
+			built = self.build(-1)
+			const = (built.star**2) * ( built.kind < 8 ? 2 : 1 )
+			ret = poly(:attack) + poly(:phydef) + poly(:magdef)
+			ret += poly(:hp).quo(4) + poly(:mp).quo(4)
+			ret += poly(:str) + poly(:dex) + poly(:speed) + poly(:magic)
+			ret.mat.body[0][0] += const
+			ret
 		else
 			Mgmg::TPolynomial.build(self, para, left_associative: left_associative)
 		end
