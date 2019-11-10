@@ -230,4 +230,4 @@ alias として`*`があるほか`scalar(1.quo(value))`として`quo`，`/`，`s
 面白いゲームを作ってくださった耕様および，高精度なシミュレータを作製し，本ライブラリの作製を可能とした，Excel版装備計算機の作者様に感謝いたします．
 
 ## Contributing
-バグ報告等は https://github.com/cycloawaodorin/mgmg にて．
+バグ報告等は https://github.com/cycloawaodorin/mgmg/issues にて．
