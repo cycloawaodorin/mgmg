@@ -171,8 +171,8 @@ class String
 		pstr.sub!(/\.?0+\Z/, '')
 		puts "Building"
 		puts "  #{self}"
-		puts "with levels (#{smith}, #{comp}) yields (#{pstr}, #{builded.total_cost})"
-		puts "  #{builded}"
+		puts "with levels (#{smith}, #{comp}) yields (#{pstr}, #{built.total_cost})"
+		puts "  #{built}"
 	end
 end
 module Enumerable
