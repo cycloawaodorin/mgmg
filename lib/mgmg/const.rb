@@ -88,8 +88,9 @@ module Mgmg
 		def initialize(kind, weight, star, main_m, sub_m, para, element)
 			@kind, @weight, @star, @main, @sub, @para, @element = kind, weight, star, main_m, sub_m, para, element
 			@total_cost = Vec[0, 0, 0]
+			@history, @min_levels = [self], Hash.new
 		end
-		attr_accessor :kind, :weight, :star, :main, :sub, :para, :element, :total_cost
+		attr_accessor :kind, :weight, :star, :main, :sub, :para, :element, :total_cost, :history, :min_levels
 		def initialize_copy(other)
 			@kind = other.kind
 			@weight = other.weight
@@ -99,6 +100,8 @@ module Mgmg
 			@para = other.para.dup
 			@element = other.element.dup
 			@total_cost = other.total_cost.dup
+			@history = other.history.dup
+			@min_levels = other.min_levels.dup
 		end
 		
 		def compose(other, level, outsourcing=false)
@@ -127,6 +130,26 @@ module Mgmg
 				"複数装備#{@weight}(#{ep.join(', ')})[#{par.join(', ')}]#{tc}"
 			else
 				"#{EquipName[@kind]}#{@weight}☆#{@star}(#{MaterialClass[@main]}#{MaterialClass[@sub]})[#{par.join(', ')}]#{tc}"
+			end
+		end
+		
+		def min_level
+			if @kind == 28
+				ret = [0, 0]
+				@min_levels.each do |str, ml|
+					if str.build(-1).kind < 8
+						if ret[0] < ml
+							ret[0] = ml
+						end
+					else
+						if ret[1] < ml
+							ret[1] = ml
+						end
+					end
+				end
+				ret
+			else
+				@min_levels.values.max
 			end
 		end
 		
@@ -210,7 +233,7 @@ module Mgmg
 		def add!(other)
 			if @kind == 28
 				if other.kind == 28
-					@star.add(other.star)
+					@star.add!(other.star)
 				else
 					@star[EquipPosition[other.kind]] += 1
 				end
@@ -230,6 +253,8 @@ module Mgmg
 			@para.add!(other.para)
 			@element.add!(other.element)
 			@total_cost.add!(other.total_cost)
+			@history.concat(other.history)
+			@min_levels.merge!(other.min_levels)
 			self
 		end
 		def +(other)
@@ -237,7 +262,9 @@ module Mgmg
 		end
 		def coerce(other)
 			if other == 0
-				[self.class.new(28, 0, Vec.new(6, 0), 12, 12, Vec.new(9, 0), Vec.new(3, 0)), self]
+				zero = self.class.new(28, 0, Vec.new(6, 0), 12, 12, Vec.new(9, 0), Vec.new(3, 0))
+				zero.history.clear
+				[zero, self]
 			else
 				raise TypeError, "Mgmg::Equip can't be coerced into other than 0"
 			end

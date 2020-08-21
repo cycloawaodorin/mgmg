@@ -66,6 +66,8 @@ module Mgmg
 			ret = new(main_k, main.weight+sub.weight, main_s+sub_s, main_sub, sub_main, para, ele)
 			ret.total_cost.add!(main.total_cost).add!(sub.total_cost)
 			ret.total_cost[1] += ret.comp_cost(outsourcing)
+			ret.min_levels.merge!(main.min_levels, sub.min_levels)
+			ret.history = [*main.history, *sub.history, ret]
 			ret
 		end
 		
@@ -103,6 +105,7 @@ module Mgmg
 			else
 				ret.total_cost[2] = ret.smith_cost(outsourcing)
 			end
+			ret.min_levels.store(str, str.min_level)
 			ret
 		end
 		
