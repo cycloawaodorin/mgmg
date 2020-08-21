@@ -39,11 +39,19 @@ puts %w|本(金3骨1)+[弓(骨1綿1)+[杖(金3金3)+[弓(綿1綿1)+[杖(宝10金
 #=> 複数装備9(武:1, 頭:1, 飾:2)[攻撃:15, 物防:34, 魔防:28, HP:241, MP:71, 器用:223, 素早:222, 魔力:6,604]
 ```
 
-重量1または2で作るのに必要な防具製作Lvを確認する．
+重量1または2で作るのに必要な防具製作Lvを確認．
 
 ```ruby
 p ['重鎧(皮10金10)'.min_level, '重鎧(皮10金10)'.min_level(2)]
 #=> [162, 42]
+```
+
+合成レシピから必要製作Lvを確認．
+```ruby
+puts '[杖(水玉10火玉5)+本(骨10鉄1)]+[本(水玉5綿2)+杖(骨10鉄1)]'.build.min_levels
+#=> {"杖(水玉10火玉5)"=>92, "本(骨10鉄1)"=>48, "本(水玉5綿2)"=>12, "杖(骨10鉄1)"=>28}
+puts '[杖(水玉10火玉5)+本(骨10鉄1)]+[本(水玉5綿2)+杖(骨10鉄1)]'.build.min_level
+#=> 92
 ```
 
 近似多項式を得る．
@@ -56,7 +64,7 @@ puts '[斧(牙10金10)+剣(鉄10皮1)]+剣(鉄10皮1)'.poly(:attack).to_s('%.4g'
 既成品の性能を確認．
 
 ```ruby
-puts '小竜咆哮'.build(-1)
+puts '小竜咆哮'.build
 #=> 弓1☆10(木骨)[攻撃:50, 器用:120, 素早:50]
 ```
 
@@ -78,7 +86,7 @@ puts '小竜咆哮'.build(-1)
 ## リファレンス
 本ライブラリで定義される主要なメソッドを以下に解説します．
 
-### `String#build(smith, comp=smith, left_associative: true)`
+### `String#build(smith=-1, comp=smith, left_associative: true)`
 レシピ文字列である`self`を解釈し，鍛冶・防具製作Lvを`smith`，道具製作Lvを`comp`として鍛冶・防具製作及び武器・防具合成を行った結果を後述の`Mgmg::Equip`クラスのインスタンスとして生成し，返します．例えば，
 ```ruby
 '[杖(水玉10火玉5)+本(骨10鉄1)]+[本(水玉5綿2)+杖(骨10鉄1)]'.build(112, 176)
@@ -92,12 +100,13 @@ puts '小竜咆哮'.build(-1)
 `self`が解釈不能な場合，例外が発生します．また，製作Lvや完成品の☆制限のチェックを行っていないほか，本ライブラリでは`武器+防具`や`防具+武器`の合成も可能になっています．街の鍛冶・防具製作・道具製作屋に任せた場合をシミュレートする場合は製作Lvを負の値(`-1`など，負であれば何でもよい)にします(製作Lv0相当の性能を計算し，消費エレメント量は委託仕様となります)．
 
 ### `String#min_level(weight=1)`
-`self`を`weight`以下で作るための最低製作Lvを返します．`build`と異なり，合成や既成品は解釈できません．また，素材の☆による最低製作Lvとのmaxを返すため，街の鍛冶・防具製作屋に頼んだ場合の重量は`self.build(-1).weight`で確認する必要があります．`weight`を省略した場合，重量1となる製作Lvを返します．
+`self`を`weight`以下で作るための最低製作Lvを返します．`build`と異なり，合成や既成品は解釈できません．また，素材の☆による最低製作Lvとのmaxを返すため，街の鍛冶・防具製作屋に頼んだ場合の重量は`self.build.weight`で確認する必要があります．`weight`を省略した場合，重量1となる製作Lvを返します．
+合成レシピの場合，`self.build.min_level`として，`Mgmg::Equip#min_level`を利用できますが，この場合`weight`は指定できません．
 
-### `Enumerable#build(smith, armor=smith, comp=armor.tap{armor=smith}, left_associative: true)`
+### `Enumerable#build(smith=-1, armor=smith, comp=armor.tap{armor=smith}, left_associative: true)`
 複数のレシピ文字列からなる`self`の各要素を製作し，そのすべてを装備したときの`Mgmg::Equip`を返します．製作では`鍛冶Lv=smith`, `防具製作Lv=armor`, `道具製作Lv=comp`とします．1つしか指定しなければすべてそのLv，2つなら1つ目を`smith=armor`，2つ目を`comp`に，3つならそれぞれの値とします．`left_associative`はそのまま`String#build`に渡されます．製作Lvが負の場合，製作Lv0として計算した上で，消費エレメント量は街の製作屋に頼んだ場合の値を計算します．武器複数など，同時装備が不可能な場合でも，特にチェックはされません．
 
-### `String#poly(para, left_associative: true)`
+### `String#poly(para=:cost, left_associative: true)`
 レシピ文字列である`self`を解釈し，`para`で指定した9パラ値について，丸めを無視した鍛冶・防具製作Lvと道具製作Lvの2変数からなる多項式関数を示す`Mgmg::TPolynomial`クラスのインスタンスを生成し，返します．`para`は次のシンボルのいずれかを指定します．
 ```ruby
 :attack, :phydef, :magdef, :hp, :mp, :str, :dex, :speed, :magic

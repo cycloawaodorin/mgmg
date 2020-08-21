@@ -9,7 +9,7 @@ class String
 	def min_level(w=1)
 		Mgmg::Equip.min_level(self, w)
 	end
-	def build(smith, comp=smith, left_associative: true)
+	def build(smith=-1, comp=smith, left_associative: true)
 		Mgmg::Equip.build(self, smith, comp, left_associative: left_associative)
 	end
 	def poly(para, left_associative: true)
@@ -39,7 +39,7 @@ class String
 			Mgmg::TPolynomial.build(self, para, left_associative: left_associative)
 		end
 	end
-	def show(smith, comp=smith, left_associative: true)
+	def show(smith=-1, comp=smith, left_associative: true)
 		built = self.build(smith, comp, left_associative: left_associative)
 		pstr = '%.3f' % built.fpower
 		pstr.sub!(/\.?0+\Z/, '')
@@ -50,7 +50,7 @@ class String
 	end
 end
 module Enumerable
-	def build(smith, armor=smith, comp=armor.tap{armor=smith}, left_associative: true)
+	def build(smith=-1, armor=smith, comp=armor.tap{armor=smith}, left_associative: true)
 		self.map do |str|
 			m = /\A\[*([^\+]+)/.match(str)
 			if Mgmg::EquipPosition[m[1].build(0).kind] == 0
