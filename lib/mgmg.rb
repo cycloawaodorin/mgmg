@@ -1,5 +1,5 @@
-require "mgmg/version"
-require 'mgmg/const'
+require_relative "./mgmg/version"
+require_relative './mgmg/const'
 
 module Mgmg
 	class << Equip

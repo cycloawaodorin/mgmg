@@ -530,6 +530,18 @@ module Mgmg
 				raise ArgumentError, "the argument must be `s' or `c', not `#{variable}'"
 			end
 		end
+		
+		def [](i, j)
+			if (i < 0 && @mat.body.size < -i) || (j < 0 && @mat.body[0].size < -j)
+				raise IndexError, "(#{i}, #{j}) is out of (#{@mat.body.size}, #{@mat.body[0].size})"
+			end
+			begin
+				ret = @mat.body[i][j]
+			rescue NoMethodError
+				return 0
+			end
+			ret.nil? ? 0 : ret
+		end
 	end
 	class << TPolynomial
 		ParamIndex = Hash.new
