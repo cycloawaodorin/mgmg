@@ -68,7 +68,7 @@ module Mgmg
 				end
 				ret
 			else
-				@min_levels.values.max
+				@min_levels.values.append(0).max
 			end
 		end
 		
