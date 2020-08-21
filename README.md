@@ -137,6 +137,7 @@ puts '小竜咆哮'.build(-1)
 
 ### `Mgmg::Equip#total_cost`
 製作に必要な総エレメント量を，火，地，水の順のベクトルとして返します．ケージの十分性の確認には，下記の`comp_cost`を用います．
+ver2.00β12以降では，合成時の消費エレメントが，武器なら火，防具なら水エレメントと半々の消費に変更されていますが，現在，この変更には対応していません．
 
 ### `Mgmg::Equip#attack, phydef, magdef, hp, mp, str, dex, speed, magic, fire, earth, water`
 それぞれ
@@ -183,6 +184,7 @@ puts '小竜咆哮'.build(-1)
 
 ### `Mgmg::Equip#comp_cost(outsourcing=false)`
 `self`が合成によって作られたものだとした場合の消費地エレメント量を返します．地ケージ確保のための確認用途が多いと思うので短い`cost`をエイリアスとしています．`outsourcing`が真の場合，街の道具製作屋に頼んだ場合のコストを返します．
+ver2.00β12以降では武器なら火，防具なら水エレメントと半々の消費に変更されていますが，現在，この変更には対応していません．
 
 ### `Mgmg::Equip#smith_cost(outsourcing=false)`
 `self`が鍛冶・防具製作によって作られたものだったものだとした場合の消費火・水エレメント量を返します．`outscourcing`が真の場合，街の鍛冶屋・防具製作屋に頼んだ場合のコストを返します．
@@ -218,6 +220,9 @@ puts '小竜咆哮'.build(-1)
 
 ### `Mgmg::TPolynomial#inspect(fmt=->(r){"Rational(#{r.numerator}, #{r.denominator})"})`
 `Mgmg::TPolynomial#to_s`と同様ですが，鍛冶・防具製作Lvを`s`，道具製作Lvを`c`としたRubyの式として解釈可能な文字列を返します．つまり，係数をリテラル，掛け算を`*`で表現しています．`fmt`は`Mgmg::TPolynomial#to_s`と同様で，適当な値を指定することでRuby以外の言語でも解釈可能になります．例えば，精度が問題でないならば，`'%e'`とすると，大抵の言語で解釈可能な文字列を生成できます．
+
+### `Mgmg::TPolynomial#leading(fmt=nil)`
+最高次係数を返します．`fmt`が`nil`なら数値(`Rational`)をそのまま，それ以外なら`Mgmg::TPolynomial#to_s`と同様の方式で文字列に変換して返します．
 
 ### `Mgmg::TPolynomial#[](i, j)`
 鍛冶・防具製作LvをS，道具製作LvをCとして，S<sup>i</sup>C<sup>j</sup> の係数を返します．負の値を指定すると，最高次から降順に数えた次数の項の係数を返します．例えば`i, j = -1, -1`なら，最高次の係数となります．引数が正で範囲外なら`0`を返し，負で範囲外なら`IndexError`を上げます．

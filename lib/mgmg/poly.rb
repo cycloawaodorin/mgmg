@@ -90,6 +90,14 @@ module Mgmg
 			end
 			ret
 		end
+		def leading(fmt=nil)
+			value = self[-1, -1]
+			if fmt.nil?
+				value
+			else
+				str(value, fmt)
+			end
+		end
 		def smith_balance(other, order=-1)
 			o_org = order
 			order += @mat.col_size if order < 0

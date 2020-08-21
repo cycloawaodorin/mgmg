@@ -75,3 +75,8 @@
 
 ## 1.2.4 2020/03/01
 - 開発用のgemのバージョンを更新(ライブラリ本体は更新なし)．
+
+## 1.2.5 2020/08/22
+- `Mgmg::TPolynomial#leading(fmt=nil)`, `Mgmg::TPolynomial#[](i, j)`を追加．
+- `Mgmg::Equip#history`, `Mgmg::Equip#min_levels`, `Mgmg::Equip#min_level`を追加．
+- ソースコードのファイル配置を整理．
