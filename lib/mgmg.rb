@@ -9,6 +9,9 @@ class String
 	def min_level(w=1)
 		Mgmg::Equip.min_level(self, w)
 	end
+	def min_levels
+		build(-1, -1).min_levels
+	end
 	def build(smith=-1, comp=smith, left_associative: true)
 		Mgmg::Equip.build(self, smith, comp, left_associative: left_associative)
 	end

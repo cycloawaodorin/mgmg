@@ -48,7 +48,7 @@ p ['重鎧(皮10金10)'.min_level, '重鎧(皮10金10)'.min_level(2)]
 
 合成レシピから必要製作Lvを確認．
 ```ruby
-p '[杖(水玉10火玉5)+本(骨10鉄1)]+[本(水玉5綿2)+杖(骨10鉄1)]'.build.min_levels
+p '[杖(水玉10火玉5)+本(骨10鉄1)]+[本(水玉5綿2)+杖(骨10鉄1)]'.min_levels
 #=> {"杖(水玉10火玉5)"=>92, "本(骨10鉄1)"=>48, "本(水玉5綿2)"=>12, "杖(骨10鉄1)"=>28}
 p '[杖(水玉10火玉5)+本(骨10鉄1)]+[本(水玉5綿2)+杖(骨10鉄1)]'.build.min_level
 #=> 92
@@ -101,7 +101,10 @@ puts '小竜咆哮'.build
 
 ### `String#min_level(weight=1)`
 `self`を`weight`以下で作るための最低製作Lvを返します．`build`と異なり，合成や既成品は解釈できません．また，素材の☆による最低製作Lvとのmaxを返すため，街の鍛冶・防具製作屋に頼んだ場合の重量は`self.build.weight`で確認する必要があります．`weight`を省略した場合，重量1となる製作Lvを返します．
-合成レシピの場合，`self.build.min_level`として，`Mgmg::Equip#min_level`を利用できますが，この場合`weight`は指定できません．
+
+### `String#min_levels`
+合成レシピの各鍛冶・防具製作品に対して，レシピ文字列をキー，重量1で作製するために必要な製作Lvを値とした`Hash`を返します．重量1以外は指定できません．
+最大値は，`self.build.min_level`によって得られます．
 
 ### `Enumerable#build(smith=-1, armor=smith, comp=armor.tap{armor=smith}, left_associative: true)`
 複数のレシピ文字列からなる`self`の各要素を製作し，そのすべてを装備したときの`Mgmg::Equip`を返します．製作では`鍛冶Lv=smith`, `防具製作Lv=armor`, `道具製作Lv=comp`とします．1つしか指定しなければすべてそのLv，2つなら1つ目を`smith=armor`，2つ目を`comp`に，3つならそれぞれの値とします．`left_associative`はそのまま`String#build`に渡されます．製作Lvが負の場合，製作Lv0として計算した上で，消費エレメント量は街の製作屋に頼んだ場合の値を計算します．武器複数など，同時装備が不可能な場合でも，特にチェックはされません．
