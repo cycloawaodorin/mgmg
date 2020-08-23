@@ -254,6 +254,10 @@ alias として`*`があるほか`scalar(1.quo(value))`として`quo`，`/`，`s
 多項式として偏微分し，その微分係数を返します．
 `variable`はどの変数で偏微分するかを指定するもので，`"s"`なら鍛冶・防具製作Lv，`"c"`なら道具製作Lvで偏微分します．
 
+### `Mgmg::TPolynomial#eff(smith, comp=smith)`
+製作Lv(`smith`, `comp`)における鍛冶・防具製作Lv効率と道具製作Lv効率からなる配列を返します．
+一方のみが欲しい場合，`Mgmg::TPolynomial#smith_eff(smith, comp=smith)`，`Mgmg::TPolynomial#smith_eff(smith, comp=smith)`が使えます．
+
 ## 謝辞
 面白いゲームを作ってくださった耕様および，高精度なシミュレータを作製し，本ライブラリの作製を可能とした，Excel版装備計算機の作者様に感謝いたします．
 
