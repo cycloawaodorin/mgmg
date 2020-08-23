@@ -12,7 +12,7 @@ class String
 	def build(smith=-1, comp=smith, left_associative: true)
 		Mgmg::Equip.build(self, smith, comp, left_associative: left_associative)
 	end
-	def poly(para, left_associative: true)
+	def poly(para=:cost, left_associative: true)
 		case para
 		when :atkstr
 			self.poly(:attack) + self.poly(:str)
@@ -38,6 +38,17 @@ class String
 		else
 			Mgmg::TPolynomial.build(self, para, left_associative: left_associative)
 		end
+	end
+	def eff(para, smith, comp=smith, left_associative: true)
+		a = build(smith, comp, left_associative: left_associative).method(para).call
+		b = build(smith+1, comp, left_associative: left_associative).method(para).call
+		c = build(smith, comp+2, left_associative: left_associative).method(para).call
+		sden = smith==0 ? 1 : 2*smith-1
+		cden = comp==0 ? 4 : 8*comp
+		[(b-a).quo(sden), (c-a).quo(cden)]
+	end
+	def peff(para, smith, comp=smith, left_associative: true)
+		poly(para, left_associative: left_associative).eff(smith, comp)
 	end
 	def show(smith=-1, comp=smith, left_associative: true)
 		built = self.build(smith, comp, left_associative: left_associative)
