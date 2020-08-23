@@ -187,7 +187,7 @@ module Mgmg
 			partial_derivative('s').evaluate(smith, comp).quo(2*(smith-1))
 		end
 		def comp_eff(smith, comp=smith)
-			partial_derivative('s').evaluate(smith, comp).quo(4*(comp-1))
+			partial_derivative('c').evaluate(smith, comp).quo(4*(comp-1))
 		end
 		def eff(smith, comp=smith)
 			[smith_eff(smith, comp), comp_eff(smith, comp)]
