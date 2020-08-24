@@ -319,5 +319,74 @@ module Mgmg
 			end
 			[mat, m[1].to_i, mat<90 ? mat.div(10): 9]
 		end
+		
+		def min_comp(str, left_associative: true)
+			str = Mgmg.check_string(str)
+			stack, str = minc_sub0([], str)
+			(minc_sub(stack, str, left_associative)[1]-1)*3
+		end
+		private def minc_sub0(stack, str)
+			SystemEquip.each do |k, v|
+				if Regexp.compile(k).match(str)
+					stack << v.star
+					str = str.gsub(k, "<#{stack.length-1}>")
+				end
+			end
+			[stack, str]
+		end
+		private def minc_sub(stack, str, lassoc)
+			if m = /\A(.*\+?)\[([^\[\]]+)\](\+?[^\[]*)\Z/.match(str)
+				stack << minc_sub(stack, m[2], lassoc)[0]
+				minc_sub(stack, "#{m[1]}<#{stack.length-1}>#{m[3]}", lassoc)
+			elsif m = ( lassoc ? /\A(.+)\+(.+?)\Z/ : /\A(.+?)\+(.+)\Z/ ).match(str)
+				a, _ = minc_sub(stack, m[1], lassoc)
+				b, _ = minc_sub(stack, m[2], lassoc)
+				[a+b, [a, b].max]
+			elsif m = /\A\<(\d+)\>\Z/.match(str)
+				[stack[m[1].to_i], 1]
+			else
+				[smith(str, 0, true).star, 1]
+			end
+		end
+		
+		def min_smith(str, left_associative: true)
+			str = Mgmg.check_string(str)
+			stack, str = mins_sub0([], str)
+			(([mins_sub(stack, str, left_associative)]+stack).max-1)*3
+		end
+		private def mins_sub0(stack, str)
+			SystemEquip.each do |k, v|
+				if Regexp.compile(k).match(str)
+					stack << 0
+					str = str.gsub(k, "<#{stack.length-1}>")
+				end
+			end
+			[stack, str]
+		end
+		private def mins_sub(stack, str, lassoc)
+			if m = /\A(.*\+?)\[([^\[\]]+)\](\+?[^\[]*)\Z/.match(str)
+				stack << mins_sub(stack, m[2], lassoc)
+				mins_sub(stack, "#{m[1]}<#{stack.length-1}>#{m[3]}", lassoc)
+			elsif m = ( lassoc ? /\A(.+)\+(.+?)\Z/ : /\A(.+?)\+(.+)\Z/ ).match(str)
+				[mins_sub(stack, m[1], lassoc), mins_sub(stack, m[2], lassoc)].max
+			elsif m = /\A\<(\d+)\>\Z/.match(str)
+				1
+			else
+				mins_sub2(str)
+			end
+		end
+		private def mins_sub2(str)
+			str = Mgmg.check_string(str)
+			unless m = /\A(.+)\((.+\d+),?(.+\d+)\)\Z/.match(str)
+				raise InvalidSmithError.new(str)
+			end
+			kind = EquipIndex[m[1].to_sym]
+			unless kind
+				raise InvalidEquipClassError.new(m[1])
+			end
+			main_m, main_s, main_mc = parse_material(m[2])
+			sub_m, sub_s, sub_mc = parse_material(m[3])
+			[main_s, sub_s].max
+		end
 	end
 end
