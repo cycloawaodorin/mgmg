@@ -112,7 +112,7 @@ puts '小竜咆哮'.build
 ### `String#min_comp(left_associative: true)`
 レシピ通りに合成するのに必要な道具製作Lvを返します．ただし，全体が「[]」で囲われているか，非合成レシピの場合，代わりに`0`を返します．
 
-### `String#min_comp(left_associative: true)`
+### `String#min_smith(left_associative: true)`
 レシピ通りに製作するのに必要な鍛冶・防具製作Lvを返します．製作物の重量については考慮せず，鍛冶・防具製作に必要な☆条件を満たすために必要な製作Lvを返します．
 
 ### `String#poly(para=:cost, left_associative: true)`
@@ -134,6 +134,7 @@ puts '小竜咆哮'.build
 `para`の値が`target`以上となるのに必要な最小の鍛冶・防具製作Lvを二分探索で探索して返します．
 道具製作Lvは`comp`で固定，鍛冶・防具製作Lvを`smith_min`と`smith_max`で挟み込んで探索します．
 `smith_min`が`nil`のとき，最小重量で製作するのに必要な鍛冶・防具製作Lv (`self.build.min_level`)を使用します．
+重量を無視して，製作に必要な最小Lvである`self.min_smith`まで探索したい場合，明示的に指定します．
 `smith_min<smith_max`でないとき，`smith_max`で`para`が`target`以上でないときは`ArgumentError`となります．
 `para`は，`Mgmg::Equip`のメソッド名をシンボルで指定(`:power, :fpower`も可)します．
 反転などの影響で，探索範囲において`para`の値が(広義)単調増加になっていない場合，正しい結果を返しません．

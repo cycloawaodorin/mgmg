@@ -86,4 +86,4 @@
 - `String#build`において，第1引数にもデフォルト値`-1`を設定し，引数なしで委託製作相当とするように変更．
 - `String#poly`のデフォルト引数を`:cost`に設定．
 - `Mgmg.#exp`，`String#eff`，`String#peff`，`String#min_levels`を追加．
-- `String#smith_search`, `String#comp_search`, `String#smith_min`, `String#comp_min`を追加．
+- `String#smith_search`, `String#comp_search`, `String#min_smith`, `String#min_comp`を追加．
