@@ -81,7 +81,7 @@
 - `Mgmg::Equip#history`, `Mgmg::Equip#min_levels`, `Mgmg::Equip#min_level`を追加．
 - ソースコードのファイル配置を整理．
 
-## 1.3.0
+## 1.3.0 2020/08/26
 - 既製品に対する`Mgmg::Equip#min_level`の返り値を`nil`から`0`に変更．
 - `String#build`において，第1引数にもデフォルト値`-1`を設定し，引数なしで委託製作相当とするように変更．
 - `String#poly`のデフォルト引数を`:cost`に設定．
