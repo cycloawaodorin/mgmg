@@ -1,3 +1,3 @@
 module Mgmg
-  VERSION = "1.2.5"
+  VERSION = "1.3.0"
 end

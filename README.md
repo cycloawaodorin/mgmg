@@ -35,15 +35,24 @@ puts '[杖(水玉10火玉5)+本(骨10鉄1)]+[本(水玉5綿2)+杖(骨10鉄1)]'.b
 複数装備を製作し，そのすべてを装備した場合の合計値を標準出力に出力．
 
 ```ruby
-puts %w|本(金3骨1)+[弓(骨1綿1)+[杖(金3金3)+[弓(綿1綿1)+[杖(宝10金6)+本(骨9鉄2)]]]] フード(石10骨9) 首飾り(宝10水10) 指輪(木10金10)|.build(122, 139, 232)
+ary = %w|本(金3骨1)+[弓(骨1綿1)+[杖(金3金3)+[弓(綿1綿1)+[杖(宝10金6)+本(骨9鉄2)]]]] フード(石10骨9) 首飾り(宝10水10) 指輪(木10金10)|
+puts ary.build(122, 139, 232)
 #=> 複数装備9(武:1, 頭:1, 飾:2)[攻撃:15, 物防:34, 魔防:28, HP:241, MP:71, 器用:223, 素早:222, 魔力:6,604]
 ```
 
-重量1または2で作るのに必要な防具製作Lvを確認する．
+重量1または2で作るのに必要な防具製作Lvを確認．
 
 ```ruby
 p ['重鎧(皮10金10)'.min_level, '重鎧(皮10金10)'.min_level(2)]
 #=> [162, 42]
+```
+
+合成レシピから必要製作Lvを確認．
+```ruby
+p '[杖(水玉10火玉5)+本(骨10鉄1)]+[本(水玉5綿2)+杖(骨10鉄1)]'.min_levels
+#=> {"杖(水玉10火玉5)"=>92, "本(骨10鉄1)"=>48, "本(水玉5綿2)"=>12, "杖(骨10鉄1)"=>28}
+p '[杖(水玉10火玉5)+本(骨10鉄1)]+[本(水玉5綿2)+杖(骨10鉄1)]'.build.min_level
+#=> 92
 ```
 
 近似多項式を得る．
@@ -56,7 +65,7 @@ puts '[斧(牙10金10)+剣(鉄10皮1)]+剣(鉄10皮1)'.poly(:attack).to_s('%.4g'
 既成品の性能を確認．
 
 ```ruby
-puts '小竜咆哮'.build(-1)
+puts '小竜咆哮'.build
 #=> 弓1☆10(木骨)[攻撃:50, 器用:120, 素早:50]
 ```
 
@@ -78,26 +87,36 @@ puts '小竜咆哮'.build(-1)
 ## リファレンス
 本ライブラリで定義される主要なメソッドを以下に解説します．
 
-### `String#build(smith, comp=smith, left_associative: true)`
+### `String#build(smith=-1, comp=smith, left_associative: true)`
 レシピ文字列である`self`を解釈し，鍛冶・防具製作Lvを`smith`，道具製作Lvを`comp`として鍛冶・防具製作及び武器・防具合成を行った結果を後述の`Mgmg::Equip`クラスのインスタンスとして生成し，返します．例えば，
 ```ruby
 '[杖(水玉10火玉5)+本(骨10鉄1)]+[本(水玉5綿2)+杖(骨10鉄1)]'.build(112, 176)
 ```
 のようにします．基本的に`[]`による合成順序の指定が必要ですが，不確定の場合，`left_associative`が真なら左結合，偽なら右結合として解釈します．
 ```ruby
-'ローブ(綿10皮10)+歴戦の服'
+'法衣(綿10皮10)+歴戦の服'
 ```
 のように，既成品を含む合成レシピも解釈します．キャラクリ初期装備の劣悪な服，劣悪な小手以外のあらゆる装備を網羅しています．劣悪な服，劣悪な小手はキャラクリ以外での初期装備品として解釈します．`comp`を省略した場合，`smith`と同じ値として処理します．
 
 `self`が解釈不能な場合，例外が発生します．また，製作Lvや完成品の☆制限のチェックを行っていないほか，本ライブラリでは`武器+防具`や`防具+武器`の合成も可能になっています．街の鍛冶・防具製作・道具製作屋に任せた場合をシミュレートする場合は製作Lvを負の値(`-1`など，負であれば何でもよい)にします(製作Lv0相当の性能を計算し，消費エレメント量は委託仕様となります)．
 
-### `String#min_level(weight=1)`
-`self`を`weight`以下で作るための最低製作Lvを返します．`build`と異なり，合成や既成品は解釈できません．また，素材の☆による最低製作Lvとのmaxを返すため，街の鍛冶・防具製作屋に頼んだ場合の重量は`self.build(-1).weight`で確認する必要があります．`weight`を省略した場合，重量1となる製作Lvを返します．
-
-### `Enumerable#build(smith, armor=smith, comp=armor.tap{armor=smith}, left_associative: true)`
+### `Enumerable#build(smith=-1, armor=smith, comp=armor.tap{armor=smith}, left_associative: true)`
 複数のレシピ文字列からなる`self`の各要素を製作し，そのすべてを装備したときの`Mgmg::Equip`を返します．製作では`鍛冶Lv=smith`, `防具製作Lv=armor`, `道具製作Lv=comp`とします．1つしか指定しなければすべてそのLv，2つなら1つ目を`smith=armor`，2つ目を`comp`に，3つならそれぞれの値とします．`left_associative`はそのまま`String#build`に渡されます．製作Lvが負の場合，製作Lv0として計算した上で，消費エレメント量は街の製作屋に頼んだ場合の値を計算します．武器複数など，同時装備が不可能な場合でも，特にチェックはされません．
 
-### `String#poly(para, left_associative: true)`
+### `String#min_level(weight=1)`
+`self`を`weight`以下で作るための最低製作Lvを返します．`build`と異なり，合成や既成品は解釈できません．また，素材の☆による最低製作Lvとのmaxを返すため，街の鍛冶・防具製作屋に頼んだ場合の重量は`self.build.weight`で確認する必要があります．`weight`を省略した場合，重量1となる製作Lvを返します．
+
+### `String#min_levels(left_associative: true)`
+合成レシピの各鍛冶・防具製作品に対して，レシピ文字列をキー，重量1で作製するために必要な製作Lvを値とした`Hash`を返します．重量1以外は指定できません．
+最大値は，`self.build.min_level`によって得られます．
+
+### `String#min_comp(left_associative: true)`
+レシピ通りに合成するのに必要な道具製作Lvを返します．ただし，全体が「[]」で囲われているか，非合成レシピの場合，代わりに`0`を返します．
+
+### `String#min_smith(left_associative: true)`
+レシピ通りに製作するのに必要な鍛冶・防具製作Lvを返します．製作物の重量については考慮せず，鍛冶・防具製作に必要な☆条件を満たすために必要な製作Lvを返します．
+
+### `String#poly(para=:cost, left_associative: true)`
 レシピ文字列である`self`を解釈し，`para`で指定した9パラ値について，丸めを無視した鍛冶・防具製作Lvと道具製作Lvの2変数からなる多項式関数を示す`Mgmg::TPolynomial`クラスのインスタンスを生成し，返します．`para`は次のシンボルのいずれかを指定します．
 ```ruby
 :attack, :phydef, :magdef, :hp, :mp, :str, :dex, :speed, :magic
@@ -111,6 +130,27 @@ puts '小竜咆哮'.build(-1)
 これらは同名のメソッドと異なり，本来の威力値等に関する近似多項式を返し，4倍化や2倍化はされていません．また，自動選択の`:power`は指定できません．
 
 また，`:cost`を渡すことで，消費エレメント量に関する近似多項式を得られます．`self`に`"+"`が含まれていれば合成品とみなし，最後の合成に必要な地エレメント量を，それ以外では，武器なら消費火エレメント量を，防具なら消費水エレメント量を返します．ただし，`self`が既成品そのものの場合，零多項式を返します．
+
+### `String#smith_seach(para, target, comp, smith_min=nil, smith_max=10000, left_associative: true)`
+`para`の値が`target`以上となるのに必要な最小の鍛冶・防具製作Lvを二分探索で探索して返します．
+道具製作Lvは`comp`で固定，鍛冶・防具製作Lvを`smith_min`と`smith_max`で挟み込んで探索します．
+`smith_min`が`nil`のとき，最小重量で製作するのに必要な鍛冶・防具製作Lv (`self.build.min_level`)を使用します．
+重量を無視して，製作に必要な最小Lvである`self.min_smith`まで探索したい場合，明示的に指定します．
+`smith_min<smith_max`でないとき，`smith_max`で`para`が`target`以上でないときは`ArgumentError`となります．
+`para`は，`Mgmg::Equip`のメソッド名をシンボルで指定(`:power, :fpower`も可)します．
+反転などの影響で，探索範囲において`para`の値が(広義)単調増加になっていない場合，正しい結果を返しません．
+
+### `String#comp_search(para, target, smith, comp_min=nil, comp_max=10000, left_associative: true)`
+`String#smith_seach`とは逆に，鍛冶・防具製作Lvを固定して最小の道具製作Lvを探索します．
+`comp_min`が`nil`のときは，製作に必要な最小の道具製作Lv (`self.min_comp`)を使用します．
+その他は`String#smith_seach`と同様です．
+
+### `String#eff(para, smith, comp=smith, left_associative: true)`
+[`smith`を1上げたときの`para`値/(`smith`を1上げるのに必要な経験値), `comp`を1上げたときの`para`値/(`comp`を2上げるのに必要な経験値)]を返します．
+`para`は，`Mgmg::Equip`のメソッド名をシンボルで指定(`:power, :fpower`も可)します．
+
+### `String#peff(para, smith, comp=smith, left_associative: true)`
+近似多項式における偏微分値を使用した場合の，`String#eff`と同様の値を返します．`self.poly(para, left_associative: left_associative).eff(smith, comp)`と等価です．
 
 ### `Mgmg::Equip`
 前述の`String#build`によって生成される装備品のクラスです．複数装備の合計値を表す「複数装備」という種別の装備品の場合もあります．以下のようなインスタンスメソッドが定義されています．
@@ -222,10 +262,10 @@ ver2.00β12以降では武器なら火，防具なら水エレメントと半々
 `Mgmg::TPolynomial#to_s`と同様ですが，鍛冶・防具製作Lvを`s`，道具製作Lvを`c`としたRubyの式として解釈可能な文字列を返します．つまり，係数をリテラル，掛け算を`*`で表現しています．`fmt`は`Mgmg::TPolynomial#to_s`と同様で，適当な値を指定することでRuby以外の言語でも解釈可能になります．例えば，精度が問題でないならば，`'%e'`とすると，大抵の言語で解釈可能な文字列を生成できます．
 
 ### `Mgmg::TPolynomial#leading(fmt=nil)`
-最高次係数を返します．`fmt`が`nil`なら数値(`Rational`)をそのまま，それ以外なら`Mgmg::TPolynomial#to_s`と同様の方式で文字列に変換して返します．
+最高次係数を返します．`fmt`が`nil`なら数値(`Rational`)をそのまま，それ以外なら`Mgmg::TPolynomial#to_s`と同様の方式で文字列に変換して返します．ただし，レシピの段数に応じた最高次数を返すため，レシピ次第では本メソッドの返り値が`0`となり，それより低い次数の項が最高次となることもあり得ます．そのようなケースでの真の最高次の探索はしません．
 
 ### `Mgmg::TPolynomial#[](i, j)`
-鍛冶・防具製作LvをS，道具製作LvをCとして，S<sup>i</sup>C<sup>j</sup> の係数を返します．負の値を指定すると，最高次から降順に数えた次数の項の係数を返します．例えば`i, j = -1, -1`なら，最高次の係数となります．引数が正で範囲外なら`0`を返し，負で範囲外なら`IndexError`を上げます．
+鍛冶・防具製作Lvをs，道具製作Lvをcとして，s<sup>i</sup>c<sup>j</sup> の係数を返します．負の値を指定すると，最高次から降順に数えた次数の項の係数を返します．例えば`i, j = -1, -1`なら，最高次の係数となります．引数が正で範囲外なら`0`を返し，負で範囲外なら`IndexError`を上げます．
 
 ### `Mgmg::TPolynomial#evaluate(smith, comp=smith)`
 鍛冶・防具製作Lvを`smith`，道具製作Lvを`comp`として値を計算します．丸めを無視しているため，実際の合成結果以上の値が返ります．
@@ -244,6 +284,10 @@ alias として`*`があるほか`scalar(1.quo(value))`として`quo`，`/`，`s
 ### `Mgmg::TPolynomial#partial_derivative(variable)`
 多項式として偏微分し，その微分係数を返します．
 `variable`はどの変数で偏微分するかを指定するもので，`"s"`なら鍛冶・防具製作Lv，`"c"`なら道具製作Lvで偏微分します．
+
+### `Mgmg::TPolynomial#eff(smith, comp=smith)`
+製作Lv(`smith`, `comp`)における鍛冶・防具製作Lv効率と道具製作Lv効率からなる配列を返します．
+一方のみが欲しい場合，`Mgmg::TPolynomial#smith_eff(smith, comp=smith)`，`Mgmg::TPolynomial#smith_eff(smith, comp=smith)`が使えます．
 
 ## 謝辞
 面白いゲームを作ってくださった耕様および，高精度なシミュレータを作製し，本ライブラリの作製を可能とした，Excel版装備計算機の作者様に感謝いたします．

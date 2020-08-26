@@ -9,10 +9,19 @@ class String
 	def min_level(w=1)
 		Mgmg::Equip.min_level(self, w)
 	end
-	def build(smith, comp=smith, left_associative: true)
+	def min_levels(left_associative: true)
+		build(-1, -1, left_associative: left_associative).min_levels
+	end
+	def min_smith(left_associative: true)
+		Mgmg::Equip.min_smith(self, left_associative: left_associative)
+	end
+	def min_comp(left_associative: true)
+		Mgmg::Equip.min_comp(self, left_associative: left_associative)
+	end
+	def build(smith=-1, comp=smith, left_associative: true)
 		Mgmg::Equip.build(self, smith, comp, left_associative: left_associative)
 	end
-	def poly(para, left_associative: true)
+	def poly(para=:cost, left_associative: true)
 		case para
 		when :atkstr
 			self.poly(:attack) + self.poly(:str)
@@ -39,7 +48,58 @@ class String
 			Mgmg::TPolynomial.build(self, para, left_associative: left_associative)
 		end
 	end
-	def show(smith, comp=smith, left_associative: true)
+	def eff(para, smith, comp=smith, left_associative: true)
+		a = build(smith, comp, left_associative: left_associative).method(para).call
+		b = build(smith+1, comp, left_associative: left_associative).method(para).call
+		c = build(smith, comp+2, left_associative: left_associative).method(para).call
+		sden = smith==0 ? 1 : 2*smith-1
+		cden = comp==0 ? 4 : 8*comp
+		[(b-a).quo(sden), (c-a).quo(cden)]
+	end
+	def peff(para, smith, comp=smith, left_associative: true)
+		poly(para, left_associative: left_associative).eff(smith, comp)
+	end
+	def smith_search(para, target, comp, smith_min=nil, smith_max=10000, left_associative: true)
+		smith_min = build(-1, -1, left_associative: left_associative).min_level if smith_min.nil?
+		if smith_max < smith_min
+			raise ArgumentError, "smith_min <= smith_max is needed, (smith_min, smith_max) = (#{smith_min}, #{smith_max}) are given"
+		end
+		if target <= build(smith_min, comp, left_associative: left_associative).method(para).call
+			return smith_min
+		elsif build(smith_max, comp, left_associative: left_associative).method(para).call < target
+			raise ArgumentError, "given smith_max=#{smith_max} does not satisfies the target"
+		end
+		while 1 < smith_max - smith_min do
+			smith = (smith_max - smith_min).div(2) + smith_min
+			if build(smith, comp, left_associative: left_associative).method(para).call < target
+				smith_min = smith
+			else
+				smith_max = smith
+			end
+		end
+		smith_max
+	end
+	def comp_search(para, target, smith, comp_min=nil, comp_max=10000, left_associative: true)
+		comp_min = min_comp(left_associative: left_associative)
+		if comp_max < comp_min
+			raise ArgumentError, "comp_min <= comp_max is needed, (comp_min, comp_max) = (#{comp_min}, #{comp_max}) are given"
+		end
+		if target <= build(smith, comp_min, left_associative: left_associative).method(para).call
+			return comp_min
+		elsif build(smith, comp_max, left_associative: left_associative).method(para).call < target
+			raise ArgumentError, "given comp_max=#{comp_max} does not satisfies the target"
+		end
+		while 1 < comp_max - comp_min do
+			comp = (comp_max - comp_min).div(2) + comp_min
+			if build(smith, comp, left_associative: left_associative).method(para).call < target
+				comp_min = comp
+			else
+				comp_max = comp
+			end
+		end
+		comp_max
+	end
+	def show(smith=-1, comp=smith, left_associative: true)
 		built = self.build(smith, comp, left_associative: left_associative)
 		pstr = '%.3f' % built.fpower
 		pstr.sub!(/\.?0+\Z/, '')
@@ -50,7 +110,7 @@ class String
 	end
 end
 module Enumerable
-	def build(smith, armor=smith, comp=armor.tap{armor=smith}, left_associative: true)
+	def build(smith=-1, armor=smith, comp=armor.tap{armor=smith}, left_associative: true)
 		self.map do |str|
 			m = /\A\[*([^\+]+)/.match(str)
 			if Mgmg::EquipPosition[m[1].build(0).kind] == 0
