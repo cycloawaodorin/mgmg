@@ -72,6 +72,10 @@ module Mgmg
 			end
 		end
 		
+		def para_call(para)
+			method(para).call
+		end
+		
 		%i|attack phydef magdef hp mp str dex speed magic|.each.with_index do |s, i|
 			define_method(s){ @para[i] }
 		end

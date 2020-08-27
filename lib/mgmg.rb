@@ -50,9 +50,9 @@ class String
 		end
 	end
 	def eff(para, smith, comp=smith, left_associative: true)
-		a = build(smith, comp, left_associative: left_associative).method(para).call
-		b = build(smith+1, comp, left_associative: left_associative).method(para).call
-		c = build(smith, comp+2, left_associative: left_associative).method(para).call
+		a = build(smith, comp, left_associative: left_associative).para_call(para)
+		b = build(smith+1, comp, left_associative: left_associative).para_call(para)
+		c = build(smith, comp+2, left_associative: left_associative).para_call(para)
 		sden = smith==0 ? 1 : 2*smith-1
 		cden = comp==0 ? 4 : 8*comp
 		[(b-a).quo(sden), (c-a).quo(cden)]
@@ -65,14 +65,14 @@ class String
 		if smith_max < smith_min
 			raise ArgumentError, "smith_min <= smith_max is needed, (smith_min, smith_max) = (#{smith_min}, #{smith_max}) are given"
 		end
-		if target <= build(smith_min, comp, left_associative: left_associative).method(para).call
+		if target <= build(smith_min, comp, left_associative: left_associative).para_call(para)
 			return smith_min
-		elsif build(smith_max, comp, left_associative: left_associative).method(para).call < target
+		elsif build(smith_max, comp, left_associative: left_associative).para_call(para) < target
 			raise ArgumentError, "given smith_max=#{smith_max} does not satisfies the target"
 		end
 		while 1 < smith_max - smith_min do
 			smith = (smith_max - smith_min).div(2) + smith_min
-			if build(smith, comp, left_associative: left_associative).method(para).call < target
+			if build(smith, comp, left_associative: left_associative).para_call(para) < target
 				smith_min = smith
 			else
 				smith_max = smith
@@ -85,14 +85,14 @@ class String
 		if comp_max < comp_min
 			raise ArgumentError, "comp_min <= comp_max is needed, (comp_min, comp_max) = (#{comp_min}, #{comp_max}) are given"
 		end
-		if target <= build(smith, comp_min, left_associative: left_associative).method(para).call
+		if target <= build(smith, comp_min, left_associative: left_associative).para(para)
 			return comp_min
 		elsif build(smith, comp_max, left_associative: left_associative).method(para).call < target
 			raise ArgumentError, "given comp_max=#{comp_max} does not satisfies the target"
 		end
 		while 1 < comp_max - comp_min do
 			comp = (comp_max - comp_min).div(2) + comp_min
-			if build(smith, comp, left_associative: left_associative).method(para).call < target
+			if build(smith, comp, left_associative: left_associative).para(para) < target
 				comp_min = comp
 			else
 				comp_max = comp
