@@ -87,3 +87,6 @@
 - `String#poly`のデフォルト引数を`:cost`に設定．
 - `Mgmg.#exp`，`String#eff`，`String#peff`，`String#min_levels`を追加．
 - `String#smith_search`, `String#comp_search`, `String#min_smith`, `String#min_comp`を追加．
+
+## 1.3.1
+- `String#poly`のキーワード引数`left_associative`が無視される場合があったバグを修正．

@@ -22,30 +22,31 @@ class String
 		Mgmg::Equip.build(self, smith, comp, left_associative: left_associative)
 	end
 	def poly(para=:cost, left_associative: true)
+		la = left_associative
 		case para
 		when :atkstr
-			self.poly(:attack) + self.poly(:str)
+			self.poly(:attack, left_associative: la) + self.poly(:str, left_associative: la)
 		when :atk_sd
-			self.poly(:attack) + self.poly(:str).quo(2) + self.poly(:dex).quo(2)
+			self.poly(:attack) + self.poly(:str, left_associative: la).quo(2) + self.poly(:dex, left_associative: la).quo(2)
 		when :dex_as
-			self.poly(:dex) + self.poly(:attack).quo(2) + self.poly(:str).quo(2)
+			self.poly(:dex) + self.poly(:attack, left_associative: la).quo(2) + self.poly(:str, left_associative: la).quo(2)
 		when :mag_das
-			self.poly(:magic) + self.poly(:dex_as).quo(2)
+			self.poly(:magic) + self.poly(:dex_as, left_associative: la).quo(2)
 		when :magmag
-			self.poly(:magdef) + self.poly(:magic).quo(2)
+			self.poly(:magdef) + self.poly(:magic, left_associative: la).quo(2)
 		when :cost
 			if Mgmg::SystemEquip.keys.include?(self)
 				return Mgmg::TPolynomial.new(Mgmg::Mat.new(1, 1, 0.quo(1)), 28, 0, 12, 12)
 			end
 			built = self.build(-1)
 			const = (built.star**2) * ( /\+/.match(self) ? 5 : ( built.kind < 8 ? 2 : 1 ) )
-			ret = poly(:attack) + poly(:phydef) + poly(:magdef)
-			ret += poly(:hp).quo(4) + poly(:mp).quo(4)
-			ret += poly(:str) + poly(:dex) + poly(:speed) + poly(:magic)
+			ret = poly(:attack, left_associative: la) + poly(:phydef, left_associative: la) + poly(:magdef, left_associative: la)
+			ret += poly(:hp, left_associative: la).quo(4) + poly(:mp, left_associative: la).quo(4)
+			ret += poly(:str, left_associative: la) + poly(:dex, left_associative: la) + poly(:speed, left_associative: la) + poly(:magic, left_associative: la)
 			ret.mat.body[0][0] += const
 			ret
 		else
-			Mgmg::TPolynomial.build(self, para, left_associative: left_associative)
+			Mgmg::TPolynomial.build(self, para, left_associative: la)
 		end
 	end
 	def eff(para, smith, comp=smith, left_associative: true)
