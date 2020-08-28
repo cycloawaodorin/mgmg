@@ -47,11 +47,35 @@ module Mgmg
 		attr_accessor :equip
 	end
 	
-	module_function def exp(smith, armor, comp=armor.tap{armor=nil})
-		if armor.nil?
-			((smith-1)**2) + (2*((comp-1)**2)) + 3
+	module_function def exp(smith, armor, comp=armor.tap{armor=0})
+		if armor <= 0
+			if smith <= 0
+				if comp <= 0
+					0
+				else
+					(2*((comp-1)**2)) + 2
+				end
+			else
+				if comp <= 0
+					((smith-1)**2) + 1
+				else
+					((smith-1)**2) + (2*((comp-1)**2)) + 3
+				end
+			end
 		else
-			((smith-1)**2) + ((armor-1)**2) + (2*((comp-1)**2)) + 4
+			if smith <= 0
+				if comp <= 0
+					((armor-1)**2) + 1
+				else
+					((armor-1)**2) + (2*((comp-1)**2)) + 3
+				end
+			else
+				if comp <= 0
+					((smith-1)**2) + ((armor-1)**2) + 2
+				else
+					((smith-1)**2) + ((armor-1)**2) + (2*((comp-1)**2)) + 4
+				end
+			end
 		end
 	end
 	
