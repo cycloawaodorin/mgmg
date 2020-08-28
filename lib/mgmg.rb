@@ -106,15 +106,12 @@ class String
 		comp_min = comp_search(para, target, smith_max, comp_min, comp_max, left_associative: left_associative)
 		smith_max = smith_search(para, target, comp_min, smith_min, smith_max, left_associative: left_associative)
 		comp_max = comp_search(para, target, smith_min, comp_min, comp_max, left_associative: left_associative)
-		minex = Mgmg.exp(smith_min, comp_max)
-		ret = [smith_min, comp_max]
+		minex, ret = Mgmg.exp(smith_min, comp_max), [smith_min, comp_max]
 		comp_min.step(comp_max-1, step) do |comp|
+			break if minex < Mgmg.exp(smith_min, comp)
 			smith = smith_search(para, target, comp, smith_min, smith_max, left_associative: left_associative)
 			exp = Mgmg.exp(smith, comp)
-			if exp < minex
-				minex = exp
-				ret = [smith, comp]
-			end
+			minex, ret = exp, [smith, comp] if exp < minex
 		end
 		ret
 	end
