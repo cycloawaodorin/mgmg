@@ -102,10 +102,9 @@ class String
 	end
 	def search(para, target, smith_min=nil, comp_min=nil, smith_max=10000, comp_max=10000, left_associative: true, step: 1)
 		smith_min = build(-1, -1, left_associative: left_associative).min_level if smith_min.nil?
-		if comp_min.nil?
-			comp_min = min_comp(left_associative: left_associative)
-			comp_min = comp_search(para, target, smith_max, comp_min, comp_max, left_associative: left_associative)
-		end
+		comp_min = min_comp(left_associative: left_associative) if comp_min.nil?
+		comp_min = comp_search(para, target, smith_max, comp_min, comp_max, left_associative: left_associative)
+		smith_max = smith_search(para, target, comp_min, smith_min, smith_max, left_associative: left_associative)
 		comp_max = comp_search(para, target, smith_min, comp_min, comp_max, left_associative: left_associative)
 		minex = Mgmg.exp(smith_min, comp_max)
 		ret = [smith_min, comp_max]
