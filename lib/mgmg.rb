@@ -4,6 +4,7 @@ require_relative './mgmg/const'
 require_relative './mgmg/equip'
 require_relative './mgmg/poly'
 require_relative './mgmg/system_equip'
+require_relative './mgmg/search'
 
 class String
 	def min_level(w=1)
@@ -59,61 +60,6 @@ class String
 	end
 	def peff(para, smith, comp=smith, left_associative: true)
 		poly(para, left_associative: left_associative).eff(smith, comp)
-	end
-	def smith_search(para, target, comp, smith_min=nil, smith_max=10000, left_associative: true)
-		smith_min = build(-1, -1, left_associative: left_associative).min_level if smith_min.nil?
-		if smith_max < smith_min
-			raise ArgumentError, "smith_min <= smith_max is needed, (smith_min, smith_max) = (#{smith_min}, #{smith_max}) are given"
-		end
-		if target <= build(smith_min, comp, left_associative: left_associative).para_call(para)
-			return smith_min
-		elsif build(smith_max, comp, left_associative: left_associative).para_call(para) < target
-			raise ArgumentError, "given smith_max=#{smith_max} does not satisfies the target"
-		end
-		while 1 < smith_max - smith_min do
-			smith = (smith_max - smith_min).div(2) + smith_min
-			if build(smith, comp, left_associative: left_associative).para_call(para) < target
-				smith_min = smith
-			else
-				smith_max = smith
-			end
-		end
-		smith_max
-	end
-	def comp_search(para, target, smith, comp_min=nil, comp_max=10000, left_associative: true)
-		comp_min = min_comp(left_associative: left_associative)
-		if comp_max < comp_min
-			raise ArgumentError, "comp_min <= comp_max is needed, (comp_min, comp_max) = (#{comp_min}, #{comp_max}) are given"
-		end
-		if target <= build(smith, comp_min, left_associative: left_associative).para_call(para)
-			return comp_min
-		elsif build(smith, comp_max, left_associative: left_associative).para_call(para) < target
-			raise ArgumentError, "given comp_max=#{comp_max} does not satisfies the target"
-		end
-		while 1 < comp_max - comp_min do
-			comp = (comp_max - comp_min).div(2) + comp_min
-			if build(smith, comp, left_associative: left_associative).para_call(para) < target
-				comp_min = comp
-			else
-				comp_max = comp
-			end
-		end
-		comp_max
-	end
-	def search(para, target, smith_min=nil, comp_min=nil, smith_max=10000, comp_max=10000, left_associative: true, step: 1)
-		smith_min = build(-1, -1, left_associative: left_associative).min_level if smith_min.nil?
-		comp_min = min_comp(left_associative: left_associative) if comp_min.nil?
-		comp_min = comp_search(para, target, smith_max, comp_min, comp_max, left_associative: left_associative)
-		smith_max = smith_search(para, target, comp_min, smith_min, smith_max, left_associative: left_associative)
-		comp_max = comp_search(para, target, smith_min, comp_min, comp_max, left_associative: left_associative)
-		minex, ret = Mgmg.exp(smith_min, comp_max), [smith_min, comp_max]
-		comp_min.step(comp_max-1, step) do |comp|
-			break if minex < Mgmg.exp(smith_min, comp)
-			smith = smith_search(para, target, comp, smith_min, smith_max, left_associative: left_associative)
-			exp = Mgmg.exp(smith, comp)
-			minex, ret = exp, [smith, comp] if exp < minex
-		end
-		ret
 	end
 	def show(smith=-1, comp=smith, left_associative: true)
 		built = self.build(smith, comp, left_associative: left_associative)

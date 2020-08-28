@@ -91,5 +91,5 @@
 ## 1.3.1
 - `String#poly`のキーワード引数`left_associative`が無視される場合があったバグを修正．
 - `Mgmg.#exp`に3引数を与えられるように修正．
-- `String#search`を追加．
+- `String#search`，`Enumerable#search`を追加．
 - `Enumerable#min_levels`，`Enumerable#min_level`，`Enumerable#min_smith`，`Enumerable#min_comp`を追加．
