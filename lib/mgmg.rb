@@ -85,20 +85,39 @@ class String
 		if comp_max < comp_min
 			raise ArgumentError, "comp_min <= comp_max is needed, (comp_min, comp_max) = (#{comp_min}, #{comp_max}) are given"
 		end
-		if target <= build(smith, comp_min, left_associative: left_associative).para(para)
+		if target <= build(smith, comp_min, left_associative: left_associative).para_call(para)
 			return comp_min
-		elsif build(smith, comp_max, left_associative: left_associative).method(para).call < target
+		elsif build(smith, comp_max, left_associative: left_associative).para_call(para) < target
 			raise ArgumentError, "given comp_max=#{comp_max} does not satisfies the target"
 		end
 		while 1 < comp_max - comp_min do
 			comp = (comp_max - comp_min).div(2) + comp_min
-			if build(smith, comp, left_associative: left_associative).para(para) < target
+			if build(smith, comp, left_associative: left_associative).para_call(para) < target
 				comp_min = comp
 			else
 				comp_max = comp
 			end
 		end
 		comp_max
+	end
+	def search(para, target, smith_min=nil, comp_min=nil, smith_max=10000, comp_max=10000, left_associative: true, step: 1)
+		smith_min = build(-1, -1, left_associative: left_associative).min_level if smith_min.nil?
+		if comp_min.nil?
+			comp_min = min_comp(left_associative: left_associative)
+			comp_min = comp_search(para, target, smith_max, comp_min, comp_max, left_associative: left_associative)
+		end
+		comp_max = comp_search(para, target, smith_min, comp_min, comp_max, left_associative: left_associative)
+		minex = Mgmg.exp(smith_min, comp_max)
+		ret = [smith_min, comp_max]
+		comp_min.step(comp_max-1, step) do |comp|
+			smith = smith_search(para, target, comp, smith_min, smith_max, left_associative: left_associative)
+			exp = Mgmg.exp(smith, comp)
+			if exp < minex
+				minex = exp
+				ret = [smith, comp]
+			end
+		end
+		ret
 	end
 	def show(smith=-1, comp=smith, left_associative: true)
 		built = self.build(smith, comp, left_associative: left_associative)
@@ -120,5 +139,38 @@ module Enumerable
 				str.build(armor, comp, left_associative: left_associative)
 			end
 		end.sum
+	end
+	def min_levels(left_associative: true)
+		build(-1, -1, -1, left_associative: left_associative).min_levels
+	end
+	def min_level(left_associative: true)
+		ret = [0, 0]
+		build(-1, -1, -1, left_associative: left_associative).min_levels.each do |str, level|
+			m = /\A\[*([^\+]+)/.match(str)
+			if Mgmg::EquipPosition[m[1].build(0).kind] == 0
+				ret[0] = [ret[0], level].max
+			else
+				ret[1] = [ret[1], level].max
+			end
+		end
+		ret
+	end
+	def min_smith(left_associative: true)
+		ret = [0, 0]
+		self.each do |str|
+			s = Mgmg::Equip.min_smith(str, left_associative: left_associative)
+			m = /\A\[*([^\+]+)/.match(str)
+			if Mgmg::EquipPosition[m[1].build(0).kind] == 0
+				ret[0] = [ret[0], s].max
+			else
+				ret[1] = [ret[1], s].max
+			end
+		end
+		ret
+	end
+	def min_comp(left_associative: true)
+		self.map do |str|
+			Mgmg::Equip.min_comp(str, left_associative: left_associative)
+		end.max
 	end
 end

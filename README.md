@@ -110,11 +110,22 @@ puts '小竜咆哮'.build
 合成レシピの各鍛冶・防具製作品に対して，レシピ文字列をキー，重量1で作製するために必要な製作Lvを値とした`Hash`を返します．重量1以外は指定できません．
 最大値は，`self.build.min_level`によって得られます．
 
-### `String#min_comp(left_associative: true)`
+### `Enumerable#min_levels(left_associative: true)`
+すべての要素`str`に対する`str.min_levels`をマージした`Hash`を返します．
+
+### `Enumerable#min_level(left_associative: true)`
+`self.min_levels`から武器，防具それぞれに対する最大値を求め，`[必要最小鍛冶Lv, 必要最小防具製作Lv]`を返します．武器，防具の一方のみが含まれる場合，もう一方は`0`になります．
+`String#min_level`と異なり，重量1以外は指定できません．
+
+### `String#min_comp(left_associative: true)`，`Enumerable#min_comp(left_associative: true)`
 レシピ通りに合成するのに必要な道具製作Lvを返します．ただし，全体が「[]」で囲われているか，非合成レシピの場合，代わりに`0`を返します．
 
-### `String#min_smith(left_associative: true)`
+`Enumerable`の場合，すべての要素に対する最大値を返します．
+
+### `String#min_smith(left_associative: true)`，`Enumerable#min_smith(left_associative: true)`
 レシピ通りに製作するのに必要な鍛冶・防具製作Lvを返します．製作物の重量については考慮せず，鍛冶・防具製作に必要な☆条件を満たすために必要な製作Lvを返します．
+
+`Enumerable`の場合，すべての要素に対し，武器，防具それぞれの最大値を求め，`[必要最小鍛冶Lv, 必要最小防具製作Lv]`を返します．
 
 ### `String#poly(para=:cost, left_associative: true)`
 レシピ文字列である`self`を解釈し，`para`で指定した9パラ値について，丸めを無視した鍛冶・防具製作Lvと道具製作Lvの2変数からなる多項式関数を示す`Mgmg::TPolynomial`クラスのインスタンスを生成し，返します．`para`は次のシンボルのいずれかを指定します．
@@ -144,6 +155,11 @@ puts '小竜咆哮'.build
 `String#smith_seach`とは逆に，鍛冶・防具製作Lvを固定して最小の道具製作Lvを探索します．
 `comp_min`が`nil`のときは，製作に必要な最小の道具製作Lv (`self.min_comp`)を使用します．
 その他は`String#smith_seach`と同様です．
+
+### `String#search(para, target, smith_min=nil, comp_min=nil, smith_max=10000, comp_max=10000, left_associative: true, step: 1)`
+`c_min=comp_search(para, target, smith_max, comp_min, comp_max)` から `c_max=comp_search(para, target, smith_max, comp_min, comp_max)` まで，`step`ずつ動かして，
+`smith_search`を行い，その過程で得られた最小経験値の鍛冶・防具製作Lvと道具製作Lvからなる配列を返す．
+レシピ中の，対象パラメータの種別値がすべて奇数，または全て偶数であるなら，`step`を`2`にしても探索すべき範囲を網羅できる．
 
 ### `String#eff(para, smith, comp=smith, left_associative: true)`
 [`smith`を1上げたときの`para`値/(`smith`を1上げるのに必要な経験値), `comp`を1上げたときの`para`値/(`comp`を2上げるのに必要な経験値)]を返します．
