@@ -1,6 +1,12 @@
 class String
-	def smith_search(para, target, comp, smith_min=nil, smith_max=10000, left_associative: true, cut_exp: Float::INFINITY)
-		smith_min = build(-1, -1, left_associative: left_associative).min_level if smith_min.nil?
+	def smith_search(para, target, comp, smith_min=nil, smith_max=10000, left_associative: true, cut_exp: Float::INFINITY, min_smith: false)
+		if smith_min.nil?
+			if min_smith
+				smith_min = self.min_smith.min_smith
+			else
+				smith_min = build(-1, -1, left_associative: left_associative).min_level
+			end
+		end
 		if smith_max < smith_min
 			raise ArgumentError, "smith_min <= smith_max is needed, (smith_min, smith_max) = (#{smith_min}, #{smith_max}) are given"
 		elsif cut_exp < Float::INFINITY
@@ -45,8 +51,14 @@ class String
 		end
 		comp_max
 	end
-	def search(para, target, smith_min=nil, comp_min=nil, smith_max=10000, comp_max=10000, left_associative: true, step: 1, cut_exp: Float::INFINITY)
-		smith_min = build(-1, -1, left_associative: left_associative).min_level if smith_min.nil?
+	def search(para, target, smith_min=nil, comp_min=nil, smith_max=10000, comp_max=10000, left_associative: true, step: 1, cut_exp: Float::INFINITY, min_smith: false)
+		if smith_min.nil?
+			if min_smith
+				smith_min = self.min_smith
+			else
+				smith_min = build(-1, -1, left_associative: left_associative).min_level
+			end
+		end
 		comp_min = min_comp(left_associative: left_associative) if comp_min.nil?
 		comp_min = comp_search(para, target, smith_max, comp_min, comp_max, left_associative: left_associative)
 		smith_max = smith_search(para, target, comp_min, smith_min, smith_max, left_associative: left_associative)
@@ -68,8 +80,14 @@ class String
 	end
 end
 module Enumerable
-	def smith_search(para, target, armor, comp, smith_min=nil, smith_max=10000, left_associative: true, cut_exp: Float::INFINITY)
-		smith_min = build(-1, -1, -1, left_associative: left_associative).min_level[0] if smith_min.nil?
+	def smith_search(para, target, armor, comp, smith_min=nil, smith_max=10000, left_associative: true, cut_exp: Float::INFINITY, min_smith: false)
+		if smith_min.nil?
+			if min_smith
+				smith_min = self.min_smith[0]
+			else
+				smith_min = build(-1, -1, -1, left_associative: left_associative).min_level[0]
+			end
+		end
 		if smith_max < smith_min
 			raise ArgumentError, "smith_min <= smith_max is needed, (smith_min, smith_max) = (#{smith_min}, #{smith_max}) are given"
 		elsif cut_exp < Float::INFINITY
@@ -94,8 +112,14 @@ module Enumerable
 		end
 		smith_max
 	end
-	def armor_search(para, target, smith, comp, armor_min=nil, armor_max=10000, left_associative: true, cut_exp: Float::INFINITY)
-		armor_min = build(-1, -1, -1, left_associative: left_associative).min_level[1] if armor_min.nil?
+	def armor_search(para, target, smith, comp, armor_min=nil, armor_max=10000, left_associative: true, cut_exp: Float::INFINITY, min_smith: false)
+		if armor_min.nil?
+			if min_smith
+				armor_min = self.min_smith[1]
+			else
+				armor_min = build(-1, -1, -1, left_associative: left_associative).min_level[1]
+			end
+		end
 		if armor_max < armor_min
 			raise ArgumentError, "armor_min <= armor_max is needed, (armor_min, armor_max) = (#{armor_min}, #{armor_max}) are given"
 		elsif cut_exp < Float::INFINITY
@@ -120,8 +144,12 @@ module Enumerable
 		end
 		armor_max
 	end
-	def sa_search(para, target, comp, smith_min=nil, armor_min=nil, smith_max=10000, armor_max=10000, left_associative: true, cut_exp: Float::INFINITY)
-		s, a = build(-1, -1, -1, left_associative: left_associative).min_level
+	def sa_search(para, target, comp, smith_min=nil, armor_min=nil, smith_max=10000, armor_max=10000, left_associative: true, cut_exp: Float::INFINITY, min_smith: false)
+		if min_smith
+			s, a = self.min_smith
+		else
+			s, a = build(-1, -1, -1, left_associative: left_associative).min_level
+		end
 		smith_min = s if smith_min.nil?
 		armor_min = a if armor_min.nil?
 		smith_min = smith_search(para, target, armor_max, comp, smith_min, smith_max, left_associative: true)
@@ -172,8 +200,12 @@ module Enumerable
 		end
 		comp_max
 	end
-	def search(para, target, smith_min=nil, armor_min=nil, comp_min=nil, smith_max=10000, armor_max=10000, comp_max=10000, left_associative: true, cut_exp: Float::INFINITY)
-		s, a = build(-1, -1, -1, left_associative: left_associative).min_level
+	def search(para, target, smith_min=nil, armor_min=nil, comp_min=nil, smith_max=10000, armor_max=10000, comp_max=10000, left_associative: true, cut_exp: Float::INFINITY, min_smith: false)
+		if min_smith
+			s, a = self.min_smith
+		else
+			s, a = build(-1, -1, -1, left_associative: left_associative).min_level
+		end
 		smith_min = s if smith_min.nil?
 		armor_min = a if armor_min.nil?
 		comp_min = min_comp(left_associative: left_associative) if comp_min.nil?

@@ -142,11 +142,10 @@ puts '小竜咆哮'.build
 
 また，`:cost`を渡すことで，消費エレメント量に関する近似多項式を得られます．`self`に`"+"`が含まれていれば合成品とみなし，最後の合成に必要な地エレメント量を，それ以外では，武器なら消費火エレメント量を，防具なら消費水エレメント量を返します．ただし，`self`が既成品そのものの場合，零多項式を返します．
 
-### `String#smith_seach(para, target, comp, smith_min=nil, smith_max=10000, left_associative: true, cut_exp: Float::INFINITY)`
+### `String#smith_seach(para, target, comp, smith_min=nil, smith_max=10000, left_associative: true, cut_exp: Float::INFINITY, min_smith: false)`
 `para`の値が`target`以上となるのに必要な最小の鍛冶・防具製作Lvを二分探索で探索して返します．
 道具製作Lvは`comp`で固定，鍛冶・防具製作Lvを`smith_min`と`smith_max`で挟み込んで探索します．
-`smith_min`が`nil`のとき，最小重量で製作するのに必要な鍛冶・防具製作Lv (`self.build.min_level`)を使用します．
-重量を無視して，製作に必要な最小Lvである`self.min_smith`まで探索したい場合，明示的に指定します．
+`smith_min`が`nil`のとき，`min_smith`が真なら重量を問わず☆的に必要な最小の鍛冶・防具製作Lv (`self.min_smith`)，偽なら最小重量で製作するのに必要な鍛冶・防具製作Lv (`self.build.min_level`)を使用します．
 `smith_min<smith_max`でないとき，`smith_max`で`para`が`target`以上でないときは`ArgumentError`となります．
 `para`は，`Mgmg::Equip`のメソッド名をシンボルで指定(`:power, :fpower`も可)します．
 反転などの影響で，探索範囲において`para`の値が(広義)単調増加になっていない場合，正しい結果を返しません．
@@ -157,13 +156,13 @@ puts '小竜咆哮'.build
 `comp_min`が`nil`のときは，製作に必要な最小の道具製作Lv (`self.min_comp`)を使用します．
 その他は`String#smith_seach`と同様です．
 
-### `String#search(para, target, smith_min=nil, comp_min=nil, smith_max=10000, comp_max=10000, left_associative: true, step: 1, cut_exp: Float::INFINITY)`
+### `String#search(para, target, smith_min=nil, comp_min=nil, smith_max=10000, comp_max=10000, left_associative: true, step: 1, cut_exp: Float::INFINITY, min_smith: false)`
 `c_min=comp_search(para, target, smith_max, comp_min, comp_max)` から `c_max=comp_search(para, target, smith_max, comp_min, comp_max)` まで，`step`ずつ動かして，
 `smith_search`を行い，その過程で得られた最小経験値の鍛冶・防具製作Lvと道具製作Lvからなる配列を返します．
 レシピ中の，対象パラメータの種別値がすべて奇数，または全て偶数であるなら，`step`を`2`にしても探索すべき範囲を網羅できます．
 `cut_exp`以下の経験値で`target`以上を達成できない場合，`Mgmg::SearchCutException`を発生します．
 
-### `Enumerable#search(para, target, smith_min=nil, armor_min=nil, comp_min=nil, smith_max=10000, armor_max=10000, comp_max=10000, left_associative: true, cut_exp: Float::INFINITY)`
+### `Enumerable#search(para, target, smith_min=nil, armor_min=nil, comp_min=nil, smith_max=10000, armor_max=10000, comp_max=10000, left_associative: true, cut_exp: Float::INFINITY, min_smith: false)`
 複数装備の組について，`para`の値が`target`以上となる最小経験値の`[鍛冶Lv，防具製作Lv，道具製作Lv]`を返します．
 武器のみなら防具製作Lvは`0`，防具のみなら鍛冶Lvは`0`，合成なしなら道具製作Lvは`0`となります．
 `cut_exp`以下の経験値で`target`以上を達成できない場合，`Mgmg::SearchCutException`を発生します．
