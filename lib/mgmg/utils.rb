@@ -46,9 +46,44 @@ module Mgmg
 		end
 		attr_accessor :equip
 	end
+	class SearchCutException < StandardError; end
 	
-	module_function def exp(smith, comp)
-		((smith-1)**2) + (2*((comp-1)**2)) + 3
+	module_function def exp(smith, armor, comp=armor.tap{armor=0})
+		if armor <= 0
+			if smith <= 0
+				if comp <= 0
+					0
+				else
+					(2*((comp-1)**2)) + 2
+				end
+			else
+				if comp <= 0
+					((smith-1)**2) + 1
+				else
+					((smith-1)**2) + (2*((comp-1)**2)) + 3
+				end
+			end
+		else
+			if smith <= 0
+				if comp <= 0
+					((armor-1)**2) + 1
+				else
+					((armor-1)**2) + (2*((comp-1)**2)) + 3
+				end
+			else
+				if comp <= 0
+					((smith-1)**2) + ((armor-1)**2) + 2
+				else
+					((smith-1)**2) + ((armor-1)**2) + (2*((comp-1)**2)) + 4
+				end
+			end
+		end
+	end
+	module_function def invexp2(exp, comp)
+		Math.sqrt(exp - (2*((comp-1)**2)) - 3).round + 1
+	end
+	module_function def invexp3(exp, sa, comp)
+		Math.sqrt(exp - ((sa-1)**2) - (2*((comp-1)**2)) - 4).round + 1
 	end
 	
 	CharacterList = /[^\(\)\+0123456789\[\]あきくしすたてなねのびりるイウガクグサジスタダチツデトドニノフブペボムラリルロンヴー一万二光兜典刀剣劣匠双古名吹咆品哮地大天太子安宝小帽弓弩当息悪戦手指斧書服木本杖業樹歴殺水氷法火炎牙物玉王産用界異的皮盾短石砕竜紫綿耳聖脛腕腿般良色衣袋覇質軍軽輝輪重量金鉄鎧闇陽靴額飾首骨鬼龍]/
