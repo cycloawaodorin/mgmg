@@ -139,10 +139,12 @@ module Mgmg
 			ret
 		end
 		def +(other)
+			other = self.coerce(other)[0] unless other.kind_of?(self.class)
 			mat = @mat.padd(other.mat)
 			self.class.new(mat, 28, 0, 12, 12)
 		end
 		def -(other)
+			other = self.coerce(other)[0] unless other.kind_of?(self.class)
 			mat = @mat.padd(other.mat.scalar(-1))
 			self.class.new(mat, 28, 0, 12, 12)
 		end
@@ -203,6 +205,76 @@ module Mgmg
 				return 0
 			end
 			ret.nil? ? 0 : ret
+		end
+		
+		def coerce(other)
+			[self.class.new(Mat.new(1, 1, other), 28, 0, 12, 12), self]
+		end
+		def <(other)
+			foo = self-other
+			(foo.mat.row_size-1).downto(0) do |s|
+				(foo.mat.col_size-1).downto(0) do |c|
+					bar = foo.mat.body[s][c]
+					if bar < 0
+						return true
+					elsif 0 < bar
+						return false
+					end
+				end
+			end
+			false
+		end
+		def <=(other)
+			foo = self-other
+			(foo.mat.row_size-1).downto(0) do |s|
+				(foo.mat.col_size-1).downto(0) do |c|
+					bar = foo.mat.body[s][c]
+					if bar < 0
+						return true
+					elsif 0 < bar
+						return false
+					end
+				end
+			end
+			true
+		end
+		def >(other)
+			foo = other-self
+			(foo.mat.row_size-1).downto(0) do |s|
+				(foo.mat.col_size-1).downto(0) do |c|
+					bar = foo.mat.body[s][c]
+					if bar < 0
+						return true
+					elsif 0 < bar
+						return false
+					end
+				end
+			end
+			false
+		end
+		def >=(other)
+			foo = other-self
+			(foo.mat.row_size-1).downto(0) do |s|
+				(foo.mat.col_size-1).downto(0) do |c|
+					bar = foo.mat.body[s][c]
+					if bar < 0
+						return true
+					elsif 0 < bar
+						return false
+					end
+				end
+			end
+			true
+		end
+		def ==(other)
+			foo = self-other
+			(foo.mat.row_size-1).downto(0) do |s|
+				(foo.mat.col_size-1).downto(0) do |c|
+					bar = foo.mat.body[s][c]
+					return false if bar != 0
+				end
+			end
+			true
 		end
 	end
 	class << TPolynomial
