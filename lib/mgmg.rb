@@ -74,6 +74,9 @@ class String
 	def phydef_optimize(smith=nil, comp=smith, left_associative: true, magdef_maximize: true)
 		Mgmg::Optimize.phydef_optimize(self, smith, comp, left_associative: left_associative, magdef_maximize: magdef_maximize)
 	end
+	def buster_optimize(smith=nil, comp=smith, left_associative: true)
+		Mgmg::Optimize.buster_optimize(self, smith, comp, left_associative: left_associative)
+	end
 end
 module Enumerable
 	def build(smith=-1, armor=smith, comp=armor.tap{armor=smith}, left_associative: true)

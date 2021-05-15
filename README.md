@@ -175,10 +175,13 @@ puts '小竜咆哮'.build
 近似多項式における偏微分値を使用した場合の，`String#eff`と同様の値を返します．`self.poly(para, left_associative: left_associative).eff(smith, comp)`と等価です．
 
 ### `String#phydef_optimize(smith=nil, comp=smith, left_associative: true, magdef_maximize: true)`
-物防反転装備の反転材の種別，素材の最適化を行い，修正したレシピを返します．
+反転物防装備の反転材の種別，素材の最適化を行い，修正したレシピを返します．
 `smith`，`comp`は探索を行う製作レベルを表し，`smith`が`nil`の場合，近似多項式で最適化を行います．近似多項式では，道具製作レベルの次数が高い項の係数を最適化します．
 物防を最大化するレシピのうち，`magdef_maximize`が真なら魔防を最大化する組み合わせ，偽ならコストを最小化(≒魔防を最小化)する組み合わせを探索します．
 ある範囲での全数探索を行うため，段数の多いレシピでは計算量が膨大になるほか，厳密な最適化を保証するものではなく，今後のアップデートで解が変わるような変更が入る可能性があります．
+
+### `String#buster_optimize(smith=nil, comp=smith, left_associative: true)`
+`String#phydef_optimize`の魔力弓版で，反転材の素材の最適化を行い，修正したレシピを返します．
 
 ### `Mgmg::Equip`
 前述の`String#build`によって生成される装備品のクラスです．複数装備の合計値を表す「複数装備」という種別の装備品の場合もあります．以下のようなインスタンスメソッドが定義されています．

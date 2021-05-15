@@ -1,7 +1,7 @@
 module Mgmg
 	module Optimize; end
 	class << Optimize
-		InvList = [%w|帽子 フード サンダル|.freeze, %w|宝1 木1 骨1 木2 骨2|.freeze, %w|宝1 木1 骨1|.freeze].freeze
+		InvList = [%w|帽子 フード サンダル|.freeze, %w|宝1 骨1 木1 木2 骨2|.freeze, %w|宝1 骨1 木1|.freeze].freeze
 		def phydef_optimize(str, smith, comp=smith, left_associative: true, magdef_maximize: true)
 			best = ( smith.nil? ? [str, str.poly(:phydef), str.poly(:magdef), str.poly(:cost)] : [str, str.build(smith, comp)] )
 			str = Mgmg.check_string(str)
@@ -34,11 +34,11 @@ module Mgmg
 			while a
 				b = b0
 				while b
-					r = po_apply_idx(str, a, b)
-					best = po_better(best, ( smith.nil? ? [r, r.poly(:phydef), r.poly(:magdef), r.poly(:cost)] : [r, r.build(smith, comp)] ), magdef_maximize)
-					b = po_next_b(b)
+					r = pd_apply_idx(str, a, b)
+					best = pd_better(best, ( smith.nil? ? [r, r.poly(:phydef), r.poly(:magdef), r.poly(:cost)] : [r, r.build(smith, comp)] ), magdef_maximize)
+					b = pd_next_b(b)
 				end
-				a = po_next_a(a)
+				a = pd_next_a(a)
 			end
 			if skin
 				str = str.sub(/綿(1\)\]*)\Z/) do
@@ -48,16 +48,16 @@ module Mgmg
 				while a
 					b = b0
 					while b
-						r = po_apply_idx(str, a, b)
-						best = po_better(best, ( smith.nil? ? [r, r.poly(:phydef), r.poly(:magdef), r.poly(:cost)] : [r, r.build(smith, comp)] ), magdef_maximize)
-						b = po_next_b(b)
+						r = pd_apply_idx(str, a, b)
+						best = pd_better(best, ( smith.nil? ? [r, r.poly(:phydef), r.poly(:magdef), r.poly(:cost)] : [r, r.build(smith, comp)] ), magdef_maximize)
+						b = pd_next_b(b)
 					end
-					a = po_next_a(a)
+					a = pd_next_a(a)
 				end
 			end
 			best[0]
 		end
-		private def po_better(pre, cur, mag)
+		private def pd_better(pre, cur, mag)
 			case pre.size
 			when 2
 				if pre[1].phydef < cur[1].phydef
@@ -105,7 +105,7 @@ module Mgmg
 				raise "Unexpected Error"
 			end
 		end
-		private def po_apply_idx(str, a, b)
+		private def pd_apply_idx(str, a, b)
 			a.each.with_index do |aa, i|
 				str = str.sub("<A#{i+1}>", "#{InvList[0][aa[0]]}(#{InvList[1][aa[1]]}#{InvList[2][aa[2]]})")
 			end
@@ -114,7 +114,7 @@ module Mgmg
 			end
 			str
 		end
-		private def po_next_b_full(b)
+		private def pd_next_b_full(b)
 			0.upto(b.length-1) do |i|
 				b[i] += 1
 				if b[i] == InvList[2].size
@@ -125,13 +125,13 @@ module Mgmg
 			end
 			nil
 		end
-		private def po_next_b(b)
+		private def pd_next_b(b)
 			if b[0] == 0
 				return Array.new(b.length, 1)
 			end
 			nil
 		end
-		private def po_next_a(a)
+		private def pd_next_a(a)
 			0.upto(a.length-1) do |i|
 				0.upto(2) do |j|
 					a[i][j] += 1
@@ -140,6 +140,66 @@ module Mgmg
 					else
 						return a
 					end
+				end
+			end
+			nil
+		end
+		
+		MwList = %w|綿 皮 骨 木 水|.freeze
+		def buster_optimize(str, smith, comp=smith, left_associative: true)
+			best = ( smith.nil? ? [str, str.poly(:mag_das)] : [str, str.build(smith, comp)] )
+			str = Mgmg.check_string(str)
+			ai = 0
+			while str.sub!(/弓\([骨水綿皮木][12][骨水綿皮木]1\)/){
+				ai += 1
+				"弓(<A#{ai}>)"
+			}; end
+			a = Array.new(ai){ [0, 0, 0] }
+			while a
+				r = bus_apply_idx(str, a)
+				best = bus_better(best, ( smith.nil? ? [r, r.poly(:mag_das)] : [r, r.build(smith, comp)] ))
+				a = bus_next_a(a)
+			end
+			best[0]
+		end
+		private def bus_apply_idx(str, a)
+			a.each.with_index do |aa, i|
+				str = str.sub("<A#{i+1}>", "#{MwList[aa[0]]}#{aa[1]+1}#{MwList[aa[2]]}1")
+			end
+			str
+		end
+		private def bus_better(pre, cur)
+			if pre[1].kind_of?(Mgmg::Equip)
+				if pre[1].mag_das < cur[1].mag_das
+					return cur
+				elsif pre[1].mag_das == cur[1].mag_das
+					if cur[1].total_cost.sum < pre[1].total_cost.sum
+						return cur
+					end
+				end
+				return pre
+			else
+				if pre[1] < cur[1]
+					return cur
+				end
+				return pre
+			end
+		end
+		private def bus_next_a(a)
+			0.upto(a.length-1) do |i|
+				[0, 2].each do |j|
+					a[i][j] += 1
+					if a[i][j] == 5
+						a[i][j] = 0
+					else
+						return a
+					end
+				end
+				a[i][1] += 1
+				if a[i][1] == 2
+					a[i][1] = 0
+				else
+					return a
 				end
 			end
 			nil
