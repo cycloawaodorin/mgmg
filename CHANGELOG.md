@@ -95,4 +95,5 @@
 - `Enumerable#min_levels`，`Enumerable#min_level`，`Enumerable#min_smith`，`Enumerable#min_comp`を追加．
 
 ## 1.3.2
-- 'Mgmg::TPolynomial'に比較演算子を追加．
+- `Mgmg::TPolynomial`に比較演算子を追加．
+- `String#phydef_optimize`を追加．
