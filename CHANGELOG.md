@@ -98,3 +98,4 @@
 - `Mgmg::TPolynomial`に比較演算子を追加．
 - `String#phydef_optimize`，`String#buster_optimize`を追加．
 - (`Enumerable#search`から呼び出される)`Enumerable#comp_search`における最大道具製作レベルチェックが間違っていたバグを修正．
+- `String#search`および`Enumerable#search`において，総経験値量が等しい組み合わせの場合，目標パラメータが大きくなる製作Lvの組み合わせを返すように修正．
