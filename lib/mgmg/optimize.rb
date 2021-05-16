@@ -149,11 +149,16 @@ module Mgmg
 		def buster_optimize(str, smith, comp=smith, left_associative: true)
 			best = ( smith.nil? ? [str, str.poly(:mag_das)] : [str, str.build(smith, comp)] )
 			str = Mgmg.check_string(str)
-			ai = 0
-			while str.sub!(/弓\([骨水綿皮木][12][骨水綿皮木]1\)/){
+			ai = -1
+			org = nil
+			while str.sub!(/弓\(([骨水綿皮木][12][骨水綿皮木]1)\)/){
 				ai += 1
+				if ai == 0
+					org = $1.dup
+				end
 				"弓(<A#{ai}>)"
 			}; end
+			str = str.sub(/<A0>/, org)
 			a = Array.new(ai){ [0, 0, 0] }
 			while a
 				r = bus_apply_idx(str, a)
