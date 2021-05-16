@@ -97,3 +97,4 @@
 ## 1.3.2
 - `Mgmg::TPolynomial`に比較演算子を追加．
 - `String#phydef_optimize`，`String#buster_optimize`を追加．
+- (`Enumerable#search`から呼び出される)`Enumerable#comp_search`における最大道具製作レベルチェックが間違っていたバグを修正．

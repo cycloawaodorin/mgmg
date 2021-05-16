@@ -187,7 +187,7 @@ module Enumerable
 		end
 		if target <= build(smith, armor, comp_min, left_associative: left_associative).para_call(para)
 			return comp_min
-		elsif build(smith, comp_max, left_associative: left_associative).para_call(para) < target
+		elsif build(smith, armor, comp_max, left_associative: left_associative).para_call(para) < target
 			raise ArgumentError, "given comp_max=#{comp_max} does not satisfies the target"
 		end
 		while 1 < comp_max - comp_min do
