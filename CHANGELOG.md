@@ -94,7 +94,7 @@
 - `String#search`，`Enumerable#search`を追加．
 - `Enumerable#min_levels`，`Enumerable#min_level`，`Enumerable#min_smith`，`Enumerable#min_comp`を追加．
 
-## 1.3.2
+## 1.3.2 2021/05/18
 - `Mgmg::TPolynomial`に比較演算子を追加．
 - `String#phydef_optimize`，`String#buster_optimize`を追加．
 - (`Enumerable#search`から呼び出される)`Enumerable#comp_search`における最大道具製作レベルチェックが間違っていたバグを修正．
