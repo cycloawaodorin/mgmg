@@ -30,7 +30,7 @@
 - マニュアル等の不備を修正．
 
 ## 1.0.9 2019/05/30
-- 丸めを無視した多項式近似(変数は製作レベル)を表す `Mgmg::TPolynomial`およびこれを生成するメソッド String#poly を追加．
+- 丸めを無視した多項式近似(変数は製作レベル)を表す`Mgmg::TPolynomial`およびこれを生成するメソッド`String#poly`を追加．
 
 ## 1.0.10 2019/06/29
 - 消費エレメント量を返す`Mgmg::Equip#total_cost`を追加．
@@ -93,3 +93,9 @@
 - `Mgmg.#exp`に3引数を与えられるように修正．
 - `String#search`，`Enumerable#search`を追加．
 - `Enumerable#min_levels`，`Enumerable#min_level`，`Enumerable#min_smith`，`Enumerable#min_comp`を追加．
+
+## 1.3.2 2021/05/18
+- `Mgmg::TPolynomial`に比較演算子を追加．
+- `String#phydef_optimize`，`String#buster_optimize`を追加．
+- (`Enumerable#search`から呼び出される)`Enumerable#comp_search`における最大道具製作レベルチェックが間違っていたバグを修正．
+- `String#search`および`Enumerable#search`において，総経験値量が等しい組み合わせの場合，目標パラメータが大きくなる製作Lvの組み合わせを返すように修正．

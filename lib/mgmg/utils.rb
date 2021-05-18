@@ -221,6 +221,9 @@ module Mgmg
 		def col_size
 			@body[0].length
 		end
+		def shape
+			[row_size(), col_size()]
+		end
 		def each_with_index
 			@body.each.with_index do |row, i|
 				row.each.with_index do |e, j|

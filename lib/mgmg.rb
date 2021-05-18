@@ -5,6 +5,7 @@ require_relative './mgmg/equip'
 require_relative './mgmg/poly'
 require_relative './mgmg/system_equip'
 require_relative './mgmg/search'
+require_relative './mgmg/optimize'
 
 class String
 	def min_level(w=1)
@@ -69,6 +70,12 @@ class String
 		puts "  #{self}"
 		puts "with levels (#{smith}, #{comp}) yields (#{pstr}, #{built.total_cost})"
 		puts "  #{built}"
+	end
+	def phydef_optimize(smith=nil, comp=smith, left_associative: true, magdef_maximize: true)
+		Mgmg::Optimize.phydef_optimize(self, smith, comp, left_associative: left_associative, magdef_maximize: magdef_maximize)
+	end
+	def buster_optimize(smith=nil, comp=smith, left_associative: true)
+		Mgmg::Optimize.buster_optimize(self, smith, comp, left_associative: left_associative)
 	end
 end
 module Enumerable

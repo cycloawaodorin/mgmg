@@ -72,7 +72,13 @@ class String
 			break if minex < Mgmg.exp(smith_min, comp)
 			smith = smith_search(para, target, comp, smith_min, smith_max, left_associative: left_associative, cut_exp: [minex, cut_exp].min)
 			exp = Mgmg.exp(smith, comp)
-			minex, ret = exp, [smith, comp] if exp < minex
+			if exp < minex
+				minex, ret = exp, [smith, comp]
+			elsif exp == minex
+				if build(*ret).para_call(para) < build(smith, comp).para_call(para)
+					ret = [smith, comp]
+				end
+			end
 		rescue Mgmg::SearchCutException
 		end
 		raise Mgmg::SearchCutException, "the result exceeds given cut_exp=#{cut_exp}" if cut_exp < minex
@@ -165,7 +171,13 @@ module Enumerable
 				break if minex < Mgmg.exp(smith_min, armor, comp)
 				smith = smith_search(para, target, armor, comp, smith_min, smith_max, left_associative: left_associative, cut_exp: [minex, cut_exp].min)
 				exp = Mgmg.exp(smith, armor, comp)
-				minex, ret = exp, [smith, armor] if exp < minex
+				if exp < minex
+					minex, ret = exp, [smith, armor]
+				elsif exp == minex
+					if build(*ret, comp).para_call(para) < build(smith, armor, comp).para_call(para)
+						ret = [smith, armor]
+					end
+				end
 			rescue Mgmg::SearchCutException
 			end
 		else
@@ -173,7 +185,13 @@ module Enumerable
 				break if minex < Mgmg.exp(smith, armor_min, comp)
 				armor = armor_search(para, target, smith, comp, armor_min, armor_max, left_associative: left_associative, cut_exp: [minex, cut_exp].min)
 				exp = Mgmg.exp(smith, armor, comp)
-				minex, ret = exp, [smith, armor] if exp < minex
+				if exp < minex
+					minex, ret = exp, [smith, armor]
+				elsif exp == minex
+					if build(*ret, comp).para_call(para) < build(smith, armor, comp).para_call(para)
+						ret = [smith, armor]
+					end
+				end
 			rescue Mgmg::SearchCutException
 			end
 		end
@@ -187,7 +205,7 @@ module Enumerable
 		end
 		if target <= build(smith, armor, comp_min, left_associative: left_associative).para_call(para)
 			return comp_min
-		elsif build(smith, comp_max, left_associative: left_associative).para_call(para) < target
+		elsif build(smith, armor, comp_max, left_associative: left_associative).para_call(para) < target
 			raise ArgumentError, "given comp_max=#{comp_max} does not satisfies the target"
 		end
 		while 1 < comp_max - comp_min do
@@ -221,7 +239,13 @@ module Enumerable
 			break if minex < Mgmg.exp(smith_min, armor_min, comp)
 			smith, armor = sa_search(para, target, comp, smith_min, armor_min, smith_max, armor_max, left_associative: left_associative, cut_exp: [minex, cut_exp].min)
 			exp = Mgmg.exp(smith, armor, comp)
-			minex, ret = exp, [smith, armor, comp] if exp < minex
+			if exp < minex
+				minex, ret = exp, [smith, armor, comp]
+			elsif exp == minex
+				if build(*ret).para_call(para) < build(smith, armor, comp).para_call(para)
+					ret = [smith, armor, comp]
+				end
+			end
 		rescue Mgmg::SearchCutException
 		end
 		raise Mgmg::SearchCutException, "the result exceeds given cut_exp=#{cut_exp}" if cut_exp < minex
