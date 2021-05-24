@@ -276,6 +276,15 @@ module Mgmg
 			end
 			true
 		end
+		def <=>(other)
+			if self == other
+				0
+			elsif self < other
+				-1
+			else
+				1
+			end
+		end
 	end
 	class << TPolynomial
 		ParamIndex = Hash.new
