@@ -102,3 +102,4 @@
 
 ## 1.3.3
 - `Mgmg::TPolynomial#<=>`を追加．
+- `Enumerable#show`を追加．

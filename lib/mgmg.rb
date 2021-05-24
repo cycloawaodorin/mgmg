@@ -89,6 +89,15 @@ module Enumerable
 			end
 		end.sum
 	end
+	def show(smith=-1, armor=smith, comp=armor.tap{armor=smith}, left_associative: true, para: :fpower)
+		built = self.build(smith, armor, comp, left_associative: left_associative)
+		pstr = '%.3f' % built.para_call(para)
+		pstr.sub!(/\.?0+\Z/, '')
+		puts "Building"
+		puts "  #{self.join(', ')}"
+		puts "with levels (#{smith}, #{armor}, #{comp}) yields (#{pstr}, #{built.total_cost})"
+		puts "  #{built}"
+	end
 	def min_levels(left_associative: true)
 		build(-1, -1, -1, left_associative: left_associative).min_levels
 	end
