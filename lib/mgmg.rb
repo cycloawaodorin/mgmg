@@ -62,9 +62,9 @@ class String
 	def peff(para, smith, comp=smith, left_associative: true)
 		poly(para, left_associative: left_associative).eff(smith, comp)
 	end
-	def show(smith=-1, comp=smith, left_associative: true)
+	def show(smith=-1, comp=smith, left_associative: true, para: :power)
 		built = self.build(smith, comp, left_associative: left_associative)
-		pstr = '%.3f' % built.fpower
+		pstr = '%.3f' % built.para_call(para)
 		pstr.sub!(/\.?0+\Z/, '')
 		puts "Building"
 		puts "  #{self}"
@@ -89,7 +89,7 @@ module Enumerable
 			end
 		end.sum
 	end
-	def show(smith=-1, armor=smith, comp=armor.tap{armor=smith}, left_associative: true, para: :fpower)
+	def show(smith=-1, armor=smith, comp=armor.tap{armor=smith}, left_associative: true, para: :power)
 		built = self.build(smith, armor, comp, left_associative: left_associative)
 		pstr = '%.3f' % built.para_call(para)
 		pstr.sub!(/\.?0+\Z/, '')
