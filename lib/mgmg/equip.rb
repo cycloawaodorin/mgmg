@@ -83,13 +83,13 @@ module Mgmg
 			attack()+str()
 		end
 		def atk_sd
-			attack()*2+str()+dex()
+			attack()+str().quo(2)+dex().quo(2)
 		end
 		def dex_as
-			attack()+str()+dex()*2
+			attack().quo(2)+str().quo(2)+dex()
 		end
 		def mag_das
-			magic()*4+dex_as()
+			magic()+dex_as().quo(2)
 		end
 		[:fire, :earth, :water].each.with_index do |s, i|
 			define_method(s){ @element[i] }
@@ -98,35 +98,31 @@ module Mgmg
 		def power
 			case @kind
 			when 0, 1
-				atk_sd()*2
+				atk_sd()
 			when 2, 3
-				atkstr()*4
+				atkstr()
 			when 4
-				[dex_as()*2, mag_das()].max
+				[dex_as(), mag_das()].max
 			when 5
-				dex_as()*2
+				dex_as()
 			when 6, 7
-				[magic()*8, atkstr()*4].max
+				[magic()*2, atkstr()].max
 			when 28
-				(@para.sum*4)-((hp()+mp())*3)
+				@para.sum-((hp()+mp())*3.quo(4))
 			else
 				ret = @para.max
 				if ret == magdef()
-					ret*2+magic()
+					ret+magic().quo(2)
 				else
-					ret*2
+					ret
 				end
 			end
 		end
 		def magmag
-			magdef()*2+magic()
+			magdef()+magic().quo(2)
 		end
 		def fpower
-			if @kind < 8 || @kind == 28
-				power().fdiv(4)
-			else
-				power().fdiv(2)
-			end
+			power().to_f
 		end
 		
 		def smith_cost(outsourcing=false)
