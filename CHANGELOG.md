@@ -102,5 +102,6 @@
 
 ## 1.4.0
 - `Mgmg::Equip#atk_sd`，`Mgmg::Equip#dex_as`，`Mgmg::Equip#mag_das`，`Mgmg::Equip#magmag`を，威力値の定数倍(常に`Integer`)から威力値そのもの(`Rational`)に変更．これに伴い，`Mgmg::Equip#power`の返り値も威力値とした．互換性のため，`Mgmg::Equip#fpower`はそのまま残した．
+- ver2.00β12で導入された，合成の消費エレメントが地と火または水で折半される仕様に対応した．`Mgmg::Equip#comp_cost`は従来の値の半分となり，`Mgmg::Equip#total_cost`はver2.00β12以降の総消費エレメントとなった．
 - `Mgmg::TPolynomial#<=>`を追加．
 - `Enumerable#show`を追加．

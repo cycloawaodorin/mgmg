@@ -142,9 +142,9 @@ module Mgmg
 		end
 		def comp_cost(outsourcing=false)
 			if outsourcing
-				[(@star**2)*5+@para.sum+hp().cdiv(4)-hp()+mp().cdiv(4)-mp(), 0].max
+				[(@star**2)*5+@para.sum+hp().cdiv(4)-hp()+mp().cdiv(4)-mp(), 0].max.div(2)
 			else
-				[((@star**2)*5+@para.sum+hp().cdiv(4)-hp()+mp().cdiv(4)-mp()).div(2), 0].max
+				[((@star**2)*5+@para.sum+hp().cdiv(4)-hp()+mp().cdiv(4)-mp()).div(2), 0].max.div(2)
 			end
 		end
 		alias :cost :comp_cost
@@ -253,7 +253,9 @@ module Mgmg
 			
 			ret = new(main_k, main.weight+sub.weight, main_s+sub_s, main_sub, sub_main, para, ele)
 			ret.total_cost.add!(main.total_cost).add!(sub.total_cost)
-			ret.total_cost[1] += ret.comp_cost(outsourcing)
+			cc = ret.comp_cost(outsourcing)
+			ret.total_cost[1] += cc
+			ret.total_cost[main_k < 8 ? 0 : 2] += cc
 			ret.min_levels.merge!(main.min_levels, sub.min_levels)
 			ret.history = [*main.history, *sub.history, ret]
 			ret
@@ -288,11 +290,7 @@ module Mgmg
 			weight = ( ( EquipWeight[kind] + SubWeight[sub_m] - level.div(2) ) * ( MainWeight[main_m] ) ).div(10000)
 			
 			ret = new(kind, ( weight<1 ? 1 : weight ), (main_s+sub_s).div(2), main_mc, sub_mc, para, ele)
-			if kind < 8
-				ret.total_cost[0] = ret.smith_cost(outsourcing)
-			else
-				ret.total_cost[2] = ret.smith_cost(outsourcing)
-			end
+			ret.total_cost[kind < 8 ? 0 : 2] += ret.smith_cost(outsourcing)
 			ret.min_levels.store(str, str.min_level)
 			ret
 		end
