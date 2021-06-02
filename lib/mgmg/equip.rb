@@ -167,8 +167,7 @@ module Mgmg
 				end
 			end
 			@weight += other.weight
-			@main = 12
-			@sub = 12
+			@main, @sub = 12, 12
 			@para.add!(other.para)
 			@element.add!(other.element)
 			@total_cost.add!(other.total_cost)
@@ -315,7 +314,7 @@ module Mgmg
 			if m.nil? || mat.nil?
 				raise InvalidMaterialError.new(str)
 			end
-			[mat, m[1].to_i, mat<90 ? mat.div(10): 9]
+			[mat, m[1].to_i, mat<90 ? mat.div(10) : 9]
 		end
 		
 		def min_comp(str, left_associative: true)
