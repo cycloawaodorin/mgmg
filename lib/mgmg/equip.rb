@@ -83,13 +83,13 @@ module Mgmg
 			attack()+str()
 		end
 		def atk_sd
-			attack()*2+str()+dex()
+			attack()+str().quo(2)+dex().quo(2)
 		end
 		def dex_as
-			attack()+str()+dex()*2
+			attack().quo(2)+str().quo(2)+dex()
 		end
 		def mag_das
-			magic()*4+dex_as()
+			magic()+dex_as().quo(2)
 		end
 		[:fire, :earth, :water].each.with_index do |s, i|
 			define_method(s){ @element[i] }
@@ -98,35 +98,34 @@ module Mgmg
 		def power
 			case @kind
 			when 0, 1
-				atk_sd()*2
+				atk_sd()
 			when 2, 3
-				atkstr()*4
+				atkstr()
 			when 4
-				[dex_as()*2, mag_das()].max
+				[dex_as(), mag_das()].max
 			when 5
-				dex_as()*2
+				dex_as()
 			when 6, 7
-				[magic()*8, atkstr()*4].max
+				[magic()*2, atkstr()].max
 			when 28
-				(@para.sum*4)-((hp()+mp())*3)
+				@para.sum-((hp()+mp())*3.quo(4))
 			else
 				ret = @para.max
 				if ret == magdef()
-					ret*2+magic()
+					ret+magic().quo(2)
 				else
-					ret*2
+					ret
 				end
 			end
 		end
 		def magmag
-			magdef()*2+magic()
+			magdef()+magic().quo(2)
 		end
 		def fpower
-			if @kind < 8 || @kind == 28
-				power().fdiv(4)
-			else
-				power().fdiv(2)
-			end
+			power().to_f
+		end
+		def pmdef
+			[phydef(), magmag()].min
 		end
 		
 		def smith_cost(outsourcing=false)
@@ -146,9 +145,9 @@ module Mgmg
 		end
 		def comp_cost(outsourcing=false)
 			if outsourcing
-				[(@star**2)*5+@para.sum+hp().cdiv(4)-hp()+mp().cdiv(4)-mp(), 0].max
+				[(@star**2)*5+@para.sum+hp().cdiv(4)-hp()+mp().cdiv(4)-mp(), 0].max.div(2)
 			else
-				[((@star**2)*5+@para.sum+hp().cdiv(4)-hp()+mp().cdiv(4)-mp()).div(2), 0].max
+				[((@star**2)*5+@para.sum+hp().cdiv(4)-hp()+mp().cdiv(4)-mp()).div(2), 0].max.div(2)
 			end
 		end
 		alias :cost :comp_cost
@@ -171,8 +170,7 @@ module Mgmg
 				end
 			end
 			@weight += other.weight
-			@main = 12
-			@sub = 12
+			@main, @sub = 12, 12
 			@para.add!(other.para)
 			@element.add!(other.element)
 			@total_cost.add!(other.total_cost)
@@ -257,7 +255,9 @@ module Mgmg
 			
 			ret = new(main_k, main.weight+sub.weight, main_s+sub_s, main_sub, sub_main, para, ele)
 			ret.total_cost.add!(main.total_cost).add!(sub.total_cost)
-			ret.total_cost[1] += ret.comp_cost(outsourcing)
+			cc = ret.comp_cost(outsourcing)
+			ret.total_cost[1] += cc
+			ret.total_cost[main_k < 8 ? 0 : 2] += cc
 			ret.min_levels.merge!(main.min_levels, sub.min_levels)
 			ret.history = [*main.history, *sub.history, ret]
 			ret
@@ -292,11 +292,7 @@ module Mgmg
 			weight = ( ( EquipWeight[kind] + SubWeight[sub_m] - level.div(2) ) * ( MainWeight[main_m] ) ).div(10000)
 			
 			ret = new(kind, ( weight<1 ? 1 : weight ), (main_s+sub_s).div(2), main_mc, sub_mc, para, ele)
-			if kind < 8
-				ret.total_cost[0] = ret.smith_cost(outsourcing)
-			else
-				ret.total_cost[2] = ret.smith_cost(outsourcing)
-			end
+			ret.total_cost[kind < 8 ? 0 : 2] += ret.smith_cost(outsourcing)
 			ret.min_levels.store(str, str.min_level)
 			ret
 		end
@@ -321,7 +317,7 @@ module Mgmg
 			if m.nil? || mat.nil?
 				raise InvalidMaterialError.new(str)
 			end
-			[mat, m[1].to_i, mat<90 ? mat.div(10): 9]
+			[mat, m[1].to_i, mat<90 ? mat.div(10) : 9]
 		end
 		
 		def min_comp(str, left_associative: true)
