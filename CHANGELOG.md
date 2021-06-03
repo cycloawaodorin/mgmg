@@ -106,3 +106,6 @@
 - `Mgmg::TPolynomial#<=>`を追加．
 - `Enumerable#show`を追加．
 - `Mgmg::Equip#pmdef`で，`Mgmg::Equip#phydef`と`Mgmg::Equip#magmag`のうち，小さい方を返すようにし，`String#poly`の引数に`:pmdef`を受け付けるようにした．
+
+## 1.4.1
+- [リファレンス](./reference.md)を[README](./README.md)から分離独立させた．
