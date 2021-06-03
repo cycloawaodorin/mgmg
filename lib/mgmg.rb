@@ -29,13 +29,17 @@ class String
 		when :atkstr
 			self.poly(:attack, left_associative: la) + self.poly(:str, left_associative: la)
 		when :atk_sd
-			self.poly(:attack) + self.poly(:str, left_associative: la).quo(2) + self.poly(:dex, left_associative: la).quo(2)
+			self.poly(:attack, left_associative: la) + self.poly(:str, left_associative: la).quo(2) + self.poly(:dex, left_associative: la).quo(2)
 		when :dex_as
-			self.poly(:dex) + self.poly(:attack, left_associative: la).quo(2) + self.poly(:str, left_associative: la).quo(2)
+			self.poly(:dex, left_associative: la) + self.poly(:attack, left_associative: la).quo(2) + self.poly(:str, left_associative: la).quo(2)
 		when :mag_das
-			self.poly(:magic) + self.poly(:dex_as, left_associative: la).quo(2)
+			self.poly(:magic, left_associative: la) + self.poly(:dex_as, left_associative: la).quo(2)
 		when :magmag
-			self.poly(:magdef) + self.poly(:magic, left_associative: la).quo(2)
+			self.poly(:magdef, left_associative: la) + self.poly(:magic, left_associative: la).quo(2)
+		when :pmdef
+			pd = self.poly(:phydef, left_associative: la)
+			md = self.poly(:magmag, left_associative: la)
+			pd <= md ? pd : md
 		when :cost
 			if Mgmg::SystemEquip.keys.include?(self)
 				return Mgmg::TPolynomial.new(Mgmg::Mat.new(1, 1, 0.quo(1)), 28, 0, 12, 12)

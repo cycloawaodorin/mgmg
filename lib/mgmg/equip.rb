@@ -124,6 +124,9 @@ module Mgmg
 		def fpower
 			power().to_f
 		end
+		def pmdef
+			[phydef(), magmag()].min
+		end
 		
 		def smith_cost(outsourcing=false)
 			if outsourcing

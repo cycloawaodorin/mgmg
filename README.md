@@ -136,7 +136,7 @@ puts '小竜咆哮'.build
 
 `para`として，複数の9パラ値を組み合わせた以下のシンボルを指定することもできます．
 ```ruby
-:atkstr, :atk_sd, :dex_as, :mag_das, :magmag
+:atkstr, :atk_sd, :dex_as, :mag_das, :magmag, :pmdef
 ```
 ただし，自動選択の`:power`は指定できません．
 
@@ -255,6 +255,9 @@ puts '小竜咆哮'.build
 
 ### `Mgmg::Equip#magmag`
 「魔防+魔力/2」の値を返します．魔力の半分が魔防に加算されることから，実際の魔防性能となります．
+
+### `Mgmg::Equip#pmdef`
+物防と実効魔防のうち，小さい方を返します．
 
 ### `Mgmg::Equip#+(other)`
 `self`と`other`を装備した「複数装備」の`Mgmg::Equip`を返します．`self`と`other`はいずれも単品でも「複数装備」でも構いません．武器複数などの装備可否チェックはされません．

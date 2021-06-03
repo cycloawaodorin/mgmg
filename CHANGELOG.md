@@ -105,3 +105,4 @@
 - ver2.00β12で導入された，合成の消費エレメントが地と火または水で折半される仕様に対応した．`Mgmg::Equip#comp_cost`は従来の値の半分となり，`Mgmg::Equip#total_cost`はver2.00β12以降の総消費エレメントとなった．
 - `Mgmg::TPolynomial#<=>`を追加．
 - `Enumerable#show`を追加．
+- `Mgmg::Equip#pmdef`で，`Mgmg::Equip#phydef`と`Mgmg::Equip#magmag`のうち，小さい方を返すようにし，`String#poly`の引数に`:pmdef`を受け付けるようにした．
