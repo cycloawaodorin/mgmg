@@ -155,9 +155,9 @@ module Mgmg
 			par = @para.map.with_index{|e, i| e.to_s=='0' ? nil : "#{Mgmg::Equip::ParamList[i]}:#{e.to_s}"}.compact
 			if @kind == 28
 				ep = @star.map.with_index{|e, i| e==0 ? nil : "#{Mgmg::Equip::EqPosList[i]}:#{e}"}.compact
-				"複数装備(#{ep.join(', ')})[#{par.join(', ')}]"
+				"複数装備(#{ep.join(', ')})<#{par.join(', ')}>"
 			else
-				"#{EquipName[@kind]}☆#{@star}(#{MaterialClass[@main]}#{MaterialClass[@sub]})[#{par.join(', ')}]"
+				"#{EquipName[@kind]}☆#{@star}(#{MaterialClass[@main]}#{MaterialClass[@sub]})<#{par.join(', ')}>"
 			end
 		end
 		
