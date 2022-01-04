@@ -107,15 +107,14 @@ module Enumerable
 				raise Mgmg::SearchCutException
 			end
 		end
-		para3 = (para.to_s+'3').intern
-		if irep.para_call3(para3, smith_max, armor, comp) < target
+		if irep.para_call(para, smith_max, armor, comp) < target
 			raise Mgmg::SearchCutException
-		elsif target <= irep.para_call3(para3, smith_min, armor, comp)
+		elsif target <= irep.para_call(para, smith_min, armor, comp)
 			return smith_min
 		end
 		while 1 < smith_max - smith_min do
 			smith = (smith_max - smith_min).div(2) + smith_min
-			if irep.para_call3(para3, smith, armor, comp) < target
+			if irep.para_call(para, smith, armor, comp) < target
 				smith_min = smith
 			else
 				smith_max = smith
@@ -141,15 +140,14 @@ module Enumerable
 				raise Mgmg::SearchCutException
 			end
 		end
-		para3 = (para.to_s+'3').intern
-		if irep.para_call3(para3, smith, armor_max, comp) < target
+		if irep.para_call(para, smith, armor_max, comp) < target
 			raise Mgmg::SearchCutException
-		elsif target <= irep.para_call3(para3, smith, armor_min, comp)
+		elsif target <= irep.para_call(para, smith, armor_min, comp)
 			return armor_min
 		end
 		while 1 < armor_max - armor_min do
 			armor = (armor_max - armor_min).div(2) + armor_min
-			if irep.para_call3(para3, smith, armor, comp) < target
+			if irep.para_call(para, smith, armor, comp) < target
 				armor_min = armor
 			else
 				armor_max = armor
@@ -173,7 +171,6 @@ module Enumerable
 		armor_max = armor_search(para, target, smith_min, comp, armor_min, armor_max, left_associative: true, irep: irep)
 		minex, ret = Mgmg.exp(smith_min, armor_max, comp), [smith_min, armor_max]
 		exp = Mgmg.exp(smith_max, armor_min, comp)
-		para3 = (para.to_s+'3').intern
 		if exp < minex
 			minex, ret = exp, [smith_max, armor_min]
 			(armor_min+1).upto(armor_max-1) do |armor|
@@ -183,7 +180,7 @@ module Enumerable
 				if exp < minex
 					minex, ret = exp, [smith, armor]
 				elsif exp == minex
-					if irep.para_call3(para3, *ret, comp) < irep.para_call3(para3, smith, armor, comp)
+					if irep.para_call(para, *ret, comp) < irep.para_call(para, smith, armor, comp)
 						ret = [smith, armor]
 					end
 				end
@@ -197,7 +194,7 @@ module Enumerable
 				if exp < minex
 					minex, ret = exp, [smith, armor]
 				elsif exp == minex
-					if irep.para_call3(para3, *ret, comp) < irep.para_call3(para3, smith, armor, comp)
+					if irep.para_call(para, *ret, comp) < irep.para_call(para, smith, armor, comp)
 						ret = [smith, armor]
 					end
 				end
@@ -213,15 +210,14 @@ module Enumerable
 		if comp_max < comp_min
 			raise ArgumentError, "comp_min <= comp_max is needed, (comp_min, comp_max) = (#{comp_min}, #{comp_max}) are given"
 		end
-		para3 = (para.to_s+'3').intern
-		if target <= irep.para_call3(para3, smith, armor, comp_min)
+		if target <= irep.para_call(para, smith, armor, comp_min)
 			return comp_min
-		elsif irep.para_call3(para3, smith, armor, comp_max) < target
+		elsif irep.para_call(para, smith, armor, comp_max) < target
 			raise ArgumentError, "given comp_max=#{comp_max} does not satisfies the target"
 		end
 		while 1 < comp_max - comp_min do
 			comp = (comp_max - comp_min).div(2) + comp_min
-			if irep.para_call3(para3, smith, armor, comp) < target
+			if irep.para_call(para, smith, armor, comp) < target
 				comp_min = comp
 			else
 				comp_max = comp
@@ -247,7 +243,6 @@ module Enumerable
 		minex, ret = Mgmg.exp(smith_min, armor_min, comp_max), [smith_min, armor_min, comp_max]
 		exp = Mgmg.exp(smith_max, armor_max, comp_min)
 		minex, ret = exp, [smith_max, armor_max, comp_min] if exp < minex
-		para3 = (para.to_s+'3').intern
 		(comp_min+1).upto(comp_max-1) do |comp|
 			break if minex < Mgmg.exp(smith_min, armor_min, comp)
 			smith, armor = sa_search(para, target, comp, smith_min, armor_min, smith_max, armor_max, left_associative: left_associative, cut_exp: [minex, cut_exp].min, irep: irep)
@@ -255,7 +250,7 @@ module Enumerable
 			if exp < minex
 				minex, ret = exp, [smith, armor, comp]
 			elsif exp == minex
-				if irep.para_call3(para3, *ret) < irep.para_call3(para3, smith, armor, comp)
+				if irep.para_call(para, *ret) < irep.para_call(para, smith, armor, comp)
 					ret = [smith, armor, comp]
 				end
 			end

@@ -161,58 +161,42 @@ module Mgmg
 			end
 		end
 		
-		def para_call(para, s, c=s)
-			method(para).call(s, c)
-		end
-		def para_call3(para, s, a=s, c=a.tap{a=s})
-			method(para).call(s, a, c)
+		def para_call(para, s, ac, x=nil)
+			if x.nil?
+				method(para).call(s, ac)
+			else
+				method(para).call(s, ac, x)
+			end
 		end
 		
 		%i|attack phydef magdef hp mp str dex speed magic|.each.with_index do |sym, i|
-			define_method(sym) do |s=nil, c=s|
+			define_method(sym) do |s=nil, ac=s, x=nil|
 				if s.nil?
 					@para[i]
+				elsif x.nil?
+					@para[i].evaluate(s, ac)
 				else
-					@para[i].evaluate(s, c)
+					@para[i].evaluate3(s, ac, x)
 				end
 			end
-			define_method((sym.to_s+'3').intern){ |s, a=s, c=a.tap{a=s}| @para[i].evaluate3(s, a, c) }
 		end
-		def atkstr(s, c=s)
-			attack(s, c)+str(s, c)
+		def atkstr(s, ac, x=nil)
+			attack(s, ac, x)+str(s, ac, x)
 		end
-		def atk_sd(s, c=s)
-			attack(s, c)+str(s, c).quo(2)+dex(s, c).quo(2)
+		def atk_sd(s, ac, x=nil)
+			attack(s, ac, x)+str(s, ac, x).quo(2)+dex(s, ac, x).quo(2)
 		end
-		def dex_as(s, c=s)
-			attack(s, c).quo(2)+str(s, c).quo(2)+dex(s, c)
+		def dex_as(s, ac, x=nil)
+			attack(s, ac, x).quo(2)+str(s, ac, x).quo(2)+dex(s, ac, x)
 		end
-		def mag_das(s, c=s)
-			magic(s, c)+dex_as(s, c).quo(2)
+		def mag_das(s, ac, x=nil)
+			magic(s, ac, x)+dex_as(s, ac, x).quo(2)
 		end
-		def magmag(s, c=s)
-			magdef(s, c)+magic(s, c).quo(2)
+		def magmag(s, ac, x=nil)
+			magdef(s, ac, x)+magic(s, ac, x).quo(2)
 		end
-		def pmdef(s, c=s)
-			[phydef(s, c), magmag(s, c)].min
-		end
-		def atkstr3(s, a=s, c=a.tap{a=s})
-			attack3(s, a, c)+str3(s, a, c)
-		end
-		def atk_sd3(s, a=s, c=a.tap{a=s})
-			attack3(s, a, c)+str3(s, a, c).quo(2)+dex3(s, a, c).quo(2)
-		end
-		def dex_as3(s, a=s, c=a.tap{a=s})
-			attack3(s, a, c).quo(2)+str3(s, a, c).quo(2)+dex3(s, a, c)
-		end
-		def mag_das3(s, a=s, c=a.tap{a=s})
-			magic3(s, a, c)+dex_as3(s, a, c).quo(2)
-		end
-		def magmag3(s, a=s, c=a.tap{a=s})
-			magdef3(s, a, c)+magic3(s, a, c).quo(2)
-		end
-		def pmdef3(s, a=s, c=a.tap{a=s})
-			[phydef3(s, a, c), magmag3(s, a, c)].min
+		def pmdef(s, ac, x=nil)
+			[phydef(s, ac, x), magmag(s, ac, x)].min
 		end
 		
 		def power(s, a=s, c=a.tap{a=s})
@@ -228,11 +212,11 @@ module Mgmg
 			when 6, 7
 				[magic(s, c)*2, atkstr(s, c)].max
 			when 28
-				@para.sum{|e| e.evaluate3(s, a, c)}-((hp3(s, a, c)+mp3(s, a, c))*3.quo(4))
+				@para.sum{|e| e.evaluate3(s, a, c)}-((hp(s, a, c)+mp(s, a, c))*3.quo(4))
 			else
 				ret = @para.map{|e| e.evaluate3(s, a, c)}.max
-				if ret == magdef3(s, a, c)
-					ret+magic3(s, a, c).quo(2)
+				if ret == magdef(s, a, c)
+					ret+magic(s, a, c).quo(2)
 				else
 					ret
 				end
