@@ -161,55 +161,61 @@ module Mgmg
 			end
 		end
 		
-		def para_call(para, s=0, c=s)
+		def para_call(para, s, c=s)
 			method(para).call(s, c)
 		end
-		def para_call3(para, s=0, a=s, c=a.tap{a=s})
+		def para_call3(para, s, a=s, c=a.tap{a=s})
 			method(para).call(s, a, c)
 		end
 		
 		%i|attack phydef magdef hp mp str dex speed magic|.each.with_index do |sym, i|
-			define_method(sym){ |s=0, c=s| @para[i].evaluate(s, c) }
-			define_method((sym.to_s+'3').intern){ |s=0, a=s, c=a.tap{a=s}| @para[i].evaluate3(s, a, c) }
+			define_method(sym) do |s=nil, c=s|
+				if s.nil?
+					@para[i]
+				else
+					@para[i].evaluate(s, c)
+				end
+			end
+			define_method((sym.to_s+'3').intern){ |s, a=s, c=a.tap{a=s}| @para[i].evaluate3(s, a, c) }
 		end
-		def atkstr(s=0, c=s)
+		def atkstr(s, c=s)
 			attack(s, c)+str(s, c)
 		end
-		def atk_sd(s=0, c=s)
+		def atk_sd(s, c=s)
 			attack(s, c)+str(s, c).quo(2)+dex(s, c).quo(2)
 		end
-		def dex_as(s=0, c=s)
+		def dex_as(s, c=s)
 			attack(s, c).quo(2)+str(s, c).quo(2)+dex(s, c)
 		end
-		def mag_das(s=0, c=s)
+		def mag_das(s, c=s)
 			magic(s, c)+dex_as(s, c).quo(2)
 		end
-		def magmag(s=0, c=s)
+		def magmag(s, c=s)
 			magdef(s, c)+magic(s, c).quo(2)
 		end
-		def pmdef(s=0, c=s)
+		def pmdef(s, c=s)
 			[phydef(s, c), magmag(s, c)].min
 		end
-		def atkstr3(s=0, a=s, c=a.tap{a=s})
+		def atkstr3(s, a=s, c=a.tap{a=s})
 			attack3(s, a, c)+str3(s, a, c)
 		end
-		def atk_sd3(s=0, a=s, c=a.tap{a=s})
+		def atk_sd3(s, a=s, c=a.tap{a=s})
 			attack3(s, a, c)+str3(s, a, c).quo(2)+dex3(s, a, c).quo(2)
 		end
-		def dex_as3(s=0, a=s, c=a.tap{a=s})
+		def dex_as3(s, a=s, c=a.tap{a=s})
 			attack3(s, a, c).quo(2)+str3(s, a, c).quo(2)+dex3(s, a, c)
 		end
-		def mag_das3(s=0, a=s, c=a.tap{a=s})
+		def mag_das3(s, a=s, c=a.tap{a=s})
 			magic3(s, a, c)+dex_as3(s, a, c).quo(2)
 		end
-		def magmag3(s=0, a=s, c=a.tap{a=s})
+		def magmag3(s, a=s, c=a.tap{a=s})
 			magdef3(s, a, c)+magic3(s, a, c).quo(2)
 		end
-		def pmdef3(s=0, a=s, c=a.tap{a=s})
+		def pmdef3(s, a=s, c=a.tap{a=s})
 			[phydef3(s, a, c), magmag3(s, a, c)].min
 		end
 		
-		def power(s=0, a=s, c=a.tap{a=s})
+		def power(s, a=s, c=a.tap{a=s})
 			case @kind
 			when 0, 1
 				atk_sd(s, c)
@@ -232,11 +238,11 @@ module Mgmg
 				end
 			end
 		end
-		def fpower(s=0, a=s, c=a.tap{a=s})
+		def fpower(s, a=s, c=a.tap{a=s})
 			power(s, a, c).to_f
 		end
 		
-		def smith_cost(s=0, c=s, outsourcing=false)
+		def smith_cost(s, c=s, outsourcing=false)
 			if outsourcing
 				if @kind < 8
 					(@star**2)*2+@para.sum{|e| e.evaluate(s, c)}+hp(s, c).cdiv(4)-hp(s, c)+mp(s, c).cdiv(4)-mp(s, c)
@@ -251,7 +257,7 @@ module Mgmg
 				end
 			end
 		end
-		def comp_cost(s=0, c=s, outsourcing=false)
+		def comp_cost(s, c=s, outsourcing=false)
 			if outsourcing
 				[(@star**2)*5+@para.sum{|e| e.evaluate(s, c)}+hp().cdiv(4)-hp()+mp().cdiv(4)-mp(), 0].max.div(2)
 			else
