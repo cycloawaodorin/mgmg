@@ -1,5 +1,6 @@
 class String
-	def smith_search(para, target, comp, smith_min=nil, smith_max=10000, left_associative: true, cut_exp: Float::INFINITY, min_smith: false)
+	def smith_search(para, target, comp, smith_min=nil, smith_max=10000, left_associative: true, cut_exp: Float::INFINITY, min_smith: false, irep: nil)
+		irep = ir(left_associative: left_associative) if irep.nil?
 		if smith_min.nil?
 			if min_smith
 				smith_min = self.min_smith.min_smith
@@ -16,14 +17,14 @@ class String
 				raise Mgmg::SearchCutException
 			end
 		end
-		if target <= build(smith_min, comp, left_associative: left_associative).para_call(para)
+		if target <= irep.para_call(para, smith_min, comp)
 			return smith_min
-		elsif build(smith_max, comp, left_associative: left_associative).para_call(para) < target
+		elsif irep.para_call(para, smith_max, comp) < target
 			raise Mgmg::SearchCutException
 		end
 		while 1 < smith_max - smith_min do
 			smith = (smith_max - smith_min).div(2) + smith_min
-			if build(smith, comp, left_associative: left_associative).para_call(para) < target
+			if irep.para_call(para, smith, comp) < target
 				smith_min = smith
 			else
 				smith_max = smith
@@ -31,19 +32,20 @@ class String
 		end
 		smith_max
 	end
-	def comp_search(para, target, smith, comp_min=nil, comp_max=10000, left_associative: true)
+	def comp_search(para, target, smith, comp_min=nil, comp_max=10000, left_associative: true, irep: nil)
+		irep = ir(left_associative: left_associative) if irep.nil?
 		comp_min = min_comp(left_associative: left_associative)
 		if comp_max < comp_min
 			raise ArgumentError, "comp_min <= comp_max is needed, (comp_min, comp_max) = (#{comp_min}, #{comp_max}) are given"
 		end
-		if target <= build(smith, comp_min, left_associative: left_associative).para_call(para)
+		if target <= irep.para_call(para, smith, comp_min)
 			return comp_min
-		elsif build(smith, comp_max, left_associative: left_associative).para_call(para) < target
+		elsif irep.para_call(para, smith, comp_max) < target
 			raise Mgmg::SearchCutException
 		end
 		while 1 < comp_max - comp_min do
 			comp = (comp_max - comp_min).div(2) + comp_min
-			if build(smith, comp, left_associative: left_associative).para_call(para) < target
+			if irep.para_call(para, smith, comp) < target
 				comp_min = comp
 			else
 				comp_max = comp
@@ -51,7 +53,8 @@ class String
 		end
 		comp_max
 	end
-	def search(para, target, smith_min=nil, comp_min=nil, smith_max=10000, comp_max=10000, left_associative: true, step: 1, cut_exp: Float::INFINITY, min_smith: false)
+	def search(para, target, smith_min=nil, comp_min=nil, smith_max=10000, comp_max=10000, left_associative: true, step: 1, cut_exp: Float::INFINITY, min_smith: false, irep: nil)
+		irep = ir(left_associative: left_associative) if irep.nil?
 		if smith_min.nil?
 			if min_smith
 				smith_min = self.min_smith
@@ -60,11 +63,11 @@ class String
 			end
 		end
 		comp_min = min_comp(left_associative: left_associative) if comp_min.nil?
-		comp_min = comp_search(para, target, smith_max, comp_min, comp_max, left_associative: left_associative)
-		smith_max = smith_search(para, target, comp_min, smith_min, smith_max, left_associative: left_associative)
-		smith_min = smith_search(para, target, comp_max, smith_min, smith_max, left_associative: left_associative)
+		comp_min = comp_search(para, target, smith_max, comp_min, comp_max, left_associative: left_associative, irep: irep)
+		smith_max = smith_search(para, target, comp_min, smith_min, smith_max, left_associative: left_associative, irep: irep)
+		smith_min = smith_search(para, target, comp_max, smith_min, smith_max, left_associative: left_associative, irep: irep)
 		raise Mgmg::SearchCutException if cut_exp < Mgmg.exp(smith_min, comp_min)
-		comp_max = comp_search(para, target, smith_min, comp_min, comp_max, left_associative: left_associative)
+		comp_max = comp_search(para, target, smith_min, comp_min, comp_max, left_associative: left_associative, irep: irep)
 		minex, ret = Mgmg.exp(smith_min, comp_max), [smith_min, comp_max]
 		exp = Mgmg.exp(smith_max, comp_min)
 		minex, ret = exp, [smith_max, comp_min] if exp < minex
@@ -75,7 +78,7 @@ class String
 			if exp < minex
 				minex, ret = exp, [smith, comp]
 			elsif exp == minex
-				if build(*ret).para_call(para) < build(smith, comp).para_call(para)
+				if irep.para_call(para, *ret) < irep.para_call(para, smith, comp)
 					ret = [smith, comp]
 				end
 			end
@@ -86,7 +89,8 @@ class String
 	end
 end
 module Enumerable
-	def smith_search(para, target, armor, comp, smith_min=nil, smith_max=10000, left_associative: true, cut_exp: Float::INFINITY, min_smith: false)
+	def smith_search(para, target, armor, comp, smith_min=nil, smith_max=10000, left_associative: true, cut_exp: Float::INFINITY, min_smith: false, irep: nil)
+		irep = ir(left_associative: left_associative) if irep.nil?
 		if smith_min.nil?
 			if min_smith
 				smith_min = self.min_smith[0]
@@ -103,14 +107,15 @@ module Enumerable
 				raise Mgmg::SearchCutException
 			end
 		end
-		if build(smith_max, armor, comp, left_associative: left_associative).para_call(para) < target
+		para3 = (para.to_s+'3').intern
+		if irep.para_call3(para3, smith_max, armor, comp) < target
 			raise Mgmg::SearchCutException
-		elsif target <= build(smith_min, armor, comp, left_associative: left_associative).para_call(para)
+		elsif target <= irep.para_call3(para3, smith_min, armor, comp)
 			return smith_min
 		end
 		while 1 < smith_max - smith_min do
 			smith = (smith_max - smith_min).div(2) + smith_min
-			if build(smith, armor, comp, left_associative: left_associative).para_call(para) < target
+			if irep.para_call3(para3, smith, armor, comp) < target
 				smith_min = smith
 			else
 				smith_max = smith
@@ -118,7 +123,8 @@ module Enumerable
 		end
 		smith_max
 	end
-	def armor_search(para, target, smith, comp, armor_min=nil, armor_max=10000, left_associative: true, cut_exp: Float::INFINITY, min_smith: false)
+	def armor_search(para, target, smith, comp, armor_min=nil, armor_max=10000, left_associative: true, cut_exp: Float::INFINITY, min_smith: false, irep: nil)
+		irep = ir(left_associative: left_associative) if irep.nil?
 		if armor_min.nil?
 			if min_smith
 				armor_min = self.min_smith[1]
@@ -135,14 +141,15 @@ module Enumerable
 				raise Mgmg::SearchCutException
 			end
 		end
-		if build(smith, armor_max, comp, left_associative: left_associative).para_call(para) < target
+		para3 = (para.to_s+'3').intern
+		if irep.para_call3(para3, smith, armor_max, comp) < target
 			raise Mgmg::SearchCutException
-		elsif target <= build(smith, armor_min, comp, left_associative: left_associative).para_call(para)
+		elsif target <= irep.para_call3(para3, smith, armor_min, comp)
 			return armor_min
 		end
 		while 1 < armor_max - armor_min do
 			armor = (armor_max - armor_min).div(2) + armor_min
-			if build(smith, armor, comp, left_associative: left_associative).para_call(para) < target
+			if irep.para_call3(para3, smith, armor, comp) < target
 				armor_min = armor
 			else
 				armor_max = armor
@@ -150,7 +157,8 @@ module Enumerable
 		end
 		armor_max
 	end
-	def sa_search(para, target, comp, smith_min=nil, armor_min=nil, smith_max=10000, armor_max=10000, left_associative: true, cut_exp: Float::INFINITY, min_smith: false)
+	def sa_search(para, target, comp, smith_min=nil, armor_min=nil, smith_max=10000, armor_max=10000, left_associative: true, cut_exp: Float::INFINITY, min_smith: false, irep: nil)
+		irep = ir(left_associative: left_associative) if irep.nil?
 		if min_smith
 			s, a = self.min_smith
 		else
@@ -158,23 +166,24 @@ module Enumerable
 		end
 		smith_min = s if smith_min.nil?
 		armor_min = a if armor_min.nil?
-		smith_min = smith_search(para, target, armor_max, comp, smith_min, smith_max, left_associative: true)
-		armor_min = armor_search(para, target, smith_max, comp, armor_min, armor_max, left_associative: true)
+		smith_min = smith_search(para, target, armor_max, comp, smith_min, smith_max, left_associative: true, irep: irep)
+		armor_min = armor_search(para, target, smith_max, comp, armor_min, armor_max, left_associative: true, irep: irep)
 		raise Mgmg::SearchCutException if cut_exp < Mgmg.exp(smith_min, armor_min, comp)
-		smith_max = smith_search(para, target, armor_min, comp, smith_min, smith_max, left_associative: true)
-		armor_max = armor_search(para, target, smith_min, comp, armor_min, armor_max, left_associative: true)
+		smith_max = smith_search(para, target, armor_min, comp, smith_min, smith_max, left_associative: true, irep: irep)
+		armor_max = armor_search(para, target, smith_min, comp, armor_min, armor_max, left_associative: true, irep: irep)
 		minex, ret = Mgmg.exp(smith_min, armor_max, comp), [smith_min, armor_max]
 		exp = Mgmg.exp(smith_max, armor_min, comp)
+		para3 = (para.to_s+'3').intern
 		if exp < minex
 			minex, ret = exp, [smith_max, armor_min]
 			(armor_min+1).upto(armor_max-1) do |armor|
 				break if minex < Mgmg.exp(smith_min, armor, comp)
-				smith = smith_search(para, target, armor, comp, smith_min, smith_max, left_associative: left_associative, cut_exp: [minex, cut_exp].min)
+				smith = smith_search(para, target, armor, comp, smith_min, smith_max, left_associative: left_associative, cut_exp: [minex, cut_exp].min, irep: irep)
 				exp = Mgmg.exp(smith, armor, comp)
 				if exp < minex
 					minex, ret = exp, [smith, armor]
 				elsif exp == minex
-					if build(*ret, comp).para_call(para) < build(smith, armor, comp).para_call(para)
+					if irep.para_call3(para3, *ret, comp) < irep.para_call3(para3, smith, armor, comp)
 						ret = [smith, armor]
 					end
 				end
@@ -183,12 +192,12 @@ module Enumerable
 		else
 			(smith_min+1).upto(smith_max-1) do |smith|
 				break if minex < Mgmg.exp(smith, armor_min, comp)
-				armor = armor_search(para, target, smith, comp, armor_min, armor_max, left_associative: left_associative, cut_exp: [minex, cut_exp].min)
+				armor = armor_search(para, target, smith, comp, armor_min, armor_max, left_associative: left_associative, cut_exp: [minex, cut_exp].min, irep: irep)
 				exp = Mgmg.exp(smith, armor, comp)
 				if exp < minex
 					minex, ret = exp, [smith, armor]
 				elsif exp == minex
-					if build(*ret, comp).para_call(para) < build(smith, armor, comp).para_call(para)
+					if irep.para_call3(para3, *ret, comp) < irep.para_call3(para3, smith, armor, comp)
 						ret = [smith, armor]
 					end
 				end
@@ -198,19 +207,21 @@ module Enumerable
 		raise Mgmg::SearchCutException if cut_exp < minex
 		ret
 	end
-	def comp_search(para, target, smith, armor, comp_min=nil, comp_max=10000, left_associative: true)
+	def comp_search(para, target, smith, armor, comp_min=nil, comp_max=10000, left_associative: true, irep: nil)
+		irep = ir(left_associative: left_associative) if irep.nil?
 		comp_min = min_comp(left_associative: left_associative)
 		if comp_max < comp_min
 			raise ArgumentError, "comp_min <= comp_max is needed, (comp_min, comp_max) = (#{comp_min}, #{comp_max}) are given"
 		end
-		if target <= build(smith, armor, comp_min, left_associative: left_associative).para_call(para)
+		para3 = (para.to_s+'3').intern
+		if target <= irep.para_call3(para3, smith, armor, comp_min)
 			return comp_min
-		elsif build(smith, armor, comp_max, left_associative: left_associative).para_call(para) < target
+		elsif irep.para_call3(para3, smith, armor, comp_max) < target
 			raise ArgumentError, "given comp_max=#{comp_max} does not satisfies the target"
 		end
 		while 1 < comp_max - comp_min do
 			comp = (comp_max - comp_min).div(2) + comp_min
-			if build(smith, armor, comp, left_associative: left_associative).para_call(para) < target
+			if irep.para_call3(para3, smith, armor, comp) < target
 				comp_min = comp
 			else
 				comp_max = comp
@@ -218,7 +229,8 @@ module Enumerable
 		end
 		comp_max
 	end
-	def search(para, target, smith_min=nil, armor_min=nil, comp_min=nil, smith_max=10000, armor_max=10000, comp_max=10000, left_associative: true, cut_exp: Float::INFINITY, min_smith: false)
+	def search(para, target, smith_min=nil, armor_min=nil, comp_min=nil, smith_max=10000, armor_max=10000, comp_max=10000, left_associative: true, cut_exp: Float::INFINITY, min_smith: false, irep: nil)
+		irep = ir(left_associative: left_associative) if irep.nil?
 		if min_smith
 			s, a = self.min_smith
 		else
@@ -227,22 +239,23 @@ module Enumerable
 		smith_min = s if smith_min.nil?
 		armor_min = a if armor_min.nil?
 		comp_min = min_comp(left_associative: left_associative) if comp_min.nil?
-		comp_min = comp_search(para, target, smith_max, armor_max, comp_min, comp_max, left_associative: left_associative)
-		smith_max, armor_max = sa_search(para, target, comp_min, smith_min, armor_min, smith_max, armor_max, left_associative: left_associative)
-		smith_min, armor_min = sa_search(para, target, comp_max, smith_min, armor_min, smith_max, armor_max, left_associative: left_associative)
+		comp_min = comp_search(para, target, smith_max, armor_max, comp_min, comp_max, left_associative: left_associative, irep: irep)
+		smith_max, armor_max = sa_search(para, target, comp_min, smith_min, armor_min, smith_max, armor_max, left_associative: left_associative, irep: irep)
+		smith_min, armor_min = sa_search(para, target, comp_max, smith_min, armor_min, smith_max, armor_max, left_associative: left_associative, irep: irep)
 		raise Mgmg::SearchCutException if cut_exp < Mgmg.exp(smith_min, armor_min, comp_min)
-		comp_max = comp_search(para, target, smith_min, armor_min, comp_min, comp_max, left_associative: left_associative)
+		comp_max = comp_search(para, target, smith_min, armor_min, comp_min, comp_max, left_associative: left_associative, irep: irep)
 		minex, ret = Mgmg.exp(smith_min, armor_min, comp_max), [smith_min, armor_min, comp_max]
 		exp = Mgmg.exp(smith_max, armor_max, comp_min)
 		minex, ret = exp, [smith_max, armor_max, comp_min] if exp < minex
+		para3 = (para.to_s+'3').intern
 		(comp_min+1).upto(comp_max-1) do |comp|
 			break if minex < Mgmg.exp(smith_min, armor_min, comp)
-			smith, armor = sa_search(para, target, comp, smith_min, armor_min, smith_max, armor_max, left_associative: left_associative, cut_exp: [minex, cut_exp].min)
+			smith, armor = sa_search(para, target, comp, smith_min, armor_min, smith_max, armor_max, left_associative: left_associative, cut_exp: [minex, cut_exp].min, irep: irep)
 			exp = Mgmg.exp(smith, armor, comp)
 			if exp < minex
 				minex, ret = exp, [smith, armor, comp]
 			elsif exp == minex
-				if build(*ret).para_call(para) < build(smith, armor, comp).para_call(para)
+				if irep.para_call3(para3, *ret) < irep.para_call3(para3, smith, armor, comp)
 					ret = [smith, armor, comp]
 				end
 			end

@@ -165,7 +165,7 @@ module Mgmg
 			method(para).call(s, c)
 		end
 		def para_call3(para, s=0, a=s, c=a.tap{a=s})
-			method((para.to_s+'3').intern).call(s, a, c)
+			method(para).call(s, a, c)
 		end
 		
 		%i|attack phydef magdef hp mp str dex speed magic|.each.with_index do |sym, i|
@@ -194,16 +194,16 @@ module Mgmg
 			attack3(s, a, c)+str3(s, a, c)
 		end
 		def atk_sd3(s=0, a=s, c=a.tap{a=s})
-			attack3(s, a, c)+str3(s, a, c).quo3(2)+dex3(s, a, c).quo3(2)
+			attack3(s, a, c)+str3(s, a, c).quo(2)+dex3(s, a, c).quo(2)
 		end
 		def dex_as3(s=0, a=s, c=a.tap{a=s})
-			attack3(s, a, c).quo3(2)+str3(s, a, c).quo3(2)+dex3(s, a, c)
+			attack3(s, a, c).quo(2)+str3(s, a, c).quo(2)+dex3(s, a, c)
 		end
 		def mag_das3(s=0, a=s, c=a.tap{a=s})
-			magic3(s, a, c)+dex_as3(s, a, c).quo3(2)
+			magic3(s, a, c)+dex_as3(s, a, c).quo(2)
 		end
 		def magmag3(s=0, a=s, c=a.tap{a=s})
-			magdef3(s, a, c)+magic3(s, a, c).quo3(2)
+			magdef3(s, a, c)+magic3(s, a, c).quo(2)
 		end
 		def pmdef3(s=0, a=s, c=a.tap{a=s})
 			[phydef3(s, a, c), magmag3(s, a, c)].min
