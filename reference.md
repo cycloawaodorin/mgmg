@@ -87,6 +87,15 @@
 武器のみなら防具製作Lvは`0`，防具のみなら鍛冶Lvは`0`，合成なしなら道具製作Lvは`0`となります．
 `cut_exp`以下の経験値で`target`以上を達成できない場合，`Mgmg::SearchCutException`を発生します．
 
+## `Mgmg.#find_lowerbound(a, b, para, start, term, min_smith: false)`
+レシピ`a`とレシピ`b`について，`para`の値を目標値以上にする最小経験値の組において，目標値`start`における優劣が逆転する最小の目標値を探索し，返します．
+ここで，最小経験値が小さい方，または最小経験値が同じなら，そのときの`para`値が大きい方をよりよいものと解釈します．
+`term`は`start`より大きい値とします．目標値`term`における優劣が，目標値`start`における優劣と同じ場合，`Mgmg::SearchCutException`を発生します．
+`a`と`b`は`String`でもその`Enumerable`でも構いません．
+
+## `Mgmg.#find_upperbound(a, b, para, start, term, min_smith: false)`
+`Mgmg.#find_lowerbound`とは逆に，目標値を下げながら，優劣が逆転する最大の目標値を探索し，返します．
+
 ## `String#eff(para, smith, comp=smith, left_associative: true)`
 [`smith`を1上げたときの`para`値/(`smith`を1上げるのに必要な経験値), `comp`を1上げたときの`para`値/(`comp`を2上げるのに必要な経験値)]を返します．
 `para`は，`Mgmg::Equip`のメソッド名をシンボルで指定(`:power, :fpower`も可)します．
@@ -102,6 +111,9 @@
 
 ## `String#buster_optimize(smith=nil, comp=smith, left_associative: true)`
 `String#phydef_optimize`の魔力弓版で，反転材の素材の最適化を行い，修正したレシピを返します．
+
+## `Mgmg.#exp(smith, armor, comp=armor.tap{armor=0})`
+鍛冶Lvを0から`smith`に，防具製作Lvを0から`armor`に，道具製作Lvを0から`comp`に上げるのに必要な総経験値を返します．鍛冶Lvと防具製作Lvは逆でも同じです．
 
 ## `Mgmg::Equip`
 前述の`String#build`によって生成される装備品のクラスです．複数装備の合計値を表す「複数装備」という種別の装備品の場合もあります．以下のようなインスタンスメソッドが定義されています．
@@ -259,7 +271,7 @@ alias として`*`があるほか`scalar(1.quo(value))`として`quo`，`/`，`s
 |引数の数|返り値|
 |:-|:-|
 |0|関数オブジェクト|
-|1または2|`s`を鍛冶Lvまたは防具製作Lv，`ac`を道具製作Lvとして計算した値|
+|1 または 2|`s`を鍛冶Lvまたは防具製作Lv，`ac`を道具製作Lvとして計算した値|
 |3|`s`を鍛冶Lv，`ac`を防具製作Lv，`x`を道具製作Lvとして計算した値|
 
 を返します．

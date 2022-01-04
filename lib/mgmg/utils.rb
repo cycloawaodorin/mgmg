@@ -47,6 +47,11 @@ module Mgmg
 		attr_accessor :equip
 	end
 	class SearchCutException < StandardError; end
+	class UnexpectedError < StandardError
+		def initialize()
+			super("There is a bug in `mgmg' gem. Please report to https://github.com/cycloawaodorin/mgmg/issues .")
+		end
+	end
 	
 	module_function def exp(smith, armor, comp=armor.tap{armor=0})
 		if armor <= 0

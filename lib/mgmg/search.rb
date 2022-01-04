@@ -260,3 +260,87 @@ module Enumerable
 		ret
 	end
 end
+
+module Mgmg
+	module_function def find_lowerbound(a, b, para, start, term, min_smith: false)
+		if term <= start
+			raise ArgumentError, "start < term is needed, (start, term) = (#{start}, #{term}) are given"
+		end
+		ira, irb = a.ir, b.ir
+		sca, scb = a.search(para, start, min_smith: min_smith, irep: ira), b.search(para, start, min_smith: min_smith, irep: irb)
+		ea, eb = Mgmg.exp(*sca), Mgmg.exp(*scb)
+		if eb < ea || ( ea == eb && ira.para_call(para, *sca) < irb.para_call(para, *scb) )
+			a, b, ira, irb, sca, scb, ea, eb = b, a, irb, ira, scb, sca, eb, ea
+		end
+		tag = ira.para_call(para, *sca).to_i + 1
+		sca, scb = a.search(para, term, min_smith: min_smith, irep: ira), b.search(para, term, min_smith: min_smith, irep: irb)
+		ea, eb = Mgmg.exp(*sca), Mgmg.exp(*scb)
+		if ea < eb || ( ea == eb && irb.para_call(para, *scb) < ira.para_call(para, *sca) )
+			raise Mgmg::SearchCutException
+		end
+		while tag < term
+			sca, scb = a.search(para, tag, min_smith: min_smith, irep: ira), b.search(para, tag, min_smith: min_smith, irep: irb)
+			ea, eb = Mgmg.exp(*sca), Mgmg.exp(*scb)
+			if eb < ea
+				return ira.para_call(para, *sca)
+			elsif ea == eb
+				pa, pb = ira.para_call(para, *sca), irb.para_call(para, *scb)
+				if pa < pb
+					return ira.para_call(para, *sca)
+				end
+			end
+			tag = ira.para_call(para, *sca).to_i + 1
+		end
+		raise UnexpectedError
+	end
+	
+	module_function def find_upperbound(a, b, para, start, term, min_smith: false)
+		if start <= term
+			raise ArgumentError, "term < start is needed, (start, term) = (#{start}, #{term}) are given"
+		end
+		ira, irb = a.ir, b.ir
+		sca, scb = a.search(para, start, min_smith: min_smith, irep: ira), b.search(para, start, min_smith: min_smith, irep: irb)
+		ea, eb = Mgmg.exp(*sca), Mgmg.exp(*scb)
+		if ea < eb || ( ea == eb && irb.para_call(para, *scb) < ira.para_call(para, *sca) )
+			a, b, ira, irb, sca, scb, ea, eb = b, a, irb, ira, scb, sca, eb, ea
+		end
+		tagu = ira.para_call(para, *sca)
+		sca[-1] -= 2
+		tagl = ira.para_call(para, *sca)
+		sca, scb = a.search(para, term, min_smith: min_smith, irep: ira), b.search(para, term, min_smith: min_smith, irep: irb)
+		ea, eb = Mgmg.exp(*sca), Mgmg.exp(*scb)
+		if eb < ea || ( ea == eb && ira.para_call(para, *sca) < irb.para_call(para, *scb) )
+			raise Mgmg::SearchCutException
+		end
+		while term < tagu
+			ret = nil
+			sca = a.search(para, tagl, min_smith: min_smith, irep: ira)
+			next_tagu, next_sca = tagl, sca
+			while tagl < tagu
+				scb = b.search(para, tagl, min_smith: min_smith, irep: irb)
+				ea, eb = Mgmg.exp(*sca), Mgmg.exp(*scb)
+				if ea < eb
+					ret = tagl
+				elsif ea == eb
+					pa, pb = ira.para_call(para, *sca), irb.para_call(para, *scb)
+					if pb < pa
+						ret = tagl
+					end
+				end
+				sca = a.search(para, ira.para_call(para, *sca).to_i + 1, min_smith: min_smith, irep: ira)
+				tagl = ira.para_call(para, *sca)
+			end
+			if ret.nil?
+				tagu = next_tagu
+				next_sca[-1] -= 2
+				tagl = ira.para_call(para, *next_sca)
+				if tagl == tagu
+					tagl = term
+				end
+			else
+				return ret
+			end
+		end
+		raise UnexpectedError
+	end
+end
