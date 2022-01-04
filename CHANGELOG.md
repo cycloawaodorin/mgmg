@@ -109,3 +109,6 @@
 
 ## 1.4.1
 - [リファレンス](./reference.md)を[README](./README.md)から分離独立させた．
+- `Mgmg::IR`を追加．
+	- これを生成するための`String#ir`および`Enumerable#ir`を追加
+	- `String#search`および`Enumerable#search`において，内部的にこれを利用することで高速化．

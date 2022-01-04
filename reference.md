@@ -56,6 +56,12 @@
 
 また，`:cost`を渡すことで，消費エレメント量に関する近似多項式を得られます．`self`に`"+"`が含まれていれば合成品とみなし，最後の合成に必要な地エレメント量を，それ以外では，武器なら消費火エレメント量を，防具なら消費水エレメント量を返します．ただし，`self`が既成品そのものの場合，零多項式を返します．
 
+## `String#ir(left_associative: true)`
+レシピ文字列である`self`を解釈し，9パラ値について，丸めを考慮した鍛冶・防具製作Lvと道具製作Lvの2変数からなる関数オブジェクトを保持する`Mgmg::IR`クラスのインスタンスを生成し，返します．詳しくは，後述の`Mgmg::IR`クラスの説明を参照ください．
+
+## `Enumerable#ir(left_associative: true)`
+複数のレシピ文字列からなる`self`の各要素を製作し，そのすべてを装備したときの`Mgmg::IR`を返します．この場合，鍛冶Lv，防具製作Lv，道具製作Lvの3変数からなる関数オブジェクトを保持するものとして扱われます．各装備の種別に応じ，鍛冶Lvまたは防具製作Lvを適用し，9パラ値を計算します．
+
 ## `String#smith_seach(para, target, comp, smith_min=nil, smith_max=10000, left_associative: true, cut_exp: Float::INFINITY, min_smith: false)`
 `para`の値が`target`以上となるのに必要な最小の鍛冶・防具製作Lvを二分探索で探索して返します．
 道具製作Lvは`comp`で固定，鍛冶・防具製作Lvを`smith_min`と`smith_max`で挟み込んで探索します．
@@ -232,3 +238,37 @@ alias として`*`があるほか`scalar(1.quo(value))`として`quo`，`/`，`s
 ## `Mgmg::TPolynomial#eff(smith, comp=smith)`
 製作Lv(`smith`, `comp`)における鍛冶・防具製作Lv効率と道具製作Lv効率からなる配列を返します．
 一方のみが欲しい場合，`Mgmg::TPolynomial#smith_eff(smith, comp=smith)`，`Mgmg::TPolynomial#smith_eff(smith, comp=smith)`が使えます．
+
+## `Mgmg::IR`
+前述の`String#ir`または`Enumerable#ir`によって生成される，9パラ値を計算するための，2変数または3変数の関数オブジェクトを保持するクラスです．`Mgmg::IR`では，`Mgmg::Equip`と異なり，重量，EL値，総消費エレメントを取り扱いません．
+
+## `Mgmg::IR#to_s`
+例えば，「斧(牙9皮9)+短剣(鉄9皮2)」のレシピに対して，
+```ruby
+"斧☆14(皮鉄)<攻撃:[110(s+170)/100]+[[[86(s+135)/100][(c+130)/2]/100]/100], 腕力:[14(s+170)/100]>"
+```
+のような文字列を返します．ここで，sは鍛冶Lv，sは道具製作Lvを表します．防具の場合，sの代わりに防具製作Lvを表すaが用いられます．「[]」は，0への丸めを意味し，掛け算記号は省略されています．
+
+## `Mgmg::IR#attack, phydef, magdef, hp, mp, str, dex, speed, magic(s=nil, ac=s, x=nil)`
+それぞれ
+```
+攻撃，物防，魔防，HP，MP，腕力，器用，素早さ，魔力
+```
+の値を計算する関数オブジェクトまたは計算した値を返します．与えた引数の数に応じて，
+
+|引数の数|返り値|
+|:-|:-|
+|0|関数オブジェクト|
+|1または2|`s`を鍛冶Lvまたは防具製作Lv，`ac`を道具製作Lvとして計算した値|
+|3|`s`を鍛冶Lv，`ac`を防具製作Lv，`x`を道具製作Lvとして計算した値|
+
+を返します．
+
+## `Mgmg::IR#atkstr, atk_sd, dex_as, mag_das, magmag, pmdef(s, ac, x=nil)`
+`Mgmg::Equip`における同名メソッドと同様に，9パラ値を組み合わせた値を計算して返します．9パラの単独値と異なり，引数の数は2または3でなくてはなりません．
+
+## `Mgmg::IR#power, fpower(s, a=s, c=a.tap{a=s})`
+`Mgmg::Equip`における同名メソッドと同様に，適当な値を自動選択して返します．引数は`Enumerable#build`と同様になっています．
+
+## `Mgmg::IR#smith_cost, comp_cost(s, c=s, outsourcing=false)`
+`Mgmg::Equip`における同名メソッドと同様に，鍛冶・防具製作コストまたは武具合成コストを計算して返します．複数装備では意味のある値を計算できないため，製作Lvの3種入力はできません．
