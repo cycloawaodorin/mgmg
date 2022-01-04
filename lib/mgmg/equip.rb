@@ -272,8 +272,8 @@ module Mgmg
 			unless kind
 				raise InvalidEquipClassError.new(m[1])
 			end
-			main_m, main_s, main_mc = parse_material(m[2])
-			sub_m, sub_s, sub_mc = parse_material(m[3])
+			main_m, main_s, main_mc = Mgmg.parse_material(m[2])
+			sub_m, sub_s, sub_mc = Mgmg.parse_material(m[3])
 			para = Vec.new(9, 0)
 			ele = Vec.new(3, 0)
 			
@@ -303,21 +303,12 @@ module Mgmg
 				raise InvalidSmithError.new(str)
 			end
 			kind = EquipIndex[m[1].to_sym]
-			main_m, main_s, = parse_material(m[2])
-			sub_m, sub_s, = parse_material(m[3])
+			main_m, main_s, = Mgmg.parse_material(m[2])
+			sub_m, sub_s, = Mgmg.parse_material(m[3])
 			
 			q, r = ((weight+1)*10000).divmod(MainWeight[main_m])
 			l = ( EquipWeight[kind] + SubWeight[sub_m] - q + ( r==0 ? 1 : 0 ) )*2
 			[(main_s-1)*3, (sub_s-1)*3, l].max
-		end
-		
-		private def parse_material(str)
-			m = /\A.+?(\d+)\Z/.match(str)
-			mat = MaterialIndex[str.to_sym]
-			if m.nil? || mat.nil?
-				raise InvalidMaterialError.new(str)
-			end
-			[mat, m[1].to_i, mat<90 ? mat.div(10) : 9]
 		end
 		
 		def min_comp(str, left_associative: true)
@@ -384,8 +375,8 @@ module Mgmg
 			unless kind
 				raise InvalidEquipClassError.new(m[1])
 			end
-			main_m, main_s, main_mc = parse_material(m[2])
-			sub_m, sub_s, sub_mc = parse_material(m[3])
+			main_m, main_s, main_mc = Mgmg.parse_material(m[2])
+			sub_m, sub_s, sub_mc = Mgmg.parse_material(m[3])
 			[main_s, sub_s].max
 		end
 	end

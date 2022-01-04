@@ -3,6 +3,7 @@ require_relative './mgmg/utils'
 require_relative './mgmg/const'
 require_relative './mgmg/equip'
 require_relative './mgmg/poly'
+require_relative './mgmg/ir'
 require_relative './mgmg/system_equip'
 require_relative './mgmg/search'
 require_relative './mgmg/optimize'
@@ -22,6 +23,9 @@ class String
 	end
 	def build(smith=-1, comp=smith, left_associative: true)
 		Mgmg::Equip.build(self, smith, comp, left_associative: left_associative)
+	end
+	def ir(left_associative: true)
+		Mgmg::IR.build(self, left_associative: left_associative)
 	end
 	def poly(para=:cost, left_associative: true)
 		la = left_associative
@@ -91,6 +95,11 @@ module Enumerable
 			else
 				str.build(armor, comp, left_associative: left_associative)
 			end
+		end.sum
+	end
+	def ir(left_associative: true)
+		self.map do |str|
+			str.ir(left_associative: left_associative)
 		end.sum
 	end
 	def show(smith=-1, armor=smith, comp=armor.tap{armor=smith}, left_associative: true, para: :power)
