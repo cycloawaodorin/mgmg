@@ -262,73 +262,88 @@ module Enumerable
 end
 
 module Mgmg
-	module_function def find_lowerbound(a, b, para, start, term, min_smith: false)
+	module_function def find_lowerbound(a, b, para, start, term, smith_min_a: nil, smith_min_b: nil, min_smith: false)
 		if term <= start
 			raise ArgumentError, "start < term is needed, (start, term) = (#{start}, #{term}) are given"
 		end
 		ira, irb = a.ir, b.ir
-		sca, scb = a.search(para, start, min_smith: min_smith, irep: ira), b.search(para, start, min_smith: min_smith, irep: irb)
+		sca, scb = a.search(para, start, smith_min_a, min_smith: min_smith, irep: ira), b.search(para, start, smith_min_b, min_smith: min_smith, irep: irb)
 		ea, eb = Mgmg.exp(*sca), Mgmg.exp(*scb)
 		if eb < ea || ( ea == eb && ira.para_call(para, *sca) < irb.para_call(para, *scb) )
-			a, b, ira, irb, sca, scb, ea, eb = b, a, irb, ira, scb, sca, eb, ea
+			a, b, ira, irb, sca, scb, ea, eb, smith_min_a, smith_min_b = b, a, irb, ira, scb, sca, eb, ea, smith_min_b, smith_min_a
 		end
-		tag = ira.para_call(para, *sca).to_i + 1
-		sca, scb = a.search(para, term, min_smith: min_smith, irep: ira), b.search(para, term, min_smith: min_smith, irep: irb)
+		tag = ira.para_call(para, *sca) + 1
+		sca, scb = a.search(para, term, smith_min_a, min_smith: min_smith, irep: ira), b.search(para, term, smith_min_b, min_smith: min_smith, irep: irb)
 		ea, eb = Mgmg.exp(*sca), Mgmg.exp(*scb)
 		if ea < eb || ( ea == eb && irb.para_call(para, *scb) < ira.para_call(para, *sca) )
 			raise Mgmg::SearchCutException
 		end
 		while tag < term
-			sca, scb = a.search(para, tag, min_smith: min_smith, irep: ira), b.search(para, tag, min_smith: min_smith, irep: irb)
+			sca, scb = a.search(para, tag, smith_min_a, min_smith: min_smith, irep: ira), b.search(para, tag, smith_min_b, min_smith: min_smith, irep: irb)
 			ea, eb = Mgmg.exp(*sca), Mgmg.exp(*scb)
+			pa, pb = ira.para_call(para, *sca), irb.para_call(para, *scb)
 			if eb < ea
-				return ira.para_call(para, *sca)
+				return [tag-1, pb]
 			elsif ea == eb
-				pa, pb = ira.para_call(para, *sca), irb.para_call(para, *scb)
 				if pa < pb
-					return ira.para_call(para, *sca)
+					return [tag-1, pa]
+				else
+					tag = pb + 1
 				end
+			else
+				tag = pa + 1
 			end
-			tag = ira.para_call(para, *sca).to_i + 1
 		end
 		raise UnexpectedError
 	end
 	
-	module_function def find_upperbound(a, b, para, start, term, min_smith: false)
+	module_function def find_upperbound(a, b, para, start, term, smith_min_a: nil, smith_min_b: nil, min_smith: false)
 		if start <= term
 			raise ArgumentError, "term < start is needed, (start, term) = (#{start}, #{term}) are given"
 		end
 		ira, irb = a.ir, b.ir
-		sca, scb = a.search(para, start, min_smith: min_smith, irep: ira), b.search(para, start, min_smith: min_smith, irep: irb)
+		sca, scb = a.search(para, start, smith_min_a, min_smith: min_smith, irep: ira), b.search(para, start, smith_min_b, min_smith: min_smith, irep: irb)
 		ea, eb = Mgmg.exp(*sca), Mgmg.exp(*scb)
 		if ea < eb || ( ea == eb && irb.para_call(para, *scb) < ira.para_call(para, *sca) )
-			a, b, ira, irb, sca, scb, ea, eb = b, a, irb, ira, scb, sca, eb, ea
+			a, b, ira, irb, sca, scb, ea, eb, smith_min_a, smith_min_b = b, a, irb, ira, scb, sca, eb, ea, smith_min_b, smith_min_a
 		end
 		tagu = ira.para_call(para, *sca)
 		sca[-1] -= 2
 		tagl = ira.para_call(para, *sca)
-		sca, scb = a.search(para, term, min_smith: min_smith, irep: ira), b.search(para, term, min_smith: min_smith, irep: irb)
+		sca, scb = a.search(para, term, smith_min_a, min_smith: min_smith, irep: ira), b.search(para, term, smith_min_b, min_smith: min_smith, irep: irb)
 		ea, eb = Mgmg.exp(*sca), Mgmg.exp(*scb)
 		if eb < ea || ( ea == eb && ira.para_call(para, *sca) < irb.para_call(para, *scb) )
 			raise Mgmg::SearchCutException
 		end
 		while term < tagu
 			ret = nil
-			sca = a.search(para, tagl, min_smith: min_smith, irep: ira)
+			sca = a.search(para, tagl, smith_min_a, min_smith: min_smith, irep: ira)
 			next_tagu, next_sca = tagl, sca
+			scb = b.search(para, tagl, smith_min_b, min_smith: min_smith, irep: irb)
 			while tagl < tagu
-				scb = b.search(para, tagl, min_smith: min_smith, irep: irb)
 				ea, eb = Mgmg.exp(*sca), Mgmg.exp(*scb)
+				pa, pb = ira.para_call(para, *sca), irb.para_call(para, *scb)
 				if ea < eb
 					ret = tagl
+					sca = a.search(para, pa + 1, smith_min_a, min_smith: min_smith, irep: ira)
+					tagl = ira.para_call(para, *sca)
+					scb = b.search(para, tagl, smith_min_b, min_smith: min_smith, irep: irb)
 				elsif ea == eb
-					pa, pb = ira.para_call(para, *sca), irb.para_call(para, *scb)
 					if pb < pa
 						ret = tagl
+						sca = a.search(para, pa + 1, smith_min_a, min_smith: min_smith, irep: ira)
+						tagl = ira.para_call(para, *sca)
+						scb = b.search(para, tagl, smith_min_b, min_smith: min_smith, irep: irb)
+					else
+						scb = b.search(para, pb + 1, smith_min_b, min_smith: min_smith, irep: irb)
+						tagl = irb.para_call(para, *scb)
+						sca = a.search(para, tagl, smith_min_a, min_smith: min_smith, irep: ira)
 					end
+				else
+					sca = a.search(para, pa + 1, smith_min_a, min_smith: min_smith, irep: ira)
+					tagl = ira.para_call(para, *sca)
+					scb = b.search(para, tagl, smith_min_b, min_smith: min_smith, irep: irb)
 				end
-				sca = a.search(para, ira.para_call(para, *sca).to_i + 1, min_smith: min_smith, irep: ira)
-				tagl = ira.para_call(para, *sca)
 			end
 			if ret.nil?
 				tagu = next_tagu
@@ -338,7 +353,9 @@ module Mgmg
 					tagl = term
 				end
 			else
-				return ret
+				pa = ira.para_call(para, *a.search(para, ret+1, smith_min_a, min_smith: min_smith, irep: ira))
+				pb = irb.para_call(para, *b.search(para, ret+1, smith_min_b, min_smith: min_smith, irep: irb))
+				return [ret, [pa, pb].min]
 			end
 		end
 		raise UnexpectedError

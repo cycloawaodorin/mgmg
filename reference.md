@@ -87,14 +87,17 @@
 武器のみなら防具製作Lvは`0`，防具のみなら鍛冶Lvは`0`，合成なしなら道具製作Lvは`0`となります．
 `cut_exp`以下の経験値で`target`以上を達成できない場合，`Mgmg::SearchCutException`を発生します．
 
-## `Mgmg.#find_lowerbound(a, b, para, start, term, min_smith: false)`
-レシピ`a`とレシピ`b`について，`para`の値を目標値以上にする最小経験値の組において，目標値`start`における優劣が逆転する最小の目標値を探索し，返します．
+## `Mgmg.#find_lowerbound(a, b, para, start, term, smith_min_a: nil, smith_min_b: nil, min_smith: false)`
+レシピ`a`とレシピ`b`について，`para`の値を目標値以上にする最小経験値の組において，目標値`start`における優劣が逆転する目標値の下限を探索し，返します．
+返り値は`[逆転しない最大目標値, 逆転時の最小para値]`です．前者は逆転目標値の下限，後者は，目標値が前者よりも少しだけ大きいときの`para`値です．
 ここで，最小経験値が小さい方，または最小経験値が同じなら，そのときの`para`値が大きい方をよりよいものと解釈します．
 `term`は`start`より大きい値とします．目標値`term`における優劣が，目標値`start`における優劣と同じ場合，`Mgmg::SearchCutException`を発生します．
 `a`と`b`は`String`でもその`Enumerable`でも構いません．
 
-## `Mgmg.#find_upperbound(a, b, para, start, term, min_smith: false)`
-`Mgmg.#find_lowerbound`とは逆に，目標値を下げながら，優劣が逆転する最大の目標値を探索し，返します．
+`smith_min_a`と`smith_min_b`は，それぞれ`a`と`b`の探索最小鍛冶・防具製作Lvを指定します．これらが`nil`で，`min_smith`が真ならば，重量を無視した製作可能最小Lvが指定されます．`min_smith`が偽(デフォルト)ならば，最小重量で製作可能な製作Lvが指定されます．重量を無視した製作可能Lvでの重量が3で，重量が2以下となる製作Lvで探索したい場合などは，`smith_min_a`や`smith_min_b`を具体的に指定してください．
+
+## `Mgmg.#find_upperbound(a, b, para, start, term, smith_min_a: nil, smith_min_b: nil, min_smith: false)`
+`Mgmg.#find_lowerbound`とは逆に，目標値を下げながら，優劣が逆転する最大の目標値を探索し，返します．返り値は`[逆転する最大目標値, 逆転前の最小para値]`です．目標値が，前者よりも少しでも大きいと逆転が起こらず(逆転する目標値の上限)，少しだけ大きい時の`para`値が後者になります．
 
 ## `String#eff(para, smith, comp=smith, left_associative: true)`
 [`smith`を1上げたときの`para`値/(`smith`を1上げるのに必要な経験値), `comp`を1上げたときの`para`値/(`comp`を2上げるのに必要な経験値)]を返します．
