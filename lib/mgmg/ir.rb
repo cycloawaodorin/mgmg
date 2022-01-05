@@ -192,6 +192,9 @@ module Mgmg
 		def mag_das(s, ac, x=nil)
 			magic(s, ac, x)+dex_as(s, ac, x).quo(2)
 		end
+		def magic2(s, ac, x=nil)
+			magic(s, ac, x)*2
+		end
 		def magmag(s, ac, x=nil)
 			magdef(s, ac, x)+magic(s, ac, x).quo(2)
 		end

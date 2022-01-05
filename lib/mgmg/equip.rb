@@ -91,6 +91,9 @@ module Mgmg
 		def mag_das
 			magic()+dex_as().quo(2)
 		end
+		def magic2
+			magic()*2
+		end
 		[:fire, :earth, :water].each.with_index do |s, i|
 			define_method(s){ @element[i] }
 		end

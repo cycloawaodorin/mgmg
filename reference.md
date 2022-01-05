@@ -50,7 +50,7 @@
 
 `para`として，複数の9パラ値を組み合わせた以下のシンボルを指定することもできます．
 ```ruby
-:atkstr, :atk_sd, :dex_as, :mag_das, :magmag, :pmdef
+:atkstr, :atk_sd, :dex_as, :mag_das, :magic2, :magmag, :pmdef
 ```
 ただし，自動選択の`:power`は指定できません．
 
@@ -177,14 +177,14 @@
 
 いずれの場合も，EL値，重量，☆は無視されます．
 
-## `Mgmg::Equip#atkstr, atk_sd, dex_as, mag_das`
+## `Mgmg::Equip#atkstr, atk_sd, dex_as, mag_das, magic2`
 それぞれ
 ```
-攻撃+腕力，攻撃+腕力/2+器用/2，器用+攻撃/2+腕力/2，魔力+器用/2+攻撃/4+腕力/4
+攻撃+腕力，攻撃+腕力/2+器用/2，器用+攻撃/2+腕力/2，魔力+器用/2+攻撃/4+腕力/4，魔力×2
 ```
 の値を返します．これらはそれぞれ
 ```
-(剣，斧，杖，本)，(短剣，双短剣)，(弓，弩)，(バスターアロー)
+(剣，斧，杖，本)，(短剣，双短剣)，(弓，弩)，(バスターアロー)，(魔法)
 ```
 の威力です．トリックプレーやディバイドには対応していません．
 
@@ -279,7 +279,7 @@ alias として`*`があるほか`scalar(1.quo(value))`として`quo`，`/`，`s
 
 を返します．
 
-## `Mgmg::IR#atkstr, atk_sd, dex_as, mag_das, magmag, pmdef(s, ac, x=nil)`
+## `Mgmg::IR#atkstr, atk_sd, dex_as, mag_das, magic2, magmag, pmdef(s, ac, x=nil)`
 `Mgmg::Equip`における同名メソッドと同様に，9パラ値を組み合わせた値を計算して返します．9パラの単独値と異なり，引数の数は2または3でなくてはなりません．
 
 ## `Mgmg::IR#power, fpower(s, a=s, c=a.tap{a=s})`
