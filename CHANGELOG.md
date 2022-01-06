@@ -107,7 +107,7 @@
 - `Enumerable#show`を追加．
 - `Mgmg::Equip#pmdef`で，`Mgmg::Equip#phydef`と`Mgmg::Equip#magmag`のうち，小さい方を返すようにし，`String#poly`の引数に`:pmdef`を受け付けるようにした．
 
-## 1.4.1
+## 1.4.1 2022/01/06
 - [リファレンス](./reference.md)を[README](./README.md)から分離独立させた．
 - `Mgmg::IR`を追加．
 	- これを生成するための`String#ir`および`Enumerable#ir`を追加
