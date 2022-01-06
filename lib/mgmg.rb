@@ -3,6 +3,7 @@ require_relative './mgmg/utils'
 require_relative './mgmg/const'
 require_relative './mgmg/equip'
 require_relative './mgmg/poly'
+require_relative './mgmg/ir'
 require_relative './mgmg/system_equip'
 require_relative './mgmg/search'
 require_relative './mgmg/optimize'
@@ -11,8 +12,8 @@ class String
 	def min_level(w=1)
 		Mgmg::Equip.min_level(self, w)
 	end
-	def min_levels(left_associative: true)
-		build(-1, -1, left_associative: left_associative).min_levels
+	def min_levels(w=1, left_associative: true)
+		build(-1, -1, left_associative: left_associative).min_levels(w)
 	end
 	def min_smith(left_associative: true)
 		Mgmg::Equip.min_smith(self, left_associative: left_associative)
@@ -22,6 +23,9 @@ class String
 	end
 	def build(smith=-1, comp=smith, left_associative: true)
 		Mgmg::Equip.build(self, smith, comp, left_associative: left_associative)
+	end
+	def ir(left_associative: true)
+		Mgmg::IR.build(self, left_associative: left_associative)
 	end
 	def poly(para=:cost, left_associative: true)
 		la = left_associative
@@ -93,6 +97,11 @@ module Enumerable
 			end
 		end.sum
 	end
+	def ir(left_associative: true)
+		self.map do |str|
+			str.ir(left_associative: left_associative)
+		end.sum
+	end
 	def show(smith=-1, armor=smith, comp=armor.tap{armor=smith}, left_associative: true, para: :power)
 		built = self.build(smith, armor, comp, left_associative: left_associative)
 		pstr = '%.3f' % built.para_call(para)
@@ -102,12 +111,12 @@ module Enumerable
 		puts "with levels (#{smith}, #{armor}, #{comp}) yields (#{pstr}, #{built.total_cost})"
 		puts "  #{built}"
 	end
-	def min_levels(left_associative: true)
-		build(-1, -1, -1, left_associative: left_associative).min_levels
+	def min_levels(w=1, left_associative: true)
+		build(-1, -1, -1, left_associative: left_associative).min_levels(w)
 	end
-	def min_level(left_associative: true)
+	def min_level(w=1, left_associative: true)
 		ret = [0, 0]
-		build(-1, -1, -1, left_associative: left_associative).min_levels.each do |str, level|
+		build(-1, -1, -1, left_associative: left_associative).min_levels(w).each do |str, level|
 			m = /\A\[*([^\+]+)/.match(str)
 			if Mgmg::EquipPosition[m[1].build(0).kind] == 0
 				ret[0] = [ret[0], level].max

@@ -47,6 +47,11 @@ module Mgmg
 		attr_accessor :equip
 	end
 	class SearchCutException < StandardError; end
+	class UnexpectedError < StandardError
+		def initialize()
+			super("There is a bug in `mgmg' gem. Please report to https://github.com/cycloawaodorin/mgmg/issues .")
+		end
+	end
 	
 	module_function def exp(smith, armor, comp=armor.tap{armor=0})
 		if armor <= 0
@@ -128,6 +133,15 @@ module Mgmg
 			raise InvalidBracketError.new("brackets must be closed")
 		end
 		str
+	end
+		
+	module_function def parse_material(str)
+		m = /\A.+?(\d+)\Z/.match(str)
+		mat = MaterialIndex[str.to_sym]
+		if m.nil? || mat.nil?
+			raise InvalidMaterialError.new(str)
+		end
+		[mat, m[1].to_i, mat<90 ? mat.div(10) : 9]
 	end
 	
 	class Vec < Array

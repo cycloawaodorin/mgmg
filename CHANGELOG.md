@@ -106,3 +106,12 @@
 - `Mgmg::TPolynomial#<=>`を追加．
 - `Enumerable#show`を追加．
 - `Mgmg::Equip#pmdef`で，`Mgmg::Equip#phydef`と`Mgmg::Equip#magmag`のうち，小さい方を返すようにし，`String#poly`の引数に`:pmdef`を受け付けるようにした．
+
+## 1.4.1 2022/01/06
+- [リファレンス](./reference.md)を[README](./README.md)から分離独立させた．
+- `Mgmg::IR`を追加．
+	- これを生成するための`String#ir`および`Enumerable#ir`を追加
+	- `String#search`および`Enumerable#search`において，内部的にこれを利用することで高速化．
+- `Mgmg.#find_lowerbound`, `Mgmg.#find_upperbound`を追加．
+- 魔法の威力に対応する`Mgmg::Equip#magic2`を追加．
+- `String#min_levels`およびその関連メソッドにおいて，重量1以外を指定できるようにした．
