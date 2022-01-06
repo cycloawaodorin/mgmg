@@ -9,7 +9,7 @@ module Mgmg
 			@total_cost = Vec[0, 0, 0]
 			@history, @min_levels = [self], Hash.new
 		end
-		attr_accessor :kind, :weight, :star, :main, :sub, :para, :element, :total_cost, :history, :min_levels
+		attr_accessor :kind, :weight, :star, :main, :sub, :para, :element, :total_cost, :history
 		def initialize_copy(other)
 			@kind = other.kind
 			@weight = other.weight
@@ -52,10 +52,19 @@ module Mgmg
 			end
 		end
 		
-		def min_level
+		def min_levels(w=1)
+			if w == 1
+				@min_levels
+			else
+				@min_levels.map do |key, value|
+					[key, key.min_level(w)]
+				end.to_h
+			end
+		end
+		def min_level(w=1)
 			if @kind == 28
 				ret = [0, 0]
-				@min_levels.each do |str, ml|
+				min_levels(w).each do |str, ml|
 					if str.build(-1).kind < 8
 						if ret[0] < ml
 							ret[0] = ml
@@ -68,7 +77,7 @@ module Mgmg
 				end
 				ret
 			else
-				@min_levels.values.append(0).max
+				min_levels(w).values.append(0).max
 			end
 		end
 		

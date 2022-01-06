@@ -12,8 +12,8 @@ class String
 	def min_level(w=1)
 		Mgmg::Equip.min_level(self, w)
 	end
-	def min_levels(left_associative: true)
-		build(-1, -1, left_associative: left_associative).min_levels
+	def min_levels(w=1, left_associative: true)
+		build(-1, -1, left_associative: left_associative).min_levels(w)
 	end
 	def min_smith(left_associative: true)
 		Mgmg::Equip.min_smith(self, left_associative: left_associative)
@@ -111,12 +111,12 @@ module Enumerable
 		puts "with levels (#{smith}, #{armor}, #{comp}) yields (#{pstr}, #{built.total_cost})"
 		puts "  #{built}"
 	end
-	def min_levels(left_associative: true)
-		build(-1, -1, -1, left_associative: left_associative).min_levels
+	def min_levels(w=1, left_associative: true)
+		build(-1, -1, -1, left_associative: left_associative).min_levels(w)
 	end
-	def min_level(left_associative: true)
+	def min_level(w=1, left_associative: true)
 		ret = [0, 0]
-		build(-1, -1, -1, left_associative: left_associative).min_levels.each do |str, level|
+		build(-1, -1, -1, left_associative: left_associative).min_levels(w).each do |str, level|
 			m = /\A\[*([^\+]+)/.match(str)
 			if Mgmg::EquipPosition[m[1].build(0).kind] == 0
 				ret[0] = [ret[0], level].max

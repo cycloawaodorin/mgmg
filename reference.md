@@ -20,16 +20,15 @@
 ## `String#min_level(weight=1)`
 `self`を`weight`以下で作るための最低製作Lvを返します．`build`と異なり，合成や既成品は解釈できません．また，素材の☆による最低製作Lvとのmaxを返すため，街の鍛冶・防具製作屋に頼んだ場合の重量は`self.build.weight`で確認する必要があります．`weight`を省略した場合，重量1となる製作Lvを返します．
 
-## `String#min_levels(left_associative: true)`
-合成レシピの各鍛冶・防具製作品に対して，レシピ文字列をキー，重量1で作製するために必要な製作Lvを値とした`Hash`を返します．重量1以外は指定できません．
+## `String#min_levels(weight=1, left_associative: true)`
+合成レシピの各鍛冶・防具製作品に対して，レシピ文字列をキー，重量1で作製するために必要な製作Lvを値とした`Hash`を返します．重量はすべての装備について同じ値しか指定できません．
 最大値は，`self.build.min_level`によって得られます．
 
-## `Enumerable#min_levels(left_associative: true)`
+## `Enumerable#min_levels(weight=1, left_associative: true)`
 すべての要素`str`に対する`str.min_levels`をマージした`Hash`を返します．
 
-## `Enumerable#min_level(left_associative: true)`
+## `Enumerable#min_level(weight=1, left_associative: true)`
 `self.min_levels`から武器，防具それぞれに対する最大値を求め，`[必要最小鍛冶Lv, 必要最小防具製作Lv]`を返します．武器，防具の一方のみが含まれる場合，もう一方は`0`になります．
-`String#min_level`と異なり，重量1以外は指定できません．
 
 ## `String#min_comp(left_associative: true)`，`Enumerable#min_comp(left_associative: true)`
 レシピ通りに合成するのに必要な道具製作Lvを返します．ただし，全体が「[]」で囲われているか，非合成レシピの場合，代わりに`0`を返します．
@@ -87,16 +86,17 @@
 武器のみなら防具製作Lvは`0`，防具のみなら鍛冶Lvは`0`，合成なしなら道具製作Lvは`0`となります．
 `cut_exp`以下の経験値で`target`以上を達成できない場合，`Mgmg::SearchCutException`を発生します．
 
-## `Mgmg.#find_lowerbound(a, b, para, start, term, smith_min_a: nil, smith_min_b: nil, min_smith: false)`
+## `Mgmg.#find_lowerbound(a, b, para, start, term, smith_min_a: nil, smith_min_b: nil, armor_min_a: nil, armor_min_b: nil, min_smith: false)`
 レシピ`a`とレシピ`b`について，`para`の値を目標値以上にする最小経験値の組において，目標値`start`における優劣が逆転する目標値の下限を探索し，返します．
 返り値は`[逆転しない最大目標値, 逆転時の最小para値]`です．前者は逆転目標値の下限，後者は，目標値が前者よりも少しだけ大きいときの`para`値です．
 ここで，最小経験値が小さい方，または最小経験値が同じなら，そのときの`para`値が大きい方をよりよいものと解釈します．
 `term`は`start`より大きい値とします．目標値`term`における優劣が，目標値`start`における優劣と同じ場合，`Mgmg::SearchCutException`を発生します．
 `a`と`b`は`String`でもその`Enumerable`でも構いません．
 
-`smith_min_a`と`smith_min_b`は，それぞれ`a`と`b`の探索最小鍛冶・防具製作Lvを指定します．これらが`nil`で，`min_smith`が真ならば，重量を無視した製作可能最小Lvが指定されます．`min_smith`が偽(デフォルト)ならば，最小重量で製作可能な製作Lvが指定されます．重量を無視した製作可能Lvでの重量が3で，重量が2以下となる製作Lvで探索したい場合などは，`smith_min_a`や`smith_min_b`を具体的に指定してください．
+`smith_min_a`，`smith_min_b`，`armor_min_a`，`armor_min_b`は，それぞれ`a`と`b`の探索最小鍛冶・防具製作Lvを指定します．`a`，`b`が`String`の場合，防具についても`smith_min_a`，`smith_min_b`を指定します．`Enumerable`の場合は，鍛冶と防具製作についてそれぞれ指定します．
+これらが`nil`で，`min_smith`が真ならば，重量を無視した製作可能最小Lvが指定されます．`min_smith`が偽(デフォルト)ならば，最小重量で製作可能な製作Lvが指定されます．重量を無視した製作可能Lvでの重量が3で，重量が2以下となる製作Lvで探索したい場合などは，`smith_min_a`，`smith_min_b`，`armor_min_a`，`armor_min_b`を具体的に指定してください．
 
-## `Mgmg.#find_upperbound(a, b, para, start, term, smith_min_a: nil, smith_min_b: nil, min_smith: false)`
+## `Mgmg.#find_upperbound(a, b, para, start, term, smith_min_a: nil, smith_min_b: nil, armor_min_a: nil, armor_min_b: nil, min_smith: false)`
 `Mgmg.#find_lowerbound`とは逆に，目標値を下げながら，優劣が逆転する最大の目標値を探索し，返します．返り値は`[逆転する最大目標値, 逆転前の最小para値]`です．目標値が，前者よりも少しでも大きいと逆転が起こらず(逆転する目標値の上限)，少しだけ大きい時の`para`値が後者になります．
 
 ## `String#eff(para, smith, comp=smith, left_associative: true)`
@@ -201,12 +201,12 @@
 多段階の合成におけるすべての中間生成物からなる配列を返します．
 「複数装備」の場合，各装備の`history`を連結した配列を返します．
 
-## `Mgmg::Equip#min_levels`
-レシピ中の，鍛冶・防具製作物の文字列をキー，重量1で生成するのに必要な最小レベルを値とした`Hash`を返します．
+## `Mgmg::Equip#min_levels(weight=1)`
+レシピ中の，鍛冶・防具製作物の文字列をキー，重量`weight`で生成するのに必要な最小レベルを値とした`Hash`を返します．
 「複数装備」の場合，各装備の`min_levels`をマージした`Hash`を返します．
 
-## `Mgmg::Equip#min_level`
-`min_levels`の値の最大値を返します．「複数装備」の場合，`[鍛冶の必要レベル，防具製作の必要レベル]`を返します．
+## `Mgmg::Equip#min_level(weight=1)`
+`min_levels(weight)`の値の最大値を返します．「複数装備」の場合，`[鍛冶の必要レベル，防具製作の必要レベル]`を返します．
 
 ## `Mgmg::TPolynomial`
 前述の`String#poly`によって生成される二変数多項式のクラスです．最初のTはtwo-variableのTです．以下のようなメソッドが定義されています．
