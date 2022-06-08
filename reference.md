@@ -58,6 +58,8 @@
 ## `String#ir(left_associative: true, reinforcement: [])`
 レシピ文字列である`self`を解釈し，9パラ値について，丸めを考慮した鍛冶・防具製作Lvと道具製作Lvの2変数からなる関数オブジェクトを保持する`Mgmg::IR`クラスのインスタンスを生成し，返します．詳しくは，[後述](#mgmgir)の`Mgmg::IR`クラスの説明を参照ください．
 
+`reinforcement`には，[後述](#mgmgequipreinforcearg)の`Mgmg::Equip#reinforce`に渡す引数と同様のものを，一つの配列にまとめて渡します．強化が一つだけの場合，その引数を裸で渡すこともできます．
+
 ## `Enumerable#ir(left_associative: true, reinforcement: [])`
 複数のレシピ文字列からなる`self`の各要素を製作し，そのすべてを装備したときの`Mgmg::IR`を返します．この場合，鍛冶Lv，防具製作Lv，道具製作Lvの3変数からなる関数オブジェクトを保持するものとして扱われます．各装備の種別に応じ，鍛冶Lvまたは防具製作Lvを適用し，9パラ値を計算します．
 
@@ -311,6 +313,7 @@ alias として`*`があるほか`scalar(1.quo(value))`として`quo`，`/`，`s
 
 ## `Mgmg::IR#smith_cost, comp_cost(s, c=s, outsourcing=false)`
 `Mgmg::Equip`における同名メソッドと同様に，鍛冶・防具製作コストまたは武具合成コストを計算して返します．複数装備では意味のある値を計算できないため，製作Lvの3種入力はできません．
+また，これらのメソッドのみ，`reinforcement`を無視します．
 
 ## `Mgmg::Cuisine`
 [前述](#mgmgequipreinforcearg)の`Mgmg::Equip#reinforce`で使用する料理オブジェクトです．料理効果のうち，攻撃，物防，魔防のみが装備を強化できるため，この3パラメータのみを取り扱います．
