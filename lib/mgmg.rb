@@ -26,8 +26,8 @@ class String
 	def build(smith=-1, comp=smith, left_associative: true)
 		Mgmg::Equip.build(self, smith, comp, left_associative: left_associative)
 	end
-	def ir(left_associative: true)
-		Mgmg::IR.build(self, left_associative: left_associative)
+	def ir(left_associative: true, reinforcement: [])
+		Mgmg::IR.build(self, left_associative: left_associative, reinforcement: reinforcement)
 	end
 	def poly(para=:cost, left_associative: true)
 		la = left_associative
@@ -72,13 +72,20 @@ class String
 	def peff(para, smith, comp=smith, left_associative: true)
 		poly(para, left_associative: left_associative).eff(smith, comp)
 	end
-	def show(smith=-1, comp=smith, left_associative: true, para: :power)
-		built = self.build(smith, comp, left_associative: left_associative)
+	def show(smith=-1, comp=smith, left_associative: true, para: :power, reinforcement: [])
+		rein = case reinforcement
+		when Array
+			reinforcement.map{|r| Mgmg::Reinforcement.compile(r)}
+		else
+			[Mgmg::Reinforcement.compile(reinforcement)]
+		end
+		built = self.build(smith, comp, left_associative: left_associative).reinforce(*rein)
 		pstr = '%.3f' % built.para_call(para)
 		pstr.sub!(/\.?0+\Z/, '')
 		puts "Building"
 		puts "  #{self}"
-		puts "with levels (#{smith}, #{comp}) yields (#{pstr}, #{built.total_cost})"
+		rein = rein.empty? ? '' : " reinforced by {#{rein.join(',')}}"
+		puts "with levels (#{smith}, #{comp})#{rein} yields (#{pstr}, #{built.total_cost})"
 		puts "  #{built}"
 	end
 	def phydef_optimize(smith=nil, comp=smith, left_associative: true, magdef_maximize: true)
@@ -99,18 +106,25 @@ module Enumerable
 			end
 		end.sum
 	end
-	def ir(left_associative: true)
+	def ir(left_associative: true, reinforcement: [])
 		self.map do |str|
 			str.ir(left_associative: left_associative)
-		end.sum
+		end.sum.add_reinforcement(reinforcement)
 	end
-	def show(smith=-1, armor=smith, comp=armor.tap{armor=smith}, left_associative: true, para: :power)
-		built = self.build(smith, armor, comp, left_associative: left_associative)
+	def show(smith=-1, armor=smith, comp=armor.tap{armor=smith}, left_associative: true, para: :power, reinforcement: [])
+		rein = case reinforcement
+		when Array
+			reinforcement.map{|r| Mgmg::Reinforcement.compile(r)}
+		else
+			[Mgmg::Reinforcement.compile(reinforcement)]
+		end
+		built = self.build(smith, armor, comp, left_associative: left_associative).reinforce(*rein)
 		pstr = '%.3f' % built.para_call(para)
 		pstr.sub!(/\.?0+\Z/, '')
 		puts "Building"
 		puts "  #{self.join(', ')}"
-		puts "with levels (#{smith}, #{armor}, #{comp}) yields (#{pstr}, #{built.total_cost})"
+		rein = rein.empty? ? '' : " reinforced by {#{rein.join(',')}}"
+		puts "with levels (#{smith}, #{armor}, #{comp})#{rein} yields (#{pstr}, #{built.total_cost})"
 		puts "  #{built}"
 	end
 	def min_levels(w=1, left_associative: true)

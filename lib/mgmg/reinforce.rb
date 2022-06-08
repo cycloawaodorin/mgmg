@@ -5,8 +5,13 @@ module Mgmg
 		end
 		attr_accessor :vec
 		def initialize_copy(other)
-			@vec = other.vec
+			@vec = other.vec.dup
 		end
+		
+		def to_s
+			'(' + @vec.map.with_index{|e, i| e==0 ? nil : "#{Equip::ParamList[i]}:#{e}"}.compact.join(', ') + ')'
+		end
+		alias :inspect :to_s
 	end
 	
 	#                                               攻  物  防  HP  MP  腕  器  速  魔
@@ -27,21 +32,24 @@ module Mgmg
 		def cuisine(c)
 			Reinforcement.new( Vec[*(c.vec), *Array.new(6, 0)] )
 		end
+		def compile(arg)
+			case arg
+			when Reinforcement
+				arg
+			when Cuisine
+				cuisine(arg)
+			when String
+				Skill[arg] or raise ArgumentError, "Unknown skill `#{arg}' is given."
+			else
+				raise ArgumentError, "The argument should be Mgmg::Cuisine or skill name String. (`#{arg}' is given)"
+			end
+		end
 	end
 	
 	class Equip
 		def reinforce(*arg)
 			arg.each do |r|
-				r = case r
-				when Reinforcement
-					r
-				when Cuisine
-					Reinforcement.cuisine(r)
-				when String
-					Skill[r] or raise ArgumentError, "Unknown skill `#{r}' is given."
-				else
-					raise ArgumentError, "The argument should be Mgmg::Cuisine or skill name String. (`#{r.class}' is given)"
-				end
+				r = Reinforcement.compile(r)
 				@para.map!.with_index do |pr, i|
 					if r.vec[i] == 0
 						pr

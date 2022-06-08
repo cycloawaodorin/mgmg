@@ -6,7 +6,7 @@ module Mgmg
 		end
 		attr_accessor :vec
 		def initialize_copy(other)
-			@vec = other.vec
+			@vec = other.vec.dup
 		end
 		
 		def attack
