@@ -22,7 +22,7 @@ Excel版に比べ，入力のチェックがなされておらず，☆制限の
 
     $ gem install mgmg
 
-あるいは，http://cycloawaodorin.sakura.ne.jp/sonota/mgmg/mgmg.html にてAjax版を利用することもできます．Ajax版は一部の機能しか実装されていませんが，Ruby環境がない場合にも利用できます．
+あるいは，[Ajax版](http://cycloawaodorin.sakura.ne.jp/sonota/mgmg/mgmg.html) を利用することもできます．Ajax版は一部の機能しか実装されていませんが，Ruby環境がない場合にも利用できます．
 
 ## 使い方
 並列型多段合成杖を製作し，標準出力に出力する．
