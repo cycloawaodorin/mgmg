@@ -6,6 +6,7 @@ require_relative './mgmg/poly'
 require_relative './mgmg/ir'
 require_relative './mgmg/system_equip'
 require_relative './mgmg/cuisine'
+require_relative './mgmg/reinforce'
 require_relative './mgmg/search'
 require_relative './mgmg/optimize'
 

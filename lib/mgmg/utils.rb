@@ -14,6 +14,31 @@ module Mgmg
 				end
 			end
 		end
+		refine Float do
+			alias :cdiv :quo # Floatの場合は普通の割り算
+			def comma3
+				s = self.to_s
+				case s
+				when %r|e|
+					s
+				when %r|\.|
+					ary = s.split('.')
+					ary[0].gsub(/(\d)(?=(\d{3})+(?!\d))/, '\1,') + '.' + ary[1]
+				else
+					s
+				end
+			end
+		end
+		refine Rational do
+			alias :cdiv :quo # Rationalの場合は普通の割り算
+			def comma3
+				if self.denominator == 1
+					self.numerator.comma3
+				else
+					self.to_f.comma3
+				end
+			end
+		end
 	end
 	using Refiner
 	
