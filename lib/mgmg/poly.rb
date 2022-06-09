@@ -301,8 +301,8 @@ module Mgmg
 				raise ArgumentError.new("given string `#{str}' is unparsable as a smithing recipe")
 			end
 			kind = EquipIndex[m[1].to_sym]
-			main_m, main_s, main_mc = Equip.__send__(:parse_material, m[2])
-			sub_m, sub_s, sub_mc = Equip.__send__(:parse_material, m[3])
+			main_m, main_s, main_mc = Mgmg.parse_material(m[2])
+			sub_m, sub_s, sub_mc = Mgmg.parse_material(m[3])
 			para = ParamIndex[para]
 			
 			c = ( Equip9[kind][para] * Main9[main_m][para] ).cdiv(100).quo( main_mc==sub_mc ? 200 : 100 )

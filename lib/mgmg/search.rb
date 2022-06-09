@@ -1,6 +1,6 @@
 class String
-	def smith_search(para, target, comp, smith_min=nil, smith_max=10000, left_associative: true, cut_exp: Float::INFINITY, min_smith: false, irep: nil)
-		irep = ir(left_associative: left_associative) if irep.nil?
+	def smith_search(para, target, comp, smith_min=nil, smith_max=10000, left_associative: true, cut_exp: Float::INFINITY, min_smith: false, irep: nil, reinforcement: [])
+		irep = ir(left_associative: left_associative, reinforcement: reinforcement) if irep.nil?
 		if smith_min.nil?
 			if min_smith
 				smith_min = self.min_smith.min_smith
@@ -32,8 +32,8 @@ class String
 		end
 		smith_max
 	end
-	def comp_search(para, target, smith, comp_min=nil, comp_max=10000, left_associative: true, irep: nil)
-		irep = ir(left_associative: left_associative) if irep.nil?
+	def comp_search(para, target, smith, comp_min=nil, comp_max=10000, left_associative: true, irep: nil, reinforcement: [])
+		irep = ir(left_associative: left_associative, reinforcement: reinforcement) if irep.nil?
 		comp_min = min_comp(left_associative: left_associative)
 		if comp_max < comp_min
 			raise ArgumentError, "comp_min <= comp_max is needed, (comp_min, comp_max) = (#{comp_min}, #{comp_max}) are given"
@@ -53,8 +53,8 @@ class String
 		end
 		comp_max
 	end
-	def search(para, target, smith_min=nil, comp_min=nil, smith_max=10000, comp_max=10000, left_associative: true, step: 1, cut_exp: Float::INFINITY, min_smith: false, irep: nil)
-		irep = ir(left_associative: left_associative) if irep.nil?
+	def search(para, target, smith_min=nil, comp_min=nil, smith_max=10000, comp_max=10000, left_associative: true, step: 1, cut_exp: Float::INFINITY, min_smith: false, irep: nil, reinforcement: [])
+		irep = ir(left_associative: left_associative, reinforcement: reinforcement) if irep.nil?
 		if smith_min.nil?
 			if min_smith
 				smith_min = self.min_smith
@@ -73,7 +73,7 @@ class String
 		minex, ret = exp, [smith_max, comp_min] if exp < minex
 		(comp_min+step).step(comp_max-1, step) do |comp|
 			break if minex < Mgmg.exp(smith_min, comp)
-			smith = smith_search(para, target, comp, smith_min, smith_max, left_associative: left_associative, cut_exp: [minex, cut_exp].min)
+			smith = smith_search(para, target, comp, smith_min, smith_max, left_associative: left_associative, cut_exp: [minex, cut_exp].min, irep: irep)
 			exp = Mgmg.exp(smith, comp)
 			if exp < minex
 				minex, ret = exp, [smith, comp]
@@ -89,8 +89,8 @@ class String
 	end
 end
 module Enumerable
-	def smith_search(para, target, armor, comp, smith_min=nil, smith_max=10000, left_associative: true, cut_exp: Float::INFINITY, min_smith: false, irep: nil)
-		irep = ir(left_associative: left_associative) if irep.nil?
+	def smith_search(para, target, armor, comp, smith_min=nil, smith_max=10000, left_associative: true, cut_exp: Float::INFINITY, min_smith: false, irep: nil, reinforcement: [])
+		irep = ir(left_associative: left_associative, reinforcement: reinforcement) if irep.nil?
 		if smith_min.nil?
 			if min_smith
 				smith_min = self.min_smith[0]
@@ -122,8 +122,8 @@ module Enumerable
 		end
 		smith_max
 	end
-	def armor_search(para, target, smith, comp, armor_min=nil, armor_max=10000, left_associative: true, cut_exp: Float::INFINITY, min_smith: false, irep: nil)
-		irep = ir(left_associative: left_associative) if irep.nil?
+	def armor_search(para, target, smith, comp, armor_min=nil, armor_max=10000, left_associative: true, cut_exp: Float::INFINITY, min_smith: false, irep: nil, reinforcement: [])
+		irep = ir(left_associative: left_associative, reinforcement: reinforcement) if irep.nil?
 		if armor_min.nil?
 			if min_smith
 				armor_min = self.min_smith[1]
@@ -155,8 +155,8 @@ module Enumerable
 		end
 		armor_max
 	end
-	def sa_search(para, target, comp, smith_min=nil, armor_min=nil, smith_max=10000, armor_max=10000, left_associative: true, cut_exp: Float::INFINITY, min_smith: false, irep: nil)
-		irep = ir(left_associative: left_associative) if irep.nil?
+	def sa_search(para, target, comp, smith_min=nil, armor_min=nil, smith_max=10000, armor_max=10000, left_associative: true, cut_exp: Float::INFINITY, min_smith: false, irep: nil, reinforcement: [])
+		irep = ir(left_associative: left_associative, reinforcement: reinforcement) if irep.nil?
 		if min_smith
 			s, a = self.min_smith
 		else
@@ -204,8 +204,8 @@ module Enumerable
 		raise Mgmg::SearchCutException if cut_exp < minex
 		ret
 	end
-	def comp_search(para, target, smith, armor, comp_min=nil, comp_max=10000, left_associative: true, irep: nil)
-		irep = ir(left_associative: left_associative) if irep.nil?
+	def comp_search(para, target, smith, armor, comp_min=nil, comp_max=10000, left_associative: true, irep: nil, reinforcement: [])
+		irep = ir(left_associative: left_associative, reinforcement: reinforcement) if irep.nil?
 		comp_min = min_comp(left_associative: left_associative)
 		if comp_max < comp_min
 			raise ArgumentError, "comp_min <= comp_max is needed, (comp_min, comp_max) = (#{comp_min}, #{comp_max}) are given"
@@ -225,8 +225,8 @@ module Enumerable
 		end
 		comp_max
 	end
-	def search(para, target, smith_min=nil, armor_min=nil, comp_min=nil, smith_max=10000, armor_max=10000, comp_max=10000, left_associative: true, cut_exp: Float::INFINITY, min_smith: false, irep: nil)
-		irep = ir(left_associative: left_associative) if irep.nil?
+	def search(para, target, smith_min=nil, armor_min=nil, comp_min=nil, smith_max=10000, armor_max=10000, comp_max=10000, left_associative: true, cut_exp: Float::INFINITY, min_smith: false, irep: nil, reinforcement: [])
+		irep = ir(left_associative: left_associative, reinforcement: reinforcement) if irep.nil?
 		if min_smith
 			s, a = self.min_smith
 		else
@@ -262,11 +262,11 @@ module Enumerable
 end
 
 module Mgmg
-	module_function def find_lowerbound(a, b, para, start, term, smith_min_a: nil, smith_min_b: nil, armor_min_a: nil, armor_min_b: nil, min_smith: false)
+	module_function def find_lowerbound(a, b, para, start, term, smith_min_a: nil, smith_min_b: nil, armor_min_a: nil, armor_min_b: nil, min_smith: false, reinforcement: [])
 		if term <= start
 			raise ArgumentError, "start < term is needed, (start, term) = (#{start}, #{term}) are given"
 		end
-		ira, irb = a.ir, b.ir
+		ira, irb = a.ir(reinforcement: reinforcement), b.ir(reinforcement: reinforcement)
 		sca, scb = a.search(para, start, smith_min_a, armor_min_a, min_smith: min_smith, irep: ira), b.search(para, start, smith_min_b, armor_min_b, min_smith: min_smith, irep: irb)
 		ea, eb = Mgmg.exp(*sca), Mgmg.exp(*scb)
 		if eb < ea || ( ea == eb && ira.para_call(para, *sca) < irb.para_call(para, *scb) )
@@ -298,11 +298,11 @@ module Mgmg
 		raise UnexpectedError
 	end
 	
-	module_function def find_upperbound(a, b, para, start, term, smith_min_a: nil, smith_min_b: nil, armor_min_a: nil, armor_min_b: nil, min_smith: false)
+	module_function def find_upperbound(a, b, para, start, term, smith_min_a: nil, smith_min_b: nil, armor_min_a: nil, armor_min_b: nil, min_smith: false, reinforcement: [])
 		if start <= term
 			raise ArgumentError, "term < start is needed, (start, term) = (#{start}, #{term}) are given"
 		end
-		ira, irb = a.ir, b.ir
+		ira, irb = a.ir(reinforcement: reinforcement), b.ir(reinforcement: reinforcement)
 		sca, scb = a.search(para, start, smith_min_a, armor_min_a, min_smith: min_smith, irep: ira), b.search(para, start, smith_min_b, armor_min_b, min_smith: min_smith, irep: irb)
 		ea, eb = Mgmg.exp(*sca), Mgmg.exp(*scb)
 		if ea < eb || ( ea == eb && irb.para_call(para, *scb) < ira.para_call(para, *sca) )
