@@ -97,19 +97,19 @@ class String
 end
 module Enumerable
 	def build(smith=-1, armor=smith, comp=armor.tap{armor=smith}, left_associative: true)
-		self.map do |str|
+		self.sum do |str|
 			m = /\A\[*([^\+]+)/.match(str)
 			if Mgmg::EquipPosition[m[1].build(0).kind] == 0
 				str.build(smith, comp, left_associative: left_associative)
 			else
 				str.build(armor, comp, left_associative: left_associative)
 			end
-		end.sum
+		end
 	end
 	def ir(left_associative: true, reinforcement: [])
-		self.map do |str|
+		self.sum do |str|
 			str.ir(left_associative: left_associative)
-		end.sum.add_reinforcement(reinforcement)
+		end.add_reinforcement(reinforcement)
 	end
 	def show(smith=-1, armor=smith, comp=armor.tap{armor=smith}, left_associative: true, para: :power, reinforcement: [])
 		rein = case reinforcement

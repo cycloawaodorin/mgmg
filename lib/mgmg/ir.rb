@@ -233,14 +233,15 @@ module Mgmg
 			when 6, 7
 				[magic(s, c)*2, atkstr(s, c)].max
 			when 28
-				@para.map.with_index do |e, i| e.evaluate3(s, a, c)
+				@para.enum_for(:sum).with_index do |e, i|
+					x = e.evaluate3(s, a, c)
 					@rein.each do |r|
 						if r.vec[i] != 0
 							x *= (100+r.vec[i]).quo(100)
 						end
 					end
 					x
-				end.sum-((hp(s, a, c)+mp(s, a, c))*3.quo(4))
+				end-((hp(s, a, c)+mp(s, a, c))*3.quo(4))
 			else
 				ret = @para.map.with_index do |e, i|
 					x = e.evaluate3(s, a, c)
