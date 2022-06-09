@@ -135,16 +135,28 @@ module Mgmg
 				end
 			end
 		end
-		def initialize(kind, star, main_m, sub_m, para)
+		def initialize(kind, star, main_m, sub_m, para, rein=[])
 			@kind, @star, @main, @sub, @para = kind, star, main_m, sub_m, para
+			add_reinforcement(rein)
 		end
-		attr_accessor :kind, :star, :main, :sub, :para
+		def add_reinforcement(rein)
+			@rein = if rein.kind_of?(Array)
+				rein.map do |r|
+					Reinforcement.compile(r)
+				end
+			else
+				[Reinforcement.compile(rein)]
+			end
+			self
+		end
+		attr_accessor :kind, :star, :main, :sub, :para, :rein
 		def initialize_copy(other)
 			@kind = other.kind
 			@star = other.star
 			@main = other.main
 			@sub = other.sub
 			@para = other.para.dup
+			@rein = other.rein.dup
 		end
 		
 		def compose(other)
@@ -155,9 +167,9 @@ module Mgmg
 			par = @para.map.with_index{|e, i| e.to_s=='0' ? nil : "#{Mgmg::Equip::ParamList[i]}:#{e.to_s}"}.compact
 			if @kind == 28
 				ep = @star.map.with_index{|e, i| e==0 ? nil : "#{Mgmg::Equip::EqPosList[i]}:#{e}"}.compact
-				"複数装備(#{ep.join(', ')})<#{par.join(', ')}>"
+				"複数装備(#{ep.join(', ')})<#{par.join(', ')}>#{@rein.empty? ? '' : '{'+@rein.join(',')+'}'}"
 			else
-				"#{EquipName[@kind]}☆#{@star}(#{MaterialClass[@main]}#{MaterialClass[@sub]})<#{par.join(', ')}>"
+				"#{EquipName[@kind]}☆#{@star}(#{MaterialClass[@main]}#{MaterialClass[@sub]})<#{par.join(', ')}>#{@rein.empty? ? '' : '{'+@rein.join(',')+'}'}"
 			end
 		end
 		
@@ -171,13 +183,19 @@ module Mgmg
 		
 		%i|attack phydef magdef hp mp str dex speed magic|.each.with_index do |sym, i|
 			define_method(sym) do |s=nil, ac=s, x=nil|
-				if s.nil?
+				ret = if s.nil?
 					@para[i]
 				elsif x.nil?
 					@para[i].evaluate(s, ac)
 				else
 					@para[i].evaluate3(s, ac, x)
 				end
+				@rein.each do |r|
+					if r.vec[i] != 0
+						ret *= (100+r.vec[i]).quo(100)
+					end
+				end
+				ret
 			end
 		end
 		def atkstr(s, ac, x=nil)
@@ -215,9 +233,25 @@ module Mgmg
 			when 6, 7
 				[magic(s, c)*2, atkstr(s, c)].max
 			when 28
-				@para.sum{|e| e.evaluate3(s, a, c)}-((hp(s, a, c)+mp(s, a, c))*3.quo(4))
+				@para.enum_for(:sum).with_index do |e, i|
+					x = e.evaluate3(s, a, c)
+					@rein.each do |r|
+						if r.vec[i] != 0
+							x *= (100+r.vec[i]).quo(100)
+						end
+					end
+					x
+				end-((hp(s, a, c)+mp(s, a, c))*3.quo(4))
 			else
-				ret = @para.map{|e| e.evaluate3(s, a, c)}.max
+				ret = @para.map.with_index do |e, i|
+					x = e.evaluate3(s, a, c)
+					@rein.each do |r|
+						if r.vec[i] != 0
+							x *= (100+r.vec[i]).quo(100)
+						end
+					end
+					x
+				end.max
 				if ret == magdef(s, a, c)
 					ret+magic(s, a, c).quo(2)
 				else
@@ -289,10 +323,10 @@ module Mgmg
 		end
 	end
 	class << IR
-		def build(str, left_associative: true)
+		def build(str, left_associative: true, reinforcement: [])
 			str = Mgmg.check_string(str)
 			stack, str = build_sub0([], str)
-			build_sub(stack, str, left_associative)
+			build_sub(stack, str, left_associative).add_reinforcement(reinforcement)
 		end
 		private def build_sub0(stack, str)
 			SystemEquip.each do |k, v|
