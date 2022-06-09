@@ -25,15 +25,37 @@ module Mgmg
 	end
 	
 	SystemCuisine = {
-		'焼き肉'           => Cuisine.new( Vec[ 5,  0, 0] ),
-		'焼き金肉'         => Cuisine.new( Vec[10,  0, 0] ),
-		'焼き黄金肉'       => Cuisine.new( Vec[15,  0, 0] ),
-		'焼きリンゴ'       => Cuisine.new( Vec[ 0,  5, 0] ),
-		'焼きイチゴ'       => Cuisine.new( Vec[ 0, 10, 0] ),
-		'焼きネギタマ'     => Cuisine.new( Vec[ 0, 15, 0] ),
-		'サボテン焼き1'    => Cuisine.new( Vec[ 5,  5, 0] ),
-		'サボテンバーガー' => Cuisine.new( Vec[10, 10, 0] ),
-		'サボテン焼き7'    => Cuisine.new( Vec[15, 15, 0] ),
+		'焼き肉'                         => Cuisine.new( Vec[ 5,  0,  0] ), # ☆1
+		'焼き金肉'                       => Cuisine.new( Vec[10,  0,  0] ), # ☆3
+		'焼き黄金肉'                     => Cuisine.new( Vec[15,  0,  0] ), # ☆5
+		'焼きリンゴ'                     => Cuisine.new( Vec[ 0,  5,  0] ), # ☆1
+		'焼きイチゴ'                     => Cuisine.new( Vec[ 0, 10,  0] ), # ☆3
+		'焼きネギタマ'                   => Cuisine.new( Vec[ 0, 15,  0] ), # ☆5
+		'サボテン焼き1'                  => Cuisine.new( Vec[ 5,  5,  0] ), # ☆1
+		'サボテンバーガー'               => Cuisine.new( Vec[10, 10,  0] ), # ☆3
+		'サボテン焼き7'                  => Cuisine.new( Vec[15, 15,  0] ), # ☆7
+		'獣肉とカエン酒の丸焼き'         => Cuisine.new( Vec[ 8,  0,  0] ), # 料理Lv0
+		'ドランギョと煉獄酒の丸焼き'     => Cuisine.new( Vec[15, 11,  6] ), # 料理Lv15
+		'ドラバーンと煉獄酒の丸焼き'     => Cuisine.new( Vec[23, 17,  9] ), # 料理Lv24
+		'フレドランと煉獄酒の丸焼き'     => Cuisine.new( Vec[59,  0,  0] ), # 料理Lv27
+		'ダークドンと煉獄酒の丸焼き'     => Cuisine.new( Vec[35, 26, 21] ), # 料理Lv27
+		'ダークドンと氷河酒の丸焼き'     => Cuisine.new( Vec[26, 35, 15] ), # 料理Lv27
+		'ウッチと氷酒の蒸し焼き'         => Cuisine.new( Vec[ 0, 11, 10] ), # 料理Lv0
+		'ゴッチと氷酒の蒸し焼き'         => Cuisine.new( Vec[ 0, 15, 13] ), # 料理Lv3
+		'ガガッチと氷水酒の蒸し焼き'     => Cuisine.new( Vec[ 0, 19, 15] ), # 料理Lv6
+		'ガガッチと氷河酒の蒸し焼き'     => Cuisine.new( Vec[ 0, 22, 16] ), # 料理Lv12
+		'ドランギョと氷河酒の蒸し焼き'   => Cuisine.new( Vec[ 6, 24, 11] ), # 料理Lv15
+		'ドラバーンと氷河酒の蒸し焼き'   => Cuisine.new( Vec[10, 35, 19] ), # 料理Lv24
+		'アースドランと氷河酒の蒸し焼き' => Cuisine.new( Vec[ 0, 87,  0] ), # 料理Lv27
+		'ダークドンと氷河酒の蒸し焼き'   => Cuisine.new( Vec[15, 52, 38] ), # 料理Lv27
+		'ダークドンと煉獄酒の蒸し焼き'   => Cuisine.new( Vec[15, 52, 38] ), # 料理Lv27
+		'ウッチとカエン酒の蒸し焼き'     => Cuisine.new( Vec[ 0, 10, 11] ), # 料理Lv0
+		'ゴッチとカエン酒の蒸し焼き'     => Cuisine.new( Vec[ 0, 13, 15] ), # 料理Lv3
+		'ガガッチと爆炎酒の蒸し焼き'     => Cuisine.new( Vec[ 0, 15, 19] ), # 料理Lv6
+		'ガガッチと煉獄酒の蒸し焼き'     => Cuisine.new( Vec[ 0, 16, 22] ), # 料理Lv12
+		'ドランギョと煉獄酒の蒸し焼き'   => Cuisine.new( Vec[ 9, 18, 15] ), # 料理Lv15
+		'ドラバーンと煉獄酒の蒸し焼き'   => Cuisine.new( Vec[14, 26, 25] ), # 料理Lv24
+		'アクアドランと煉獄酒の蒸し焼き' => Cuisine.new( Vec[ 0,  0, 87] ), # 料理Lv27
 	}
 	
 	MainFood = {
