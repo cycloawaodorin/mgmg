@@ -57,6 +57,20 @@ module Mgmg
 		'ドラバーンと煉獄酒の蒸し焼き'   => Cuisine.new( Vec[14, 26, 25] ), # 料理Lv24
 		'アクアドランと煉獄酒の蒸し焼き' => Cuisine.new( Vec[ 0,  0, 87] ), # 料理Lv27
 	}
+	SystemCuisine.keys.each do |k|
+		ary = k.scan(%r|(.+)と(.+)の(.+)|)[0]
+		if ary
+			c = case ary[2]
+			when '丸焼き'
+				'焼き'
+			when '蒸し焼き'
+				'蒸し'
+			else
+				raise UnexpectedError
+			end
+			SystemCuisine.store("#{ary[0]}の#{ary[1]}#{c}", SystemCuisine[k])
+		end
+	end
 	
 	MainFood = {
 		'獣肉'         => Vec[10,  0,  0],
