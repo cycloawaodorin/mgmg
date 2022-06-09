@@ -39,7 +39,13 @@ module Mgmg
 			when Cuisine
 				cuisine(arg)
 			when String
-				Skill[arg] or raise ArgumentError, "Unknown skill `#{arg}' is given."
+				if Skill.has_key?(arg)
+					Skill[arg]
+				elsif SystemCuisine.has_key?(arg)
+					SystemCuisine[arg]
+				else
+					raise ArgumentError, "Unknown skill or preset cuisine name `#{arg}' is given."
+				end
 			else
 				raise ArgumentError, "The argument should be Mgmg::Cuisine or skill name String. (`#{arg}' is given)"
 			end
