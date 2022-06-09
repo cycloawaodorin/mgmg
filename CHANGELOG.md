@@ -115,3 +115,8 @@
 - `Mgmg.#find_lowerbound`, `Mgmg.#find_upperbound`を追加．
 - 魔法の威力に対応する`Mgmg::Equip#magic2`を追加．
 - `String#min_levels`およびその関連メソッドにおいて，重量1以外を指定できるようにした．
+
+## 1.4.2 2022/06/09
+- `Mgmg::Equip#reinforce`および`Mgmg::IR`を使うメソッド群に`reinforcement`キーワード引数を追加．
+	- スキルおよび料理による強化効果をシミュレートできるようになった．
+	- 料理については，プリセット料理名または`Mgmg.#cuisine`で生成される`Mgmg::Cuisine`オブジェクトを使う．
