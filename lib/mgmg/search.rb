@@ -265,6 +265,7 @@ module Mgmg
 		if start <= term
 			raise ArgumentError, "term < start is needed, (start, term) = (#{start}, #{term}) are given"
 		end
+		opt_a, opt_b = opt_a.dup.set_default(a), opt_b.dup.set_default(b)
 		ira, irb = a.ir(opt: opt_a), b.ir(opt: opt_b)
 		sca, scb = a.search(para, start, opt: opt_a, irep: ira), b.search(para, start, opt: opt_b, irep: irb)
 		ea, eb = Mgmg.exp(*sca), Mgmg.exp(*scb)
