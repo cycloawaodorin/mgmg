@@ -44,17 +44,21 @@ module Mgmg
 		def set_default(recipe, force: false)
 			case recipe
 			when String
-				s = @min_smith ? recipe.min_smith(opt: self) : recipe.build(opt: self).min_level
-				@smith_min = s if force or @smith_min.nil?
-				@armor_min = s if force or @armor_min.nil?
+				if force || @smith_min.nil? || @armor_min.nil?
+					s = @min_smith ? recipe.min_smith(opt: self) : recipe.build(opt: self).min_level
+					@smith_min = s if force || @smith_min.nil?
+					@armor_min = s if force || @armor_min.nil?
+				end
 			when Enumerable
-				s, a = recipe.min_smith(opt: self)
-				@smith_min = s if force or @smith_min.nil?
-				@armor_min = a if force or @armor_min.nil?
+				if force || @smith_min.nil? || @armor_min.nil?
+					s, a = recipe.min_smith(opt: self)
+					@smith_min = s if force || @smith_min.nil?
+					@armor_min = a if force || @armor_min.nil?
+				end
 			else
 				raise ArgumentError, 'recipe should be String or Enumerable'
 			end
-			@comp_min = recipe.min_comp(opt: self) if force or @comp_min.nil?
+			@comp_min = recipe.min_comp(opt: self) if force || @comp_min.nil?
 			self
 		end
 		def buff
