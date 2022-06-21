@@ -330,7 +330,7 @@ module Mgmg
 		end
 		private def build_sub0(stack, str)
 			SystemEquip.each do |k, v|
-				if Regexp.compile(k).match(str)
+				if SystemEquipRegexp[k].match(str)
 					stack << from_equip(v)
 					str = str.gsub(k, "<#{stack.length-1}>")
 				end
