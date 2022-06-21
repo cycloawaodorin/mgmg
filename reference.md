@@ -374,7 +374,7 @@ alias として`*`があるほか`scalar(1.quo(value))`として`quo`，`/`，`s
 `kw`はキーワード引数本体です．定義されているキーワードと意味，使用される主なメソッドは下表の通りです．デフォルト値は簡易的な表示であり，細かい点では不正確です．
 `recipe`にレシピ`String`または`Enumerable`を渡すと，そのレシピを使ってデフォルト値を具体化しますが，各メソッドで自動的に具体化されるため，通常は必要ありません．
 
-|キーワード|デフォルト値|意味|主なメソッド|
+|キーワード|デフォルト値|意味|主なメソッド，備考|
 |:-|:-|:-|:-|
 |left_associative|`true`|レシピ文字列を左結合で解釈する|`Mgmg::Option`を使用するすべてのメソッド|
 |smith_min|`min_smith ? recipe.min_smith : recipe.min_level`|鍛冶Lvに関する探索範囲の最小値|`String#search`など|
@@ -385,6 +385,7 @@ alias として`*`があるほか`scalar(1.quo(value))`として`quo`，`/`，`s
 |step|`1`|探索時において道具製作Lvを動かす幅|`String#search`など|
 |magdef_maximize|`true`|目標を魔防最大(真)かコスト最小(偽)にするためのスイッチ|`String#phydef_optimize`|
 |reinforcement|`[]`|[前述](#mgmgequipreinforcearg)の`Mgmg::Equip#reinforce`による強化リスト|一部を除くすべてのメソッド|
+|buff|`[]`|`reinforcement`のエイリアス|どちらか一方のみを指定する|
 |irep|`recipe.ir()`|`Mgmg::IR`の使い回しによる高速化|`String#search`など，内部的に使用|
 |cut_exp|`Float::INFINITY`|探索時の総経験値の打ち切り値|`String#search`など，内部的に使用|
 
