@@ -3,7 +3,11 @@ module Mgmg
 	class << Optimize
 		InvList = [%w|帽子 フード サンダル|.freeze, %w|宝1 骨1 木1 木2 骨2|.freeze, %w|宝1 骨1 木1|.freeze].freeze
 		def phydef_optimize(str, smith, comp=smith, opt: Option.new)
-			best = ( smith.nil? ? [str, str.poly(:phydef), str.poly(:magdef), str.poly(:cost)] : [str, str.build(smith, comp)] )
+			best = if smith.nil? then
+				[str, str.poly(:phydef, opt: opt), str.poly(:magdef, opt: opt), str.poly(:cost, opt: opt)]
+			else
+				[str, str.build(smith, comp, opt: opt)]
+			end
 			str = Mgmg.check_string(str)
 			ai = 0
 			while str.sub!(/(帽子|フード|サンダル)\([宝木骨][12][宝木骨]1\)/){
@@ -38,7 +42,7 @@ module Mgmg
 					best = if smith.nil? then
 						pd_better(best, [r, r.poly(:phydef, opt: opt), r.poly(:magdef, opt: opt), r.poly(:cost, opt: opt)], opt.magdef_maximize)
 					else
-						pd_better(best, [r, r.build(smith, comp), opt: opt], opt.magdef_maximize)
+						pd_better(best, [r, r.build(smith, comp, opt: opt)], opt.magdef_maximize)
 					end
 					b = pd_next_b(b)
 				end
