@@ -9,7 +9,8 @@ module Mgmg
 			left_associative: true,
 			smith_min: nil, armor_min:nil, comp_min: nil, smith_max: 10000, armor_max: 10000, comp_max: 10000,
 			step: 1, magdef_maximize: true,
-			min_smith: false, reinforcement: [], buff: nil
+			min_smith: false, reinforcement: [], buff: nil,
+			irep: nil
 		)
 			@left_associative = left_associative
 			@smith_min = smith_min
@@ -29,9 +30,10 @@ module Mgmg
 					raise ArgumentError, "reinforcement and buff are exclusive"
 				end
 			end
+			@irep = irep
 		end
 		attr_accessor :left_associative, :smith_min, :armor_min, :comp_min, :smith_max, :armor_max, :comp_max
-		attr_accessor :step, :magdef_maximize, :min_smith, :reinforcement
+		attr_accessor :step, :magdef_maximize, :min_smith, :reinforcement, :irep
 		def initialize_copy(other)
 			@left_associative = other.left_associative
 			@smith_min = other.smith_min
@@ -44,6 +46,7 @@ module Mgmg
 			@magdef_maximize = other.magdef_maximize
 			@min_smith = other.min_smith
 			@reinforcement = other.reinforcement.dup
+			@irep = other.irep
 		end
 		def set_default(recipe, force: false)
 			case recipe
@@ -67,6 +70,7 @@ module Mgmg
 				raise ArgumentError, 'recipe should be String or Enumerable'
 			end
 			@comp_min = recipe.min_comp(opt: self) if force || @comp_min.nil?
+			@irep = recipe.ir(opt: self) if force || @irep.nil?
 			self
 		end
 		def buff
