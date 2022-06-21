@@ -54,7 +54,7 @@ module Mgmg
 			else
 				raise ArgumentError, 'recipe should be String or Enumerable'
 			end
-			@comp_min = str.min_comp(opt: self) if force or @comp_min.nil?
+			@comp_min = recipe.min_comp(opt: self) if force or @comp_min.nil?
 			self
 		end
 		def buff
