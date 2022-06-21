@@ -1,7 +1,12 @@
 module Mgmg
+	module_function def option(recipe=nil, **kw)
+		ret = Option.new(**kw)
+		ret.set_default(recipe) unless recipe.nil?
+		ret
+	end
 	class Option
 		def initialize(
-			recipe=nil, left_associative: true,
+			left_associative: true,
 			smith_min: nil, armor_min:nil, comp_min: nil, smith_max: 10000, armor_max: 10000, comp_max: 10000,
 			step: 1, magdef_maximize: true,
 			min_smith: false, reinforcement: [], buff: nil
@@ -24,7 +29,6 @@ module Mgmg
 					raise ArgumentError, "reinforcement and buff are exclusive"
 				end
 			end
-			set_default(recipe) unless recipe.nil?
 		end
 		attr_accessor :left_associative, :smith_min, :armor_min, :comp_min, :smith_max, :armor_max, :comp_max
 		attr_accessor :step, :magdef_maximize, :min_smith, :reinforcement
