@@ -31,7 +31,7 @@ module Mgmg
 				((s+@sub9)*@coef).div(@den)
 			end
 			def evaluate3(s, a, c)
-				if sa==:a
+				if @sa==:a
 					((a+@sub9)*@coef).div(@den)
 				else
 					((s+@sub9)*@coef).div(@den)
