@@ -148,7 +148,7 @@ module Enumerable
 	def min_smith(opt: Mgmg::Option.new)
 		ret = [0, 0]
 		self.each do |str|
-			s = Mgmg::Equip.min_smith(str, left_associative: opt.left_associative)
+			s = Mgmg::Equip.min_smith(str, opt: opt)
 			m = /\A\[*([^\+]+)/.match(str)
 			if Mgmg::EquipPosition[m[1].build(0).kind] == 0
 				ret[0] = [ret[0], s].max
@@ -160,7 +160,7 @@ module Enumerable
 	end
 	def min_comp(opt: Mgmg::Option.new)
 		self.map do |str|
-			Mgmg::Equip.min_comp(str, left_associative: opt.left_associative)
+			Mgmg::Equip.min_comp(str, opt: opt)
 		end.max
 	end
 end

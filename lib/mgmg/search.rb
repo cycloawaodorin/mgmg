@@ -141,7 +141,7 @@ module Enumerable
 		minex, ret = Mgmg.exp(opt.smith_min, opt.armor_max, comp), [opt.smith_min, opt.armor_max]
 		exp = Mgmg.exp(opt.smith_max, opt.armor_min, comp)
 		if exp < minex
-			minex, ret = exp, [smith_max, armor_min]
+			minex, ret = exp, [opt.smith_max, opt.armor_min]
 			(opt.armor_min+1).upto(opt.armor_max-1) do |armor|
 				break if minex < Mgmg.exp(opt.smith_min, armor, comp)
 				smith = smith_search(para, target, armor, comp, opt: opt, cut_exp: [minex, cut_exp].min, irep: irep)
@@ -156,8 +156,8 @@ module Enumerable
 			rescue Mgmg::SearchCutException
 			end
 		else
-			(smith_min+1).upto(smith_max-1) do |smith|
-				break if minex < Mgmg.exp(smith, armor_min, comp)
+			(opt.smith_min+1).upto(opt.smith_max-1) do |smith|
+				break if minex < Mgmg.exp(smith, opt.armor_min, comp)
 				armor = armor_search(para, target, smith, comp, opt: opt, irep: irep)
 				exp = Mgmg.exp(smith, armor, comp)
 				if exp < minex
@@ -205,7 +205,7 @@ module Enumerable
 		minex, ret = Mgmg.exp(opt.smith_min, opt.armor_min, opt.comp_max), [opt.smith_min, opt.armor_min,opt. comp_max]
 		exp = Mgmg.exp(opt.smith_max, opt.armor_max, opt.comp_min)
 		minex, ret = exp, [opt.smith_max, opt.armor_max, opt.comp_min] if exp < minex
-		(comp_min+1).upto(comp_max-1) do |comp|
+		(opt.comp_min+1).upto(opt.comp_max-1) do |comp|
 			break if minex < Mgmg.exp(opt.smith_min, opt.armor_min, comp)
 			smith, armor = sa_search(para, target, comp, opt: opt, cut_exp: [minex, cut_exp].min, irep: irep)
 			exp = Mgmg.exp(smith, armor, comp)
