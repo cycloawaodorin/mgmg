@@ -212,7 +212,7 @@ module Mgmg
 		end
 		private def build_sub0(stack, str)
 			SystemEquip.each do |k, v|
-				if Regexp.compile(k).match(str)
+				if SystemEquipRegexp[k].match(str)
 					stack << v
 					str = str.gsub(k, "<#{stack.length-1}>")
 				end
@@ -323,14 +323,14 @@ module Mgmg
 			[(main_s-1)*3, (sub_s-1)*3, l].max
 		end
 		
-		def min_comp(str, left_associative: true)
+		def min_comp(str, opt: Option.new)
 			str = Mgmg.check_string(str)
 			stack, str = minc_sub0([], str)
-			(minc_sub(stack, str, left_associative)[1]-1)*3
+			(minc_sub(stack, str, opt.left_associative)[1]-1)*3
 		end
 		private def minc_sub0(stack, str)
 			SystemEquip.each do |k, v|
-				if Regexp.compile(k).match(str)
+				if SystemEquipRegexp[k].match(str)
 					stack << v.star
 					str = str.gsub(k, "<#{stack.length-1}>")
 				end
@@ -352,14 +352,14 @@ module Mgmg
 			end
 		end
 		
-		def min_smith(str, left_associative: true)
+		def min_smith(str, opt: Option.new)
 			str = Mgmg.check_string(str)
 			stack, str = mins_sub0([], str)
-			(([mins_sub(stack, str, left_associative)]+stack).max-1)*3
+			(([mins_sub(stack, str, opt.left_associative)]+stack).max-1)*3
 		end
 		private def mins_sub0(stack, str)
 			SystemEquip.each do |k, v|
-				if Regexp.compile(k).match(str)
+				if SystemEquipRegexp[k].match(str)
 					stack << 0
 					str = str.gsub(k, "<#{stack.length-1}>")
 				end
