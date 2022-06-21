@@ -19,9 +19,9 @@ module Mgmg
 			@smith_max = smith_max
 			@armor_max = armor_max
 			@comp_max = comp_max
-			@min_smith = min_smith
 			@step = step
 			@magdef_maximize = magdef_maximize
+			@min_smith = min_smith
 			@reinforcement = reinforcement
 			unless buff.nil?
 				if @reinforcement.empty?
@@ -53,7 +53,10 @@ module Mgmg
 		def set_default(recipe, force: false)
 			case recipe
 			when String
-				if force || @smith_min.nil? || @armor_min.nil?
+				if @smith_min.nil? && @armor_min
+					@smith_min = @armor_min
+				end
+				if force || @smith_min.nil?
 					s = @min_smith ? recipe.min_smith(opt: self) : recipe.build(opt: self).min_level
 					@smith_min = s if force || @smith_min.nil?
 					@armor_min = s if force || @armor_min.nil?
