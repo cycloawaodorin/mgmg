@@ -51,7 +51,11 @@ module Mgmg
 				end
 			when Enumerable
 				if force || @smith_min.nil? || @armor_min.nil?
-					s, a = recipe.min_smith(opt: self)
+					if @min_smith
+						s, a = recipe.min_smith(opt: self)
+					else
+						s, a = recipe.build(opt: self).min_level
+					end
 					@smith_min = s if force || @smith_min.nil?
 					@armor_min = a if force || @armor_min.nil?
 				end
