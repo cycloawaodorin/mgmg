@@ -384,7 +384,7 @@ alias として`*`があるほか`scalar(1.quo(value))`として`quo`，`/`，`s
 |min_smith|`false`|`smith_min`，`armor_min`のデフォルト値のスイッチ|`String#search`など|
 |step|`1`|探索時において道具製作Lvを動かす幅|`String#search`など|
 |magdef_maximize|`true`|目標を魔防最大(真)かコスト最小(偽)にするためのスイッチ|`String#phydef_optimize`|
-|reinforcemnt|`[]`|[前述](#mgmgequipreinforcearg)の`Mgmg::Equip#reinforce`による強化リスト|一部を除くすべてのメソッド|
+|reinforcement|`[]`|[前述](#mgmgequipreinforcearg)の`Mgmg::Equip#reinforce`による強化リスト|一部を除くすべてのメソッド|
 |irep|`recipe.ir()`|`Mgmg::IR`の使い回しによる高速化|`String#search`など，内部的に使用|
 |cut_exp|`Float::INFINITY`|探索時の総経験値の打ち切り値|`String#search`など，内部的に使用|
 
