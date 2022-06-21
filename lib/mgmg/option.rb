@@ -10,7 +10,7 @@ module Mgmg
 			smith_min: nil, armor_min:nil, comp_min: nil, smith_max: 10000, armor_max: 10000, comp_max: 10000,
 			step: 1, magdef_maximize: true,
 			min_smith: false, reinforcement: [], buff: nil,
-			irep: nil
+			irep: nil, cut_exp: Float::INFINITY
 		)
 			@left_associative = left_associative
 			@smith_min = smith_min
@@ -31,9 +31,10 @@ module Mgmg
 				end
 			end
 			@irep = irep
+			@cut_exp = cut_exp
 		end
 		attr_accessor :left_associative, :smith_min, :armor_min, :comp_min, :smith_max, :armor_max, :comp_max
-		attr_accessor :step, :magdef_maximize, :min_smith, :reinforcement, :irep
+		attr_accessor :step, :magdef_maximize, :min_smith, :reinforcement, :irep, :cut_exp
 		def initialize_copy(other)
 			@left_associative = other.left_associative
 			@smith_min = other.smith_min
@@ -47,6 +48,7 @@ module Mgmg
 			@min_smith = other.min_smith
 			@reinforcement = other.reinforcement.dup
 			@irep = other.irep
+			@cut_exp = other.cut_exp
 		end
 		def set_default(recipe, force: false)
 			case recipe

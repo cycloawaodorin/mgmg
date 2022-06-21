@@ -1,11 +1,11 @@
 class String
-	def smith_search(para, target, comp, opt: Mgmg::Option.new, cut_exp: Float::INFINITY)
+	def smith_search(para, target, comp, opt: Mgmg::Option.new)
 		opt = opt.dup.set_default(self)
 		if opt.smith_max < opt.smith_min
 			raise ArgumentError, "smith_min <= smith_max is needed, (smith_min, smith_max) = (#{opt.smith_min}, #{opt.smith_max}) are given"
-		elsif cut_exp < Float::INFINITY
+		elsif opt.cut_exp < Float::INFINITY
 			begin
-				opt.smith_max = [opt.smith_max, Mgmg.invexp2(cut_exp, comp)].min
+				opt.smith_max = [opt.smith_max, Mgmg.invexp2(opt.cut_exp, comp)].min
 			rescue
 				raise Mgmg::SearchCutException
 			end
@@ -45,41 +45,44 @@ class String
 		end
 		opt.comp_max
 	end
-	def search(para, target, opt: Mgmg::Option.new, cut_exp: Float::INFINITY)
+	def search(para, target, opt: Mgmg::Option.new)
 		opt = opt.dup.set_default(self)
+		opt_nocut = opt.dup; opt_nocut.cut_exp = Float::INFINITY
 		opt.comp_min = comp_search(para, target, opt.smith_max, opt: opt)
-		opt.smith_max = smith_search(para, target, opt.comp_min, opt: opt)
-		opt.smith_min = smith_search(para, target, opt.comp_max, opt: opt)
-		raise Mgmg::SearchCutException if cut_exp < Mgmg.exp(opt.smith_min, opt.comp_min)
+		opt.smith_max = smith_search(para, target, opt.comp_min, opt: opt_nocut)
+		opt.smith_min = smith_search(para, target, opt.comp_max, opt: opt_nocut)
+		raise Mgmg::SearchCutException if opt.cut_exp < Mgmg.exp(opt.smith_min, opt.comp_min)
 		opt.comp_max = comp_search(para, target, opt.smith_min, opt: opt)
-		minex, ret = Mgmg.exp(opt.smith_min, opt.comp_max), [opt.smith_min, opt.comp_max]
+		ret = nil
+		exp = Mgmg.exp(opt.smith_min, opt.comp_max)
+		opt.cut_exp, ret = exp, [opt.smith_min, opt.comp_max] if exp < opt.cut_exp
 		exp = Mgmg.exp(opt.smith_max, opt.comp_min)
-		minex, ret = exp, [opt.smith_max, opt.comp_min] if exp < minex
+		opt.cut_exp, ret = exp, [opt.smith_max, opt.comp_min] if exp < opt.cut_exp
 		(opt.comp_min+opt.step).step(opt.comp_max-1, opt.step) do |comp|
-			break if minex < Mgmg.exp(opt.smith_min, comp)
-			smith = smith_search(para, target, comp, opt: opt, cut_exp: [minex, cut_exp].min)
+			break if opt.cut_exp < Mgmg.exp(opt.smith_min, comp)
+			smith = smith_search(para, target, comp, opt: opt)
 			exp = Mgmg.exp(smith, comp)
-			if exp < minex
-				minex, ret = exp, [smith, comp]
-			elsif exp == minex
-				if opt.irep.para_call(para, *ret) < opt.irep.para_call(para, smith, comp)
+			if exp < opt.cut_exp
+				opt.cut_exp, ret = exp, [smith, comp]
+			elsif exp == opt.cut_exp
+				if ret.nil? or opt.irep.para_call(para, *ret) < opt.irep.para_call(para, smith, comp) then
 					ret = [smith, comp]
 				end
 			end
 		rescue Mgmg::SearchCutException
 		end
-		raise Mgmg::SearchCutException, "the result exceeds given cut_exp=#{cut_exp}" if cut_exp < minex
+		raise Mgmg::SearchCutException, "the result exceeds given cut_exp=#{opt.cut_exp}" if ret.nil?
 		ret
 	end
 end
 module Enumerable
-	def smith_search(para, target, armor, comp, opt: Mgmg::Option.new, cut_exp: Float::INFINITY)
+	def smith_search(para, target, armor, comp, opt: Mgmg::Option.new)
 		opt = opt.dup.set_default(self)
 		if opt.smith_max < opt.smith_min
 			raise ArgumentError, "smith_min <= smith_max is needed, (smith_min, smith_max) = (#{opt.smith_min}, #{opt.smith_max}) are given"
-		elsif cut_exp < Float::INFINITY
+		elsif opt.cut_exp < Float::INFINITY
 			begin
-				opt.smith_max = [opt.smith_max, Mgmg.invexp3(cut_exp, armor, comp)].min
+				opt.smith_max = [opt.smith_max, Mgmg.invexp3(opt.cut_exp, armor, comp)].min
 			rescue
 				raise Mgmg::SearchCutException
 			end
@@ -99,13 +102,13 @@ module Enumerable
 		end
 		opt.smith_max
 	end
-	def armor_search(para, target, smith, comp, opt: Mgmg::Option.new, cut_exp: Float::INFINITY)
+	def armor_search(para, target, smith, comp, opt: Mgmg::Option.new)
 		opt = opt.dup.set_default(self)
 		if opt.armor_max < opt.armor_min
 			raise ArgumentError, "armor_min <= armor_max is needed, (armor_min, armor_max) = (#{opt.armor_min}, #{opt.armor_max}) are given"
-		elsif cut_exp < Float::INFINITY
+		elsif opt.cut_exp < Float::INFINITY
 			begin
-				opt.armor_max = [opt.armor_max, Mgmg.invexp3(cut_exp, smith, comp)].min
+				opt.armor_max = [opt.armor_max, Mgmg.invexp3(opt.cut_exp, smith, comp)].min
 			rescue
 				raise Mgmg::SearchCutException
 			end
@@ -125,25 +128,28 @@ module Enumerable
 		end
 		opt.armor_max
 	end
-	def sa_search(para, target, comp, opt: Mgmg::Option.new, cut_exp: Float::INFINITY)
+	def sa_search(para, target, comp, opt: Mgmg::Option.new)
 		opt = opt.dup.set_default(self)
-		opt.smith_min = smith_search(para, target, opt.armor_max, comp, opt: opt)
-		opt.armor_min = armor_search(para, target, opt.smith_max, comp, opt: opt)
-		raise Mgmg::SearchCutException if cut_exp < Mgmg.exp(opt.smith_min, opt.armor_min, comp)
-		opt.smith_max = smith_search(para, target, opt.armor_min, comp, opt: opt)
-		opt.armor_max = armor_search(para, target, opt.smith_min, comp, opt: opt)
-		minex, ret = Mgmg.exp(opt.smith_min, opt.armor_max, comp), [opt.smith_min, opt.armor_max]
-		exp = Mgmg.exp(opt.smith_max, opt.armor_min, comp)
-		if exp < minex
-			minex, ret = exp, [opt.smith_max, opt.armor_min]
+		opt_nocut = opt.dup; opt_nocut.cut_exp = Float::INFINITY
+		opt.smith_min = smith_search(para, target, opt.armor_max, comp, opt: opt_nocut)
+		opt.armor_min = armor_search(para, target, opt.smith_max, comp, opt: opt_nocut)
+		raise Mgmg::SearchCutException if opt.cut_exp < Mgmg.exp(opt.smith_min, opt.armor_min, comp)
+		opt.smith_max = smith_search(para, target, opt.armor_min, comp, opt: opt_nocut)
+		opt.armor_max = armor_search(para, target, opt.smith_min, comp, opt: opt_nocut)
+		ret = nil
+		exp = Mgmg.exp(opt.smith_min, opt.armor_max, comp)
+		opt.cut_exp, ret = exp, [opt.smith_min, opt.armor_max] if exp < opt.cut_exp
+		exp2 = Mgmg.exp(opt.smith_max, opt.armor_min, comp)
+		if exp2 < exp
+			opt.cut_exp, ret = exp2, [opt.smith_max, opt.armor_min] if exp2 < opt.cut_exp
 			(opt.armor_min+1).upto(opt.armor_max-1) do |armor|
-				break if minex < Mgmg.exp(opt.smith_min, armor, comp)
-				smith = smith_search(para, target, armor, comp, opt: opt, cut_exp: [minex, cut_exp].min)
+				break if opt.cut_exp < Mgmg.exp(opt.smith_min, armor, comp)
+				smith = smith_search(para, target, armor, comp, opt: opt)
 				exp = Mgmg.exp(smith, armor, comp)
-				if exp < minex
-					minex, ret = exp, [smith, armor]
-				elsif exp == minex
-					if opt.irep.para_call(para, *ret, comp) < opt.irep.para_call(para, smith, armor, comp)
+				if exp < opt.cut_exp
+					opt.cut_exp, ret = exp, [smith, armor]
+				elsif exp == opt.cut_exp
+					if ret.nil? or opt.irep.para_call(para, *ret, comp) < opt.irep.para_call(para, smith, armor, comp) then
 						ret = [smith, armor]
 					end
 				end
@@ -151,20 +157,20 @@ module Enumerable
 			end
 		else
 			(opt.smith_min+1).upto(opt.smith_max-1) do |smith|
-				break if minex < Mgmg.exp(smith, opt.armor_min, comp)
+				break if opt.cut_exp < Mgmg.exp(smith, opt.armor_min, comp)
 				armor = armor_search(para, target, smith, comp, opt: opt)
 				exp = Mgmg.exp(smith, armor, comp)
-				if exp < minex
-					minex, ret = exp, [smith, armor]
-				elsif exp == minex
-					if opt.irep.para_call(para, *ret, comp) < opt.irep.para_call(para, smith, armor, comp)
+				if exp < opt.cut_exp
+					opt.cut_exp, ret = exp, [smith, armor]
+				elsif exp == opt.cut_exp
+					if ret.nil? or opt.irep.para_call(para, *ret, comp) < opt.irep.para_call(para, smith, armor, comp) then
 						ret = [smith, armor]
 					end
 				end
 			rescue Mgmg::SearchCutException
 			end
 		end
-		raise Mgmg::SearchCutException if cut_exp < minex
+		raise Mgmg::SearchCutException if ret.nil?
 		ret
 	end
 	def comp_search(para, target, smith, armor, opt: Mgmg::Option.new)
@@ -187,30 +193,32 @@ module Enumerable
 		end
 		opt.comp_max
 	end
-	def search(para, target, opt: Mgmg::Option.new, cut_exp: Float::INFINITY)
+	def search(para, target, opt: Mgmg::Option.new)
 		opt = opt.dup.set_default(self)
 		opt.comp_min = comp_search(para, target, opt.smith_max, opt.armor_max, opt: opt)
 		opt.smith_max, opt.armor_max = sa_search(para, target, opt.comp_min, opt: opt)
 		opt.smith_min, opt.armor_min = sa_search(para, target, opt.comp_max, opt: opt)
-		raise Mgmg::SearchCutException if cut_exp < Mgmg.exp(opt.smith_min, opt.armor_min, opt.comp_min)
+		raise Mgmg::SearchCutException if opt.cut_exp < Mgmg.exp(opt.smith_min, opt.armor_min, opt.comp_min)
 		opt.comp_max = comp_search(para, target, opt.smith_min, opt.armor_min, opt: opt)
-		minex, ret = Mgmg.exp(opt.smith_min, opt.armor_min, opt.comp_max), [opt.smith_min, opt.armor_min,opt. comp_max]
+		ret = nil
+		exp = Mgmg.exp(opt.smith_min, opt.armor_min, opt.comp_max)
+		opt.cut_exp, ret = exp, [opt.smith_min, opt.armor_min,opt. comp_max] if exp < opt.cut_exp
 		exp = Mgmg.exp(opt.smith_max, opt.armor_max, opt.comp_min)
-		minex, ret = exp, [opt.smith_max, opt.armor_max, opt.comp_min] if exp < minex
+		opt.cut_exp, ret = exp, [opt.smith_max, opt.armor_max, opt.comp_min] if exp < opt.cut_exp
 		(opt.comp_min+1).upto(opt.comp_max-1) do |comp|
-			break if minex < Mgmg.exp(opt.smith_min, opt.armor_min, comp)
-			smith, armor = sa_search(para, target, comp, opt: opt, cut_exp: [minex, cut_exp].min)
+			break if opt.cut_exp < Mgmg.exp(opt.smith_min, opt.armor_min, comp)
+			smith, armor = sa_search(para, target, comp, opt: opt)
 			exp = Mgmg.exp(smith, armor, comp)
-			if exp < minex
-				minex, ret = exp, [smith, armor, comp]
-			elsif exp == minex
-				if opt.irep.para_call(para, *ret) < opt.irep.para_call(para, smith, armor, comp)
+			if exp < opt.cut_exp
+				opt.cut_exp, ret = exp, [smith, armor, comp]
+			elsif exp == opt.cut_exp
+				if ret.nil? or opt.irep.para_call(para, *ret) < opt.irep.para_call(para, smith, armor, comp) then
 					ret = [smith, armor, comp]
 				end
 			end
 		rescue Mgmg::SearchCutException
 		end
-		raise Mgmg::SearchCutException, "the result exceeds given cut_exp=#{cut_exp}" if cut_exp < minex
+		raise Mgmg::SearchCutException, "the result exceeds given cut_exp=#{opt.cut_exp}" if ret.nil?
 		ret
 	end
 end
