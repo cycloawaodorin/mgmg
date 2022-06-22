@@ -15,14 +15,14 @@ class String
 	def min_weight(opt: Mgmg::Option.new)
 		build(build(-1, -1, opt: opt).min_levels_max, -1, opt: opt).weight
 	end
-	def max_weight(include_outsourcing=true, opt: Mgmg::Option.new)
+	def max_weight(include_outsourcing=false, opt: Mgmg::Option.new)
 		if include_outsourcing
 			build(-1, -1, opt: opt).weight
 		else
 			build(min_smith(opt: opt), -1, opt: opt).weight
 		end
 	end
-	def min_level(w=0, include_outsourcing=true, opt: Mgmg::Option.new)
+	def min_level(w=0, include_outsourcing=false, opt: Mgmg::Option.new)
 		built = build(-1, -1, opt: opt)
 		w = build(built.min_levels_max, -1, opt: opt).weight - w if w <= 0
 		return -1 if include_outsourcing && built.weight <= w
