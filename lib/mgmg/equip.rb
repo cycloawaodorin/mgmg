@@ -349,7 +349,8 @@ module Mgmg
 		def min_smith(str, opt: Option.new)
 			str = Mgmg.check_string(str)
 			stack, str = mins_sub0([], str)
-			(([mins_sub(stack, str, opt.left_associative)]+stack).max-1)*3
+			ret = (([mins_sub(stack, str, opt.left_associative)]+stack).max-1)*3
+			ret < 0 ? -1 : ret
 		end
 		private def mins_sub0(stack, str)
 			SystemEquip.each do |k, v|
@@ -367,7 +368,7 @@ module Mgmg
 			elsif m = ( lassoc ? /\A(.+)\+(.+?)\Z/ : /\A(.+?)\+(.+)\Z/ ).match(str)
 				[mins_sub(stack, m[1], lassoc), mins_sub(stack, m[2], lassoc)].max
 			elsif m = /\A\<(\d+)\>\Z/.match(str)
-				1
+				0
 			else
 				mins_sub2(str)
 			end
