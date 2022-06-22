@@ -131,3 +131,6 @@
 	- 関連して，`String#max_weight`，`String#min_weight`，`Enumerable#max_weight`，`Enumerable#min_weight`，`Enumerable#max_weights`，`Enumerable#min_weights`を追加した．
 	- `Mgmg::Option#smith_min`，`Mgmg::Option#armor_min`のデフォルト値を，`String#min_level`，`Enumerable#min_level`を用いて設定する仕様とし，その目標重量を`Mgmg::Option#target_weight`で指定するようにした．
 - `String#min_comp`，`String#min_smith`，`Enumerable#min_comp`，`Enumerable#min_smith`において，既製品のみである，合成を行わないなど，該当スキルが必要ないレシピである場合の返り値を`-1`に変更した．
+
+## 1.5.1
+- 計算を繰り返した際，複数装備の装備数が増加していってしまうバグを修正した．
