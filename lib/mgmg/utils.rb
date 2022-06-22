@@ -71,6 +71,13 @@ module Mgmg
 		end
 		attr_accessor :equip
 	end
+	class InvalidReinforcementNameError < StandardError
+		def initialize(str)
+			@name = str
+			super("Unknown skill or preset cuisine name `#{@name}' is given.")
+		end
+		attr_accessor :name
+	end
 	class SearchCutException < StandardError; end
 	class UnexpectedError < StandardError
 		def initialize()
