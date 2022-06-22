@@ -136,7 +136,7 @@ module Enumerable
 		end.reinforce(*rein)
 	end
 	def ir(opt: Mgmg::Option.new)
-		self.sum do |str|
+		self.sum(Mgmg::IR::Zero) do |str|
 			str.ir(opt: opt)
 		end.add_reinforcement(opt.reinforcement)
 	end

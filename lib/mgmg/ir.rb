@@ -313,14 +313,7 @@ module Mgmg
 		def +(other)
 			self.dup.add!(other)
 		end
-		def coerce(other)
-			if other == 0
-				zero = self.class.new(28, Vec.new(6, 0), 12, 12, Array.new(9){Const.new(0)})
-				[zero, self]
-			else
-				raise TypeError, "Mgmg::IR can't be coerced into other than 0"
-			end
-		end
+		Zero = self.new(28, Vec.new(6, 0), 12, 12, Array.new(9){Const.new(0)})
 	end
 	class << IR
 		def build(str, left_associative: true, reinforcement: [])
