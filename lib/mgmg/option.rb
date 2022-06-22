@@ -9,7 +9,7 @@ module Mgmg
 			left_associative: true,
 			smith_min: nil, armor_min:nil, comp_min: nil, smith_max: 10000, armor_max: 10000, comp_max: 10000,
 			step: 1, magdef_maximize: true,
-			target_weight: 0, ingredient_weight: 1, reinforcement: [], buff: nil,
+			target_weight: 0, reinforcement: [], buff: nil,
 			irep: nil, cut_exp: Float::INFINITY
 		)
 			@left_associative = left_associative
@@ -22,7 +22,6 @@ module Mgmg
 			@step = step
 			@magdef_maximize = magdef_maximize
 			@target_weight = target_weight
-			@ingredient_weight = ingredient_weight
 			@reinforcement = reinforcement
 			unless buff.nil?
 				if @reinforcement.empty?
@@ -35,7 +34,7 @@ module Mgmg
 			@cut_exp = cut_exp
 		end
 		attr_accessor :left_associative, :smith_min, :armor_min, :comp_min, :smith_max, :armor_max, :comp_max
-		attr_accessor :step, :magdef_maximize, :target_weight, :ingredient_weight, :reinforcement, :irep, :cut_exp
+		attr_accessor :step, :magdef_maximize, :target_weight, :reinforcement, :irep, :cut_exp
 		def initialize_copy(other)
 			@left_associative = other.left_associative
 			@smith_min = other.smith_min
@@ -47,7 +46,6 @@ module Mgmg
 			@step = other.step
 			@magdef_maximize = other.magdef_maximize
 			@target_weight = other.target_weight
-			@ingredient_weight = other.ingredient_weight
 			@reinforcement = other.reinforcement.dup
 			@irep = other.irep
 			@cut_exp = other.cut_exp
@@ -65,14 +63,8 @@ module Mgmg
 				end
 			when Enumerable
 				if force || @smith_min.nil? || @armor_min.nil?
-					if @target_weight != 0 && @ingredient_weight == 0
-						raise ArgumentError, 'Use ingredient_weight instead of target_weight for Enumerable.'
-					end
-					if 0 < @ingredient_weight
-						s, a = recipe.min_levels_max(@target_weight, opt: self)
-					else
-						s, a = recipe.min_smith(opt: self)
-					end
+					@target_weight = [@target_weight, @target_weight] unless @target_weight.kind_of? Enumerable
+					s, a = recipe.min_level(*@target_weight, opt: self)
 					@smith_min = s if force || @smith_min.nil?
 					@armor_min = a if force || @armor_min.nil?
 				end
