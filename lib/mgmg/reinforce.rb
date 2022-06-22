@@ -14,7 +14,7 @@ module Mgmg
 		alias :inspect :to_s
 	end
 	
-	#                                               攻  物  防  HP  MP  腕  器  速  魔
+	#    スキル名                                   攻  物  防  HP  MP  腕  器  速  魔
 	Skill = {
 		'物防御UP'       => Reinforcement.new( Vec[  0, 10,  0,  0,  0,  0,  0,  0,  0] ),
 		'魔防御UP'       => Reinforcement.new( Vec[  0,  0, 10,  0,  0,  0,  0,  0,  0] ),
@@ -42,9 +42,9 @@ module Mgmg
 				if Skill.has_key?(arg)
 					Skill[arg]
 				elsif SystemCuisine.has_key?(arg)
-					SystemCuisine[arg]
+					cuisine(SystemCuisine[arg])
 				else
-					raise ArgumentError, "Unknown skill or preset cuisine name `#{arg}' is given."
+					raise InvalidReinforcementNameError, arg
 				end
 			else
 				raise ArgumentError, "The argument should be Mgmg::Cuisine or skill name String. (`#{arg}' is given)"

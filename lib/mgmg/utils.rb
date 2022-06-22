@@ -71,6 +71,13 @@ module Mgmg
 		end
 		attr_accessor :equip
 	end
+	class InvalidReinforcementNameError < StandardError
+		def initialize(str)
+			@name = str
+			super("Unknown skill or preset cuisine name `#{@name}' is given.")
+		end
+		attr_accessor :name
+	end
 	class SearchCutException < StandardError; end
 	class UnexpectedError < StandardError
 		def initialize()
@@ -116,7 +123,7 @@ module Mgmg
 		Math.sqrt(exp - ((sa-1)**2) - (2*((comp-1)**2)) - 4).round + 1
 	end
 	
-	CharacterList = /[^\(\)\+0123456789\[\]あきくしすたてなねのびりるイウガクグサジスタダチツデトドニノフブペボムラリルロンヴー一万二光兜典刀剣劣匠双古名吹咆品哮地大天太子安宝小帽弓弩当息悪戦手指斧書服木本杖業樹歴殺水氷法火炎牙物玉王産用界異的皮盾短石砕竜紫綿耳聖脛腕腿般良色衣袋覇質軍軽輝輪重量金鉄鎧闇陽靴額飾首骨鬼龍]/
+	CharacterList = /[^\(\)\+0123456789\[\]あきくしすたてなねのびりるイウガクグサジスタダチツデトドニノフブペボムラリルロンヴー一万二光兜典刀剣劣匠双古名吹咆品哮地大天太子安宝小帽弓弩当息悪戦手指斧書服木本杖業樹歴殺水氷法火炎牙物玉王産用界異的皮盾短石砕竜紫綿耳聖脛腕腿般良色衣袋覇質軍軽輝輪重量金鉄鎧闇陽靴額飾首骨鬼龍]/.freeze
 	module_function def check_string(str)
 		str = str.gsub(/[\s　\\]/, '')
 		if m = CharacterList.match(str)
@@ -159,7 +166,7 @@ module Mgmg
 		end
 		str
 	end
-		
+	
 	module_function def parse_material(str)
 		m = /\A.+?(\d+)\Z/.match(str)
 		mat = MaterialIndex[str.to_sym]

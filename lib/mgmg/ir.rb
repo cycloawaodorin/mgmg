@@ -31,7 +31,7 @@ module Mgmg
 				((s+@sub9)*@coef).div(@den)
 			end
 			def evaluate3(s, a, c)
-				if sa==:a
+				if @sa==:a
 					((a+@sub9)*@coef).div(@den)
 				else
 					((s+@sub9)*@coef).div(@den)
@@ -313,14 +313,7 @@ module Mgmg
 		def +(other)
 			self.dup.add!(other)
 		end
-		def coerce(other)
-			if other == 0
-				zero = self.class.new(28, Vec.new(6, 0), 12, 12, Array.new(9){Const.new(0)})
-				[zero, self]
-			else
-				raise TypeError, "Mgmg::IR can't be coerced into other than 0"
-			end
-		end
+		Zero = self.new(28, Vec.new(6, 0), 12, 12, Array.new(9){Const.new(0)})
 	end
 	class << IR
 		def build(str, left_associative: true, reinforcement: [])
@@ -330,7 +323,7 @@ module Mgmg
 		end
 		private def build_sub0(stack, str)
 			SystemEquip.each do |k, v|
-				if Regexp.compile(k).match(str)
+				if SystemEquipRegexp[k].match(str)
 					stack << from_equip(v)
 					str = str.gsub(k, "<#{stack.length-1}>")
 				end

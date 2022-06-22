@@ -120,3 +120,14 @@
 - `Mgmg::Equip#reinforce`および`Mgmg::IR`を使うメソッド群に`reinforcement`キーワード引数を追加．
 	- スキルおよび料理による強化効果をシミュレートできるようになった．
 	- 料理については，プリセット料理名または`Mgmg.#cuisine`で生成される`Mgmg::Cuisine`オブジェクトを使う．
+
+## 1.5.0 2022/06/22
+- `Mgmg::Option`を実装し，search系メソッドを中心としたキーワード引数を，このクラスに集約してから受け渡すようにした．
+	- オプションオブジェクトは`Mgmg.#option`によって生成し，キーワード引数`opt`に渡す．従来のキーワード引数は廃止された．
+	- この変更で，一部の受け渡し忘れのバグが修正され，パフォーマンスが改善した．
+- `Enumerable#search`で無駄な処理が発生していて，処理時間がかかっていたバグを修正．
+- `String#min_level`，`Enumerable#min_level`の仕様を変更し，合成後の重量を目標値にするのに必要な鍛冶・道具製作Lvを計算するようにした．
+	- この変更に伴い，`Mgmg::Equip#min_level`を，`Mgmg::Equip#min_levels_max`に名称変更し，`String#min_levels_max`，`Enumerable#min_levels_max`を追加した．
+	- 関連して，`String#max_weight`，`String#min_weight`，`Enumerable#max_weight`，`Enumerable#min_weight`，`Enumerable#max_weights`，`Enumerable#min_weights`を追加した．
+	- `Mgmg::Option#smith_min`，`Mgmg::Option#armor_min`のデフォルト値を，`String#min_level`，`Enumerable#min_level`を用いて設定する仕様とし，その目標重量を`Mgmg::Option#target_weight`で指定するようにした．
+- `String#min_comp`，`String#min_smith`，`Enumerable#min_comp`，`Enumerable#min_smith`において，既製品のみである，合成を行わないなど，該当スキルが必要ないレシピである場合の返り値を`-1`に変更した．
