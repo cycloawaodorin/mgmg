@@ -63,9 +63,9 @@ module Mgmg
 		end
 		def min_levels_max(w=1)
 			if @kind == 28
-				ret = [0, 0]
+				ret = [-1, -1]
 				min_levels(w).each do |str, ml|
-					if str.build(-1).kind < 8
+					if str.build.kind < 8
 						if ret[0] < ml
 							ret[0] = ml
 						end
@@ -77,7 +77,7 @@ module Mgmg
 				end
 				ret
 			else
-				min_levels(w).values.append(0).max
+				min_levels(w).values.append(-1).max
 			end
 		end
 		
@@ -193,15 +193,9 @@ module Mgmg
 		def +(other)
 			self.dup.add!(other)
 		end
-		def coerce(other)
-			if other == 0
-				zero = self.class.new(28, 0, Vec.new(6, 0), 12, 12, Vec.new(9, 0), Vec.new(3, 0))
-				zero.history.clear
-				[zero, self]
-			else
-				raise TypeError, "Mgmg::Equip can't be coerced into other than 0"
-			end
-		end
+		Zero = self.new(28, 0, Vec.new(6, 0), 12, 12, Vec.new(9, 0), Vec.new(3, 0))
+		Zero.history.clear
+		Zero.freeze
 	end
 	
 	class << Equip

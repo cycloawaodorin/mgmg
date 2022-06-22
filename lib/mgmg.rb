@@ -13,37 +13,37 @@ require_relative './mgmg/optimize'
 
 class String
 	def min_weight(opt: Mgmg::Option.new)
-		build(build(-1, -1, opt: opt).min_levels_max, -1, opt: opt).weight
+		build(build(opt: opt).min_levels_max, opt: opt).weight
 	end
 	def max_weight(include_outsourcing=false, opt: Mgmg::Option.new)
 		if include_outsourcing
-			build(-1, -1, opt: opt).weight
+			build(-1, opt: opt).weight
 		else
-			build(min_smith(opt: opt), -1, opt: opt).weight
+			build(min_smith(opt: opt), opt: opt).weight
 		end
 	end
 	def min_level(w=0, include_outsourcing=false, opt: Mgmg::Option.new)
-		built = build(-1, -1, opt: opt)
+		built = build(-1, opt: opt)
 		w = build(built.min_levels_max, -1, opt: opt).weight - w if w <= 0
 		return -1 if include_outsourcing && built.weight <= w
 		ms = min_smith(opt: opt)
-		return ms if build(ms, -1, opt: opt).weight <= w
+		return ms if build(ms, opt: opt).weight <= w
 		ary = [ms]
-		wmax = build.min_levels.keys.map do |k|
-			k.build(-1, -1, opt: opt).weight
-		end.max
-		(wmax-1).downto(1) do |wi|
+		4.downto(1) do |wi| # 単品の最大重量は[斧|重鎧](金10石10)の5
 			built.min_levels(wi).values.each do |v|
 				(ary.include?(v) or ary << v) if ms < v
 			end
 		end
 		ary.sort.each do |l|
-			return l if build(l, -1, opt: opt).weight <= w
+			return l if build(l, opt: opt).weight <= w
 		end
-		raise ArgumentError, "w=`#{w}' is given, but the minimum weight for the recipe is `#{min_weight(opt: opt)}'"
+		raise ArgumentError, "w=`#{w}' is given, but the minimum weight for the recipe is `#{min_weight(opt: opt)}'."
 	end
 	def min_levels(w=1, opt: Mgmg::Option.new)
-		build(-1, -1, opt: opt).min_levels(w)
+		build(opt: opt).min_levels(w)
+	end
+	def min_levels_max(w=1, opt: Mgmg::Option.new)
+		min_levels(w, opt: opt).values.append(-1).max
 	end
 	def min_smith(opt: Mgmg::Option.new)
 		Mgmg::Equip.min_smith(self, opt: opt)
@@ -127,9 +127,8 @@ module Enumerable
 		opt = opt.dup
 		rein = opt.reinforcement
 		opt.reinforcement = []
-		self.sum do |str|
-			m = /\A\[*([^\+]+)/.match(str)
-			if Mgmg::EquipPosition[m[1].build(0).kind] == 0
+		self.sum(Mgmg::Equip::Zero) do |str|
+			if Mgmg::EquipPosition[str.build(opt: opt).kind] == 0
 				str.build(smith, comp, opt: opt)
 			else
 				str.build(armor, comp, opt: opt)
@@ -157,14 +156,75 @@ module Enumerable
 		puts "with levels (#{smith}, #{armor}, #{comp})#{rein} yields (#{pstr}, #{built.total_cost})"
 		puts "  #{built}"
 	end
+	def min_weight(opt: Mgmg::Option.new)
+		build(*build(opt: opt).min_levels_max, -1, opt: opt).weight
+	end
+	def max_weight(include_outsourcing=false, opt: Mgmg::Option.new)
+		if include_outsourcing
+			build(-1, opt: opt).weight
+		else
+			build(*min_smith(opt: opt), -1, opt: opt).weight
+		end
+	end
+	def min_weights(opt: Mgmg::Option.new)
+		weapons, armors = [], []
+		each do |str|
+			if Mgmg::EquipPosition[str.build(opt: opt).kind] == 0
+				weapons << str
+			else
+				armors << str
+			end
+		end
+		[weapons.min_weight(opt: opt), armors.min_weight(opt: opt)]
+	end
+	def max_weights(include_outsourcing=false, opt: Mgmg::Option.new)
+		weapons, armors = [], []
+		each do |str|
+			if Mgmg::EquipPosition[str.build(opt: opt).kind] == 0
+				weapons << str
+			else
+				armors << str
+			end
+		end
+		[weapons.max_weight(include_outsourcing, opt: opt), armors.max_weight(include_outsourcing, opt: opt)]
+	end
+	def min_level(ws=0, wa=ws, include_outsourcing=false, opt: Mgmg::Option.new)
+		weapons, armors = [], []
+		each do |str|
+			if Mgmg::EquipPosition[str.build(opt: opt).kind] == 0
+				weapons << str
+			else
+				armors << str
+			end
+		end
+		ms, ma = min_smith(opt: opt)
+		rs = min_level_sub(ws, ms, 0, weapons, include_outsourcing, opt: opt)
+		ra = min_level_sub(wa, ma, 1, armors, include_outsourcing, opt: opt)
+		[rs, ra]
+	end
+	private def min_level_sub(w, ms, i, recipe, include_outsourcing, opt: Mgmg::Option.new)
+		built = recipe.build(opt: opt)
+		w = recipe.build(built.min_levels_max[i], opt: opt).weight - w if w <= 0
+		return -1 if include_outsourcing && built.weight <= w
+		return ms if build(ms, opt: opt).weight <= w
+		ary = [ms]
+		4.downto(1) do |wi|
+			built.min_levels(wi).values.each do |v|
+				(ary.include?(v) or ary << v) if ms << v
+			end
+		end
+		ary.sort.each do |l|
+			return l if recipe.build(l, opt: opt).weight <= w
+		end
+		raise ArgumentError, "w#{%w|s a|[i]}=`#{w}' is given, but the minimum weight for the #{%w|weapon(s) armor(s)|[i]} is `#{recipe.min_weight(opt: opt)}'."
+	end
 	def min_levels(w=1, opt: Mgmg::Option.new)
-		build(-1, -1, -1, opt: opt).min_levels(w)
+		build(opt: opt).min_levels(w)
 	end
 	def min_levels_max(w=1, opt: Mgmg::Option.new)
-		ret = [0, 0]
-		build(-1, -1, -1, opt: opt).min_levels(w).each do |str, level|
-			m = /\A\[*([^\+]+)/.match(str)
-			if Mgmg::EquipPosition[m[1].build(0).kind] == 0
+		ret = [-1, -1]
+		min_levels(w, opt: opt).each do |str, level|
+			if Mgmg::EquipPosition[str.build(opt: opt).kind] == 0
 				ret[0] = [ret[0], level].max
 			else
 				ret[1] = [ret[1], level].max
@@ -173,11 +233,10 @@ module Enumerable
 		ret
 	end
 	def min_smith(opt: Mgmg::Option.new)
-		ret = [0, 0]
+		ret = [-1, -1]
 		self.each do |str|
 			s = Mgmg::Equip.min_smith(str, opt: opt)
-			m = /\A\[*([^\+]+)/.match(str)
-			if Mgmg::EquipPosition[m[1].build(0).kind] == 0
+			if Mgmg::EquipPosition[str.build(opt: opt).kind] == 0
 				ret[0] = [ret[0], s].max
 			else
 				ret[1] = [ret[1], s].max
@@ -188,6 +247,6 @@ module Enumerable
 	def min_comp(opt: Mgmg::Option.new)
 		self.map do |str|
 			Mgmg::Equip.min_comp(str, opt: opt)
-		end.max
+		end.append(-1).max
 	end
 end
