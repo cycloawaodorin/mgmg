@@ -57,15 +57,15 @@ module Mgmg
 				@min_levels
 			else
 				@min_levels.map do |key, value|
-					[key, key.min_level(w)]
+					[key, Equip.min_level(key, w)]
 				end.to_h
 			end
 		end
-		def min_level(w=1)
+		def min_levels_max(w=1)
 			if @kind == 28
-				ret = [0, 0]
+				ret = [-1, -1]
 				min_levels(w).each do |str, ml|
-					if str.build(-1).kind < 8
+					if str.build.kind < 8
 						if ret[0] < ml
 							ret[0] = ml
 						end
@@ -77,7 +77,7 @@ module Mgmg
 				end
 				ret
 			else
-				min_levels(w).values.append(0).max
+				min_levels(w).values.append(-1).max
 			end
 		end
 		
@@ -193,15 +193,9 @@ module Mgmg
 		def +(other)
 			self.dup.add!(other)
 		end
-		def coerce(other)
-			if other == 0
-				zero = self.class.new(28, 0, Vec.new(6, 0), 12, 12, Vec.new(9, 0), Vec.new(3, 0))
-				zero.history.clear
-				[zero, self]
-			else
-				raise TypeError, "Mgmg::Equip can't be coerced into other than 0"
-			end
-		end
+		Zero = self.new(28, 0, Vec.new(6, 0), 12, 12, Vec.new(9, 0), Vec.new(3, 0))
+		Zero.history.clear
+		Zero.freeze
 	end
 	
 	class << Equip
@@ -305,7 +299,7 @@ module Mgmg
 			
 			ret = new(kind, ( weight<1 ? 1 : weight ), (main_s+sub_s).div(2), main_mc, sub_mc, para, ele)
 			ret.total_cost[kind < 8 ? 0 : 2] += ret.smith_cost(outsourcing)
-			ret.min_levels.store(str, str.min_level)
+			ret.min_levels.store(str, Equip.min_level(str))
 			ret
 		end
 		
@@ -355,7 +349,8 @@ module Mgmg
 		def min_smith(str, opt: Option.new)
 			str = Mgmg.check_string(str)
 			stack, str = mins_sub0([], str)
-			(([mins_sub(stack, str, opt.left_associative)]+stack).max-1)*3
+			ret = (([mins_sub(stack, str, opt.left_associative)]+stack).max-1)*3
+			ret < 0 ? -1 : ret
 		end
 		private def mins_sub0(stack, str)
 			SystemEquip.each do |k, v|
@@ -373,7 +368,7 @@ module Mgmg
 			elsif m = ( lassoc ? /\A(.+)\+(.+?)\Z/ : /\A(.+?)\+(.+)\Z/ ).match(str)
 				[mins_sub(stack, m[1], lassoc), mins_sub(stack, m[2], lassoc)].max
 			elsif m = /\A\<(\d+)\>\Z/.match(str)
-				1
+				0
 			else
 				mins_sub2(str)
 			end

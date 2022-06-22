@@ -14,31 +14,67 @@
 
 `self`が解釈不能な場合，例外が発生します．また，製作Lvや完成品の☆制限のチェックを行っていないほか，本ライブラリでは`武器+防具`や`防具+武器`の合成も可能になっています．街の鍛冶・防具製作・道具製作屋に任せた場合をシミュレートする場合は製作Lvを負の値(`-1`など，負であれば何でもよい)にします(製作Lv0相当の性能を計算し，消費エレメント量は委託仕様となります)．
 
+`opt`は，`left_associative`のみ使用します．
+
 ## `Enumerable#build(smith=-1, armor=smith, comp=armor.tap{armor=smith}, opt: Mgmg.option())`
 複数のレシピ文字列からなる`self`の各要素を製作し，そのすべてを装備したときの`Mgmg::Equip`を返します．製作では`鍛冶Lv=smith`, `防具製作Lv=armor`, `道具製作Lv=comp`とします．1つしか指定しなければすべてそのLv，2つなら1つ目を`smith=armor`，2つ目を`comp`に，3つならそれぞれの値とします．製作Lvが負の場合，製作Lv0として計算した上で，消費エレメント量は街の製作屋に頼んだ場合の値を計算します．武器複数など，同時装備が不可能な場合でも，特にチェックはされません．
 
-## `String#min_level(weight=1)`
-`self`を`weight`以下で作るための最低製作Lvを返します．`build`と異なり，合成や既成品は解釈できません．また，素材の☆による最低製作Lvとのmaxを返すため，街の鍛冶・防具製作屋に頼んだ場合の重量は`self.build.weight`で確認する必要があります．`weight`を省略した場合，重量1となる製作Lvを返します．
+`opt`は，`left_associative`のみ使用します．
+
+## `String#min_weight(opt: Mgmg.option())`
+製作可能な最小重量を返します．基本的には合成回数+1ですが，既製品を含む場合はその限りではありません．
+
+製作を行うため，`opt`が指定可能ですが，特に結果には影響しません．
+
+## `String#max_weight(include_outsourcing=false, opt: Mgmg.option())`
+製作可能な最大重量を返します．`include_outsourcing`が真の場合，委託製作時の重量を返します．
+委託製作では，製作Lv0相当となるため，素材の☆による最低製作Lvで作るよりも重くなる場合があります．
+
+製作を行うため，`opt`が指定可能ですが，特に結果には影響しません．
+
+## `String#min_level(w=0, include_outsourcing=false, opt: Mgmg.option())`
+`self`を重量`w`以下で作るための最低製作Lvを返します．
+`w`が`0`以下の場合，`self.min_weight-w`を指定した場合と同じになります．
+
+`include_outsourcing`が真の場合，委託製作で目標重量が達成可能な場合，`-1`を返します．
+偽の場合，返り値の最小値(`w`が`self.max_weight`以上の場合)は素材の☆による最低製作Lvになります．
+
+`w`が最小重量より小さい場合，`ArgumentError`となります．製作を行うため，`opt`が指定可能ですが，特に結果には影響しません．
 
 ## `String#min_levels(weight=1, opt: Mgmg.option())`
 合成レシピの各鍛冶・防具製作品に対して，レシピ文字列をキー，重量1で作製するために必要な製作Lvを値とした`Hash`を返します．重量はすべての装備について同じ値しか指定できません．
-最大値は，`self.build.min_level`によって得られます．
+
+製作を行うため，`opt`が指定可能ですが，特に結果には影響しません．
+
+## `Enumerable#max_weight(include_outsourcing=false, opt: Mgmg.option())`，`Enumerable#min_weight(opt: Mgmg.option())`
+製作可能な最大・最小重量を返します．`opt`を含め，`String#max_weight`，`String#min_weight`と同様です．
+
+## `Enumerable#max_weights(include_outsourcing=false, opt: Mgmg.option())`，`Enumerable#min_weights(opt: Mgmg.option())`
+`self`を武器の集合と防具の集合に分け，`[武器の最大・最小重量, 防具の最大・最小重量]`を返します．その他は`String#max_weight`，`String#min_weight`と同様です．
 
 ## `Enumerable#min_levels(weight=1, opt: Mgmg.option())`
 すべての要素`str`に対する`str.min_levels`をマージした`Hash`を返します．
 
-## `Enumerable#min_level(weight=1, opt: Mgmg.option())`
-`self.min_levels`から武器，防具それぞれに対する最大値を求め，`[必要最小鍛冶Lv, 必要最小防具製作Lv]`を返します．武器，防具の一方のみが含まれる場合，もう一方は`0`になります．
+製作を行うため，`opt`が指定可能ですが，特に結果には影響しません．
+
+## `Enumerable#min_levels_max(weight=1, opt: Mgmg.option())`
+`self.min_levels`から武器，防具それぞれに対する最大値を求め，`[必要最小鍛冶Lv, 必要最小防具製作Lv]`を返します．武器，防具の一方のみが含まれる場合，もう一方は`-1`になります．
+
+製作を行うため，`opt`が指定可能ですが，特に結果には影響しません．
 
 ## `String#min_comp(opt: Mgmg.option())`，`Enumerable#min_comp(opt: Mgmg.option())`
-レシピ通りに合成するのに必要な道具製作Lvを返します．ただし，全体が「[]」で囲われているか，非合成レシピの場合，代わりに`0`を返します．
+レシピ通りに合成するのに必要な道具製作Lvを返します．ただし，全体が「[]」で囲われているか，非合成レシピの場合，代わりに`-1`を返します．
 
 `Enumerable`の場合，すべての要素に対する最大値を返します．
 
-## `String#min_smith(opt: Mgmg.option())`，`Enumerable#min_smith(opt: Mgmg.option())`
-レシピ通りに製作するのに必要な鍛冶・防具製作Lvを返します．製作物の重量については考慮せず，鍛冶・防具製作に必要な☆条件を満たすために必要な製作Lvを返します．
+`opt`は，`left_associative`のみ使用します．
 
-`Enumerable`の場合，すべての要素に対し，武器，防具それぞれの最大値を求め，`[必要最小鍛冶Lv, 必要最小防具製作Lv]`を返します．
+## `String#min_smith(opt: Mgmg.option())`，`Enumerable#min_smith(opt: Mgmg.option())`
+レシピ通りに製作するのに必要な鍛冶・防具製作Lvを返します．製作物の重量については考慮せず，鍛冶・防具製作に必要な☆条件を満たすために必要な製作Lvを返します．既製品のみから構成される場合は`-1`になります．
+
+`Enumerable`の場合，すべての要素に対し，武器，防具それぞれの最大値を求め，`[必要最小鍛冶Lv, 必要最小防具製作Lv]`を返します．武器，防具の一方のみが含まれる場合，もう一方は`-1`になります．
+
+製作を行うため，`opt`が指定可能ですが，特に結果には影響しません．
 
 ## `String#poly(para=:cost, opt: Mgmg.option())`
 レシピ文字列である`self`を解釈し，`para`で指定した9パラ値について，丸めを無視した鍛冶・防具製作Lvと道具製作Lvの2変数からなる多項式関数を示す`Mgmg::TPolynomial`クラスのインスタンスを生成し，返します．`para`は次のシンボルのいずれかを指定します．
@@ -55,27 +91,38 @@
 
 また，`:cost`を渡すことで，消費エレメント量に関する近似多項式を得られます．`self`に`"+"`が含まれていれば合成品とみなし，最後の合成に必要な地エレメント量を，それ以外では，武器なら消費火エレメント量を，防具なら消費水エレメント量を返します．ただし，`self`が既成品そのものの場合，零多項式を返します．
 
+`opt`は，`left_associative`のみ使用します．
+
 ## `String#ir(opt: Mgmg.option())`
 レシピ文字列である`self`を解釈し，9パラ値について，丸めを考慮した鍛冶・防具製作Lvと道具製作Lvの2変数からなる関数オブジェクトを保持する`Mgmg::IR`クラスのインスタンスを生成し，返します．詳しくは，[後述](#mgmgir)の`Mgmg::IR`クラスの説明を参照ください．
 
+`opt`は，`left_associative`と`reinforcement`を使用します．
+
 ## `Enumerable#ir(opt: Mgmg.option())`
 複数のレシピ文字列からなる`self`の各要素を製作し，そのすべてを装備したときの`Mgmg::IR`を返します．この場合，鍛冶Lv，防具製作Lv，道具製作Lvの3変数からなる関数オブジェクトを保持するものとして扱われます．各装備の種別に応じ，鍛冶Lvまたは防具製作Lvを適用し，9パラ値を計算します．
+
+`opt`は，`left_associative`と`reinforcement`を使用します．
 
 ## `String#smith_seach(para, target, comp, opt: Mgmg.option())`
 `para`の値が`target`以上となるのに必要な最小の鍛冶・防具製作Lvを二分探索で探索して返します．
 道具製作Lvは`comp`で固定，鍛冶・防具製作Lvを`opt.smith_min`と`opt.smith_max`で挟み込んで探索します．
 
-`opt.smith_min`のデフォルト値は最小重量で製作するのに必要な鍛冶・防具製作Lv (`self.build.min_level`)です．ただし`opt.min_smith`を真にした場合，重量を問わず☆的に必要な最小の鍛冶・防具製作Lv (`self.min_smith`)をデフォルト値にします．
+`opt.smith_min`のデフォルト値は重量`opt.target_weight`で製作するのに必要な鍛冶・防具製作Lv (`self.min_level(opt.target_weight)`)です．
+`opt.target_weight`のデフォルト値は`0`で，`0`以下の場合の挙動は[前述](#stringmin_levelw0-include_outsourcingfalse-opt-mgmgoption)の`String#min_level`を参照してください．
 `opt.smith_min<opt.smith_max`でないとき，`opt.smith_max`で`para`が`target`以上でないときは`ArgumentError`となります．
 
 `para`は，`Mgmg::Equip`のメソッド名をシンボルで指定(`:power, :fpower`も可)します．
 反転などの影響で，探索範囲において`para`の値が(広義)単調増加になっていない場合，正しい結果を返しません．
 `opt.cut_exp`以下の経験値で`target`以上を達成できない場合，`Mgmg::SearchCutException`を発生します．
 
+`opt`は，上記の他に`left_associative`，`reinforcement`，`irep`を使用します．
+
 ## `String#comp_search(para, target, smith, opt: Mgmg.option())`
 `String#smith_seach`とは逆に，鍛冶・防具製作Lvを固定して最小の道具製作Lvを探索します．
 探索の起点である`opt.comp_min`のデフォルト値は，製作に必要な最小の道具製作Lv (`self.min_comp`)です．
 その他は`String#smith_seach`と同様です．
+
+`opt`は，`comp_min`，`comp_max`，`left_associative`，`reinforcement`，`irep`を使用します．
 
 ## `String#search(para, target, opt: Mgmg.option())`
 `c_min=comp_search(para, target, opt.smith_max, opt: opt)` から `c_max=comp_search(para, target, opt.smith_min, opt: opt)` まで，`opt.step`ずつ動かして，
@@ -83,10 +130,15 @@
 レシピ中の，対象パラメータの種別値がすべて奇数，または全て偶数であるなら，`opt.step`を`2`にしても探索すべき範囲を網羅できます．
 その他は`String#smith_seach`と同様です．
 
+`opt`は，`String#smith_search`または`String#comp_search`で使われるすべてのパラメータを使用します．
+
 ## `Enumerable#search(para, target, opt: Mgmg.option())`
 複数装備の組について，`para`の値が`target`以上となる最小経験値の`[鍛冶Lv，防具製作Lv，道具製作Lv]`を返します．
 武器のみなら防具製作Lvは`0`，防具のみなら鍛冶Lvは`0`，合成なしなら道具製作Lvは`0`となります．
-その他は`String#smith_seach`と同様です．
+
+`opt.smith_min`および`opt.armor_min`のデフォルト値は，武器・防具の各総重量を`opt.target_weight`で製作するのに必要な鍛冶・防具製作Lv (`self.min_level(*opt.target_weight)`)です．`opt.target_weight`には2要素からなる配列を指定しますが，整数が与えられた場合，それを2つ並べた配列と同等のものとして扱います．合計重量を指定することにはならないので注意してください．`opt.target_weight`のデフォルト値は`0`です．
+
+その他は，`String#smith_seach`と同様です．
 
 ## `Mgmg.#find_lowerbound(a, b, para, start, term, opt_a: Mgmg.option(), opt_b: Mgmg.option())`
 レシピ`a`とレシピ`b`について，`para`の値を目標値以上にする最小経験値の組において，目標値`start`における優劣が逆転する目標値の下限を探索し，返します．
@@ -95,17 +147,23 @@
 `term`は`start`より大きい値とします．目標値`term`における優劣が，目標値`start`における優劣と同じ場合，`Mgmg::SearchCutException`を発生します．
 `a`と`b`は`String`でもその`Enumerable`でも構いません．
 
-`opt_a`，`opt_b`には，それぞれ`a`と`b`に関するオプションパラメータを指定します．`smith_min`，`armor_min`，`min_smith`，`reinforcement`が使用されます．
+`opt_a`，`opt_b`には，それぞれ`a`と`b`に関するオプションパラメータを指定します．`smith_min`，`armor_min`，`min_smith`，`left_associative`，`reinforcement`，`irep`を使用します．
 
 ## `Mgmg.#find_upperbound(a, b, para, start, term, opt_a: Mgmg.option(), opt_b: Mgmg.option())`
 `Mgmg.#find_lowerbound`とは逆に，目標値を下げながら，優劣が逆転する最大の目標値を探索し，返します．返り値は`[逆転する最大目標値, 逆転前の最小para値]`です．目標値が，前者よりも少しでも大きいと逆転が起こらず(逆転する目標値の上限)，少しだけ大きい時の`para`値が後者になります．
+
+`opt_a`，`opt_b`は，`Mgmg.#find_lowerbound`と同様です．
 
 ## `String#eff(para, smith, comp=smith, opt: Mgmg.option())`
 [`smith`を1上げたときの`para`値/(`smith`を1上げるのに必要な経験値), `comp`を1上げたときの`para`値/(`comp`を2上げるのに必要な経験値)]を返します．
 `para`は，`Mgmg::Equip`のメソッド名をシンボルで指定(`:power, :fpower`も可)します．
 
+`opt`は`String#build`にそのまま渡されます．
+
 ## `String#peff(para, smith, comp=smith, opt: Mgmg.option())`
 近似多項式における偏微分値を使用した場合の，`String#eff`と同様の値を返します．`self.poly(para, opt: opt).eff(smith, comp)`と等価です．
+
+`opt`は`String#poly`にそのまま渡されます．
 
 ## `String#phydef_optimize(smith=nil, comp=smith, opt: Mgmg.option())`
 反転物防装備の反転材の種別，素材の最適化を行い，修正したレシピを返します．
@@ -113,8 +171,12 @@
 物防を最大化するレシピのうち，`opt.magdef_maximize`が真なら魔防を最大化する組み合わせ，偽ならコストを最小化(≒魔防を最小化)する組み合わせを探索します．
 ある範囲での全数探索を行うため，段数の多いレシピでは計算量が膨大になるほか，厳密な最適化を保証するものではなく，今後のアップデートで解が変わるような変更が入る可能性があります．
 
+`opt`は，上記の`magdef_maximize`が使われるほか，`String#build`または`String#poly`にそのまま渡されます．
+
 ## `String#buster_optimize(smith=nil, comp=smith, opt: Mgmg.option())`
 `String#phydef_optimize`の魔力弓版で，反転材の素材の最適化を行い，修正したレシピを返します．
+
+`opt`は，`String#build`または`String#poly`にそのまま渡されます．
 
 ## `Mgmg.#exp(smith, armor, comp=armor.tap{armor=0})`
 鍛冶Lvを0から`smith`に，防具製作Lvを0から`armor`に，道具製作Lvを0から`comp`に上げるのに必要な総経験値を返します．鍛冶Lvと防具製作Lvは逆でも同じです．
@@ -206,7 +268,7 @@
 レシピ中の，鍛冶・防具製作物の文字列をキー，重量`weight`で生成するのに必要な最小レベルを値とした`Hash`を返します．
 「複数装備」の場合，各装備の`min_levels`をマージした`Hash`を返します．
 
-## `Mgmg::Equip#min_level(weight=1)`
+## `Mgmg::Equip#min_levels_max(weight=1)`
 `min_levels(weight)`の値の最大値を返します．「複数装備」の場合，`[鍛冶の必要レベル，防具製作の必要レベル]`を返します．
 
 ## `Mgmg::Equip#reinforce(*arg)`
@@ -377,11 +439,11 @@ alias として`*`があるほか`scalar(1.quo(value))`として`quo`，`/`，`s
 |キーワード|デフォルト値|意味|主なメソッド，備考|
 |:-|:-|:-|:-|
 |left_associative|`true`|レシピ文字列を左結合で解釈する|`Mgmg::Option`を使用するすべてのメソッド|
-|smith_min|`min_smith ? recipe.min_smith : recipe.min_level`|鍛冶Lvに関する探索範囲の最小値|`String#search`など|
-|armor_min|`min_smith ? recipe.min_smith[1] : recipe.min_level[1]`|防具製作Lvに関する探索範囲の最小値|`Enumerable#search`など．`String`系では代わりに`smith_min`を使う|
+|smith_min|`recipe.min_level(target_weight)`|鍛冶Lvに関する探索範囲の最小値|`String#search`など|
+|armor_min|`recipe.min_level(*target_weight)[1]`|防具製作Lvに関する探索範囲の最小値|`Enumerable#search`など．`String`系では代わりに`smith_min`を使う|
 |comp_min|`recipe.min_comp`|道具製作Lvに関する探索範囲の最小値|`String#search`など|
 |smith_max, armor_max, comp_max|`10000`|各製作Lvの探索範囲の最大値|`String#search`など|
-|min_smith|`false`|`smith_min`，`armor_min`のデフォルト値のスイッチ|`String#search`など|
+|target_weight|`0`|`smith_min`のデフォルト値計算に使う目標重量|`String#search`など|
 |step|`1`|探索時において道具製作Lvを動かす幅|`String#search`など|
 |magdef_maximize|`true`|目標を魔防最大(真)かコスト最小(偽)にするためのスイッチ|`String#phydef_optimize`|
 |reinforcement|`[]`|[前述](#mgmgequipreinforcearg)の`Mgmg::Equip#reinforce`による強化リスト|一部を除くすべてのメソッド|

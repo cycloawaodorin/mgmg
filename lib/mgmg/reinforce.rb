@@ -44,7 +44,7 @@ module Mgmg
 				elsif SystemCuisine.has_key?(arg)
 					cuisine(SystemCuisine[arg])
 				else
-					raise ArgumentError, "Unknown skill or preset cuisine name `#{arg}' is given."
+					raise InvalidReinforcementNameError, arg
 				end
 			else
 				raise ArgumentError, "The argument should be Mgmg::Cuisine or skill name String. (`#{arg}' is given)"
