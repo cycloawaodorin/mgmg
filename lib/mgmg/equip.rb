@@ -57,11 +57,11 @@ module Mgmg
 				@min_levels
 			else
 				@min_levels.map do |key, value|
-					[key, key.min_level(w)]
+					[key, Equip.min_level(key, w)]
 				end.to_h
 			end
 		end
-		def min_level(w=1)
+		def min_levels_max(w=1)
 			if @kind == 28
 				ret = [0, 0]
 				min_levels(w).each do |str, ml|
@@ -305,7 +305,7 @@ module Mgmg
 			
 			ret = new(kind, ( weight<1 ? 1 : weight ), (main_s+sub_s).div(2), main_mc, sub_mc, para, ele)
 			ret.total_cost[kind < 8 ? 0 : 2] += ret.smith_cost(outsourcing)
-			ret.min_levels.store(str, str.min_level)
+			ret.min_levels.store(str, Equip.min_level(str))
 			ret
 		end
 		

@@ -12,8 +12,35 @@ require_relative './mgmg/search'
 require_relative './mgmg/optimize'
 
 class String
-	def min_level(w=1)
-		Mgmg::Equip.min_level(self, w)
+	def min_weight(opt: Mgmg::Option.new)
+		build(build(-1, -1, opt: opt).min_levels_max, -1, opt: opt).weight
+	end
+	def max_weight(include_outsourcing=true, opt: Mgmg::Option.new)
+		if include_outsourcing
+			build(-1, -1, opt: opt).weight
+		else
+			build(min_smith(opt: opt), -1, opt: opt).weight
+		end
+	end
+	def min_level(w=0, include_outsourcing=true, opt: Mgmg::Option.new)
+		built = build(-1, -1, opt: opt)
+		w = build(built.min_levels_max, -1, opt: opt).weight - w if w <= 0
+		return -1 if include_outsourcing && built.weight <= w
+		ms = min_smith(opt: opt)
+		return ms if build(ms, -1, opt: opt).weight <= w
+		ary = [ms]
+		wmax = build.min_levels.keys.map do |k|
+			k.build(-1, -1, opt: opt).weight
+		end.max
+		(wmax-1).downto(1) do |wi|
+			built.min_levels(wi).values.each do |v|
+				(ary.include?(v) or ary << v) if ms < v
+			end
+		end
+		ary.sort.each do |l|
+			return l if build(l, -1, opt: opt).weight <= w
+		end
+		raise ArgumentError, "w=`#{w}' is given, but the minimum weight for the recipe is `#{min_weight(opt: opt)}'"
 	end
 	def min_levels(w=1, opt: Mgmg::Option.new)
 		build(-1, -1, opt: opt).min_levels(w)
@@ -133,7 +160,7 @@ module Enumerable
 	def min_levels(w=1, opt: Mgmg::Option.new)
 		build(-1, -1, -1, opt: opt).min_levels(w)
 	end
-	def min_level(w=1, opt: Mgmg::Option.new)
+	def min_levels_max(w=1, opt: Mgmg::Option.new)
 		ret = [0, 0]
 		build(-1, -1, -1, opt: opt).min_levels(w).each do |str, level|
 			m = /\A\[*([^\+]+)/.match(str)

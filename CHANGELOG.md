@@ -125,3 +125,6 @@
 - `Mgmg::Option`を実装し，search系メソッドを中心としたキーワード引数を，このクラスに集約してから受け渡すようにした．
 	- オプションオブジェクトは`Mgmg.#option`によって生成し，キーワード引数`opt`に渡す．従来のキーワード引数は廃止された．
 	- この変更で，一部の受け渡し忘れのバグが修正され，パフォーマンスが改善した．
+- `Enumerable#search`で無駄な処理が発生していて，処理時間がかかっていたバグを修正．
+- `String#min_level`の仕様を変更し，合成後の重量を目標値にするのに必要な鍛冶・道具製作Lvを計算するようにした．
+	- この変更に伴い，`Mgmg::Equip#min_level`，`Enumerable#min_level`を`Mgmg::Equip#min_levels_max`，`Enumerable#min_levels_max`に名称変更した．
