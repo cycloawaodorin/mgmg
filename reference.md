@@ -43,9 +43,14 @@
 
 ## `String#min_levels(weight=1, opt: Mgmg.option())`
 合成レシピの各鍛冶・防具製作品に対して，レシピ文字列をキー，重量1で作製するために必要な製作Lvを値とした`Hash`を返します．重量はすべての装備について同じ値しか指定できません．
-最大値は，`self.build.min_level`によって得られます．
 
 製作を行うため，`opt`が指定可能ですが，特に結果には影響しません．
+
+## `Enumerable#max_weight(include_outsourcing=false, opt: Mgmg.option())`，`Enumerable#min_weight(opt: Mgmg.option())`
+製作可能な最大・最小重量を返します．`opt`を含め，`String#max_weight`，`String#min_weight`と同様です．
+
+## `Enumerable#max_weights(include_outsourcing=false, opt: Mgmg.option())`，`Enumerable#min_weights(opt: Mgmg.option())`
+`self`を武器の集合と防具の集合に分け，`[武器の最大・最小重量, 防具の最大・最小重量]`を返します．その他は`String#max_weight`，`String#min_weight`と同様です．
 
 ## `Enumerable#min_levels(weight=1, opt: Mgmg.option())`
 すべての要素`str`に対する`str.min_levels`をマージした`Hash`を返します．
@@ -53,12 +58,12 @@
 製作を行うため，`opt`が指定可能ですが，特に結果には影響しません．
 
 ## `Enumerable#min_levels_max(weight=1, opt: Mgmg.option())`
-`self.min_levels`から武器，防具それぞれに対する最大値を求め，`[必要最小鍛冶Lv, 必要最小防具製作Lv]`を返します．武器，防具の一方のみが含まれる場合，もう一方は`0`になります．
+`self.min_levels`から武器，防具それぞれに対する最大値を求め，`[必要最小鍛冶Lv, 必要最小防具製作Lv]`を返します．武器，防具の一方のみが含まれる場合，もう一方は`-1`になります．
 
 製作を行うため，`opt`が指定可能ですが，特に結果には影響しません．
 
 ## `String#min_comp(opt: Mgmg.option())`，`Enumerable#min_comp(opt: Mgmg.option())`
-レシピ通りに合成するのに必要な道具製作Lvを返します．ただし，全体が「[]」で囲われているか，非合成レシピの場合，代わりに`0`を返します．
+レシピ通りに合成するのに必要な道具製作Lvを返します．ただし，全体が「[]」で囲われているか，非合成レシピの場合，代わりに`-1`を返します．
 
 `Enumerable`の場合，すべての要素に対する最大値を返します．
 
@@ -67,7 +72,7 @@
 ## `String#min_smith(opt: Mgmg.option())`，`Enumerable#min_smith(opt: Mgmg.option())`
 レシピ通りに製作するのに必要な鍛冶・防具製作Lvを返します．製作物の重量については考慮せず，鍛冶・防具製作に必要な☆条件を満たすために必要な製作Lvを返します．
 
-`Enumerable`の場合，すべての要素に対し，武器，防具それぞれの最大値を求め，`[必要最小鍛冶Lv, 必要最小防具製作Lv]`を返します．
+`Enumerable`の場合，すべての要素に対し，武器，防具それぞれの最大値を求め，`[必要最小鍛冶Lv, 必要最小防具製作Lv]`を返します．武器，防具の一方のみが含まれる場合，もう一方は`-1`になります．
 
 製作を行うため，`opt`が指定可能ですが，特に結果には影響しません．
 
@@ -131,8 +136,7 @@
 複数装備の組について，`para`の値が`target`以上となる最小経験値の`[鍛冶Lv，防具製作Lv，道具製作Lv]`を返します．
 武器のみなら防具製作Lvは`0`，防具のみなら鍛冶Lvは`0`，合成なしなら道具製作Lvは`0`となります．
 
-`opt.smith_min`および`opt.armor_min`のデフォルト値は，鍛冶・防具製作時の重量をすべて`opt.ingredient_weight`以下にするための最小製作Lv`self.min_levels_max(opt.ingredient_weight)`になります．
-`opt.ingredient_weight`が0以下の場合，代わりに，重量を無視した最小製作Lv`self.min_smith`を用います．`opt.ingredient_weight`のデフォルト値は`1`です．
+`opt.smith_min`および`opt.armor_min`のデフォルト値は，武器・防具の各総重量を`opt.target_weight`で製作するのに必要な鍛冶・防具製作Lv (`self.min_level(*opt.target_weight)`)です．`opt.target_weight`には2要素からなる配列を指定しますが，整数が与えられた場合，それを2つ並べた配列と同等のものとして扱います．`opt.target_weight`のデフォルト値は`0`です．
 
 その他は，`String#smith_seach`と同様です．
 
@@ -435,12 +439,11 @@ alias として`*`があるほか`scalar(1.quo(value))`として`quo`，`/`，`s
 |キーワード|デフォルト値|意味|主なメソッド，備考|
 |:-|:-|:-|:-|
 |left_associative|`true`|レシピ文字列を左結合で解釈する|`Mgmg::Option`を使用するすべてのメソッド|
-|smith_min|`recipe.min_level(target_weight)`|鍛冶Lvに関する探索範囲の最小値|`String#search`など．`Enumerable`の場合のデフォルト値は`armor_min`参照|
-|armor_min|`0<ingredient_weight ? recipe.min_levels_max(ingredient_weight)[1] : recipe.min_levels_max[1]`|防具製作Lvに関する探索範囲の最小値|`Enumerable#search`など．`String`系では代わりに`smith_min`を使う|
+|smith_min|`recipe.min_level(target_weight)`|鍛冶Lvに関する探索範囲の最小値|`String#search`など|
+|armor_min|`recipe.min_level(*target_weight)[1]`|防具製作Lvに関する探索範囲の最小値|`Enumerable#search`など．`String`系では代わりに`smith_min`を使う|
 |comp_min|`recipe.min_comp`|道具製作Lvに関する探索範囲の最小値|`String#search`など|
 |smith_max, armor_max, comp_max|`10000`|各製作Lvの探索範囲の最大値|`String#search`など|
-|target_weight|`0`|`String`レシピでの`smith_min`のデフォルト値の決定|`String#search`など|
-|ingredient_weight|`1`|`Enumerable`レシピでの`smith_min`，`armor_min`のデフォルト値の決定|`Enumerable#search`など|
+|target_weight|`0`|`smith_min`のデフォルト値計算に使う目標重量|`String#search`など|
 |step|`1`|探索時において道具製作Lvを動かす幅|`String#search`など|
 |magdef_maximize|`true`|目標を魔防最大(真)かコスト最小(偽)にするためのスイッチ|`String#phydef_optimize`|
 |reinforcement|`[]`|[前述](#mgmgequipreinforcearg)の`Mgmg::Equip#reinforce`による強化リスト|一部を除くすべてのメソッド|

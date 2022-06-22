@@ -63,7 +63,7 @@ module Mgmg
 				end
 			when Enumerable
 				if force || @smith_min.nil? || @armor_min.nil?
-					@target_weight = [@target_weight, @target_weight] unless @target_weight.kind_of? Enumerable
+					@target_weight = [@target_weight, @target_weight] if @target_weight.kind_of? Numeric
 					s, a = recipe.min_level(*@target_weight, opt: self)
 					@smith_min = s if force || @smith_min.nil?
 					@armor_min = a if force || @armor_min.nil?
