@@ -136,7 +136,7 @@
 複数装備の組について，`para`の値が`target`以上となる最小経験値の`[鍛冶Lv，防具製作Lv，道具製作Lv]`を返します．
 武器のみなら防具製作Lvは`0`，防具のみなら鍛冶Lvは`0`，合成なしなら道具製作Lvは`0`となります．
 
-`opt.smith_min`および`opt.armor_min`のデフォルト値は，武器・防具の各総重量を`opt.target_weight`で製作するのに必要な鍛冶・防具製作Lv (`self.min_level(*opt.target_weight)`)です．`opt.target_weight`には2要素からなる配列を指定しますが，整数が与えられた場合，それを2つ並べた配列と同等のものとして扱います．`opt.target_weight`のデフォルト値は`0`です．
+`opt.smith_min`および`opt.armor_min`のデフォルト値は，武器・防具の各総重量を`opt.target_weight`で製作するのに必要な鍛冶・防具製作Lv (`self.min_level(*opt.target_weight)`)です．`opt.target_weight`には2要素からなる配列を指定しますが，整数が与えられた場合，それを2つ並べた配列と同等のものとして扱います．合計重量を指定することにはならないので注意してください．`opt.target_weight`のデフォルト値は`0`です．
 
 その他は，`String#smith_seach`と同様です．
 
