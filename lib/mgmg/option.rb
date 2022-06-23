@@ -1,9 +1,4 @@
 module Mgmg
-	module_function def option(recipe=nil, **kw)
-		ret = Option.new(**kw)
-		ret.set_default(recipe) unless recipe.nil?
-		ret
-	end
 	class Option
 		def initialize(
 			left_associative: true,

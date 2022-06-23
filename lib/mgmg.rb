@@ -14,6 +14,9 @@ require_relative './mgmg/optimize'
 
 class String
 	using Mgmg::Refiner
+	def to_recipe(para=:power, **kw)
+		Mgmg::Recipe.new(self, para, **kw)
+	end
 	def min_weight(opt: Mgmg::Option.new)
 		build(build(opt: opt).min_levels_max, opt: opt).weight
 	end
@@ -126,6 +129,9 @@ class String
 end
 module Enumerable
 	using Mgmg::Refiner
+	def to_recipe(para=:power, **kw)
+		Mgmg::Recipe.new(self, para, **kw)
+	end
 	def build(smith=-1, armor=smith, comp=armor.tap{armor=smith}, opt: Mgmg::Option.new)
 		opt = opt.dup
 		rein = opt.reinforcement

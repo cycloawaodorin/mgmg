@@ -170,13 +170,3 @@ module Mgmg
 		end
 	end
 end
-class String
-	def to_recipe(para=:power, **kw)
-		Mgmg::Recipe.new(self, para, **kw)
-	end
-end
-module Enumerable
-	def to_recipe(para=:power, **kw)
-		Mgmg::Recipe.new(self, para, **kw)
-	end
-end
