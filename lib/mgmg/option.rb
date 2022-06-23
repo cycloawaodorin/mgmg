@@ -50,7 +50,7 @@ module Mgmg
 			@irep = other.irep
 			@cut_exp = other.cut_exp
 		end
-		def set_default(recipe, force: false)
+		def update_sa_min(recipe, force=true)
 			case recipe
 			when String
 				if @smith_min.nil? && @armor_min
@@ -71,6 +71,10 @@ module Mgmg
 			else
 				raise ArgumentError, 'recipe should be String or Enumerable'
 			end
+			self
+		end
+		def set_default(recipe, force: false)
+			update_sa_min(recipe, force)
 			@comp_min = recipe.min_comp(opt: self) if force || @comp_min.nil?
 			@irep = recipe.ir(opt: self) if force || @irep.nil?
 			self

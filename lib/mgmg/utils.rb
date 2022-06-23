@@ -78,6 +78,11 @@ module Mgmg
 		end
 		attr_accessor :name
 	end
+	class BrokenRecipeError < StandardError
+		def initialize
+			super("Neither String nor Enumerable recipe was set.")
+		end
+	end
 	class SearchCutException < StandardError; end
 	class UnexpectedError < StandardError
 		def initialize()

@@ -8,6 +8,7 @@ require_relative './mgmg/system_equip'
 require_relative './mgmg/cuisine'
 require_relative './mgmg/reinforce'
 require_relative './mgmg/option'
+require_relative './mgmg/recipe'
 require_relative './mgmg/search'
 require_relative './mgmg/optimize'
 
