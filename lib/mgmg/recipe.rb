@@ -8,7 +8,7 @@ module Mgmg
 			@option = Option.new(**kw).set_default(@recipe)
 		end
 		attr_reader :recipe
-		attr_writer :para
+		attr_accessor :para
 		def initialize_copy(other)
 			@recipe = other.recipe.dup
 			@option = other.option.dup
@@ -21,7 +21,7 @@ module Mgmg
 				kw.each do |key, value|
 					ret.method((key.to_s+'=').to_sym).call(value)
 					ret.update_sa_min(@recipe) if key == :target_weight
-					ret.irep.add_reinforcement if key == :reinforcement || key == :buff
+					ret.irep.add_reinforcement(value) if key == :reinforcement || key == :buff
 				end
 				ret
 			end
@@ -58,9 +58,9 @@ module Mgmg
 		def min_comp
 			@recipe.min_comp
 		end
-		def build(smith=-1, armor=smith, comp=armor.tap{armor=smith}, min: false, **kw)
+		def build(smith=-1, armor=smith, comp=armor.tap{armor=smith}, **kw)
 			opt = temp_opt(**kw)
-			smith, armor, comp = opt.smith_min, opt.armor_min, opt.comp_min if min
+			smith, armor, comp = opt.smith_min, opt.armor_min, opt.comp_min if smith.nil?
 			case @recipe
 			when String
 				recipe.build(smith, comp, opt: opt)
@@ -70,9 +70,9 @@ module Mgmg
 				raise BrokenRecipeError
 			end
 		end
-		def show(smith=-1, armor=smith, comp=armor.tap{armor=smith}, para: @para, min: false, **kw)
+		def show(smith=-1, armor=smith, comp=armor.tap{armor=smith}, para: @para, **kw)
 			opt = temp_opt(**kw)
-			smith, armor, comp = opt.smith_min, opt.armor_min, opt.comp_min if min
+			smith, armor, comp = opt.smith_min, opt.armor_min, opt.comp_min if smith.nil?
 			case @recipe
 			when String
 				recipe.show(smith, comp, para: para, opt: opt)
@@ -82,12 +82,31 @@ module Mgmg
 				raise BrokenRecipeError
 			end
 		end
-		def para(smith=-1, armor=smith, comp=armor.tap{armor=smith}, para: @para, min: false, **kw)
+		def search(target, para: @para, **kw)
 			opt = temp_opt(**kw)
-			smith, armor, comp = opt.smith_min, opt.armor_min, opt.comp_min if min
-			return @para if smith < 0
-			armor = 0 if armor < 0
-			comp = 0 if comp < 0
+			@recipe.search(para, target, opt: opt)
+		end
+		private def correct_level(s, ac, x, opt)
+			if s.nil?
+				if x.equal?(false)
+					s, ac, x = opt.smith_min, opt.comp_min, nil
+				else
+					s, ac, x = opt.smith_min, opt.armor_min, opt.comp_min
+				end
+			else
+				s = 0 if s < 0
+				ac = 0 if ac < 0
+				if x.equal?(false)
+					x = nil
+				else
+					x = 0 if x < 0
+				end
+			end
+			[s, ac, x]
+		end
+		def para_call(smith=-1, armor=smith, comp=armor.tap{armor=smith}, para: @para, **kw)
+			opt = temp_opt(**kw)
+			smith, armor, comp = correct_level(smith, armor, comp, opt)
 			case @recipe
 			when String
 				opt.irep.para_call(para, smith, comp)
@@ -97,12 +116,26 @@ module Mgmg
 				raise BrokenRecipeError
 			end
 		end
-		def search(target, para: @para, **kw)
-			opt = temp_opt(**kw)
-			@recipe.search(para, target, opt: opt)
-		end
 		def ir(**kw)
 			temp_opt(**kw).irep
+		end
+		%i|attack phydef magdef hp mp str dex speed magic atkstr atk_sd dex_as mag_das magic2 magmag pmdef|.each do |sym|
+			define_method(sym) do |s, ac=s, x=false, **kw|
+				s, ac, x = correct_level(s, ac, x, temp_opt(**kw))
+				ir(**kw).method(sym).call(s, ac, x)
+			end
+		end
+		%i|power fpower|.each do |sym|
+			define_method(sym) do |s, a=s, c=a.tap{a=s}, **kw|
+				s, a, c = correct_level(s, a, c, temp_opt(**kw))
+				ir(**kw).method(sym).call(s, a, c)
+			end
+		end
+		%i|smith_cost comp_cost cost|.each do |sym|
+			define_method(sym) do |s, c=s, outsourcing=false, **kw|
+				s, c, x = correct_level(s, c, false, temp_opt(**kw))
+				ir(**kw).method(sym).call(s, c, out_sourcing)
+			end
 		end
 	end
 end
