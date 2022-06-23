@@ -17,16 +17,33 @@ module Mgmg
 		refine Float do
 			alias :cdiv :quo # Floatの場合は普通の割り算
 			def comma3
-				s = self.to_s
-				case s
-				when %r|e|
-					s
-				when %r|\.|
-					ary = s.split('.')
-					ary[0].gsub(/(\d)(?=(\d{3})+(?!\d))/, '\1,') + '.' + ary[1]
+				s = (self*100).round.to_s
+				if s[0] == '-'
+					g, s = '-', s[1..(-1)]
 				else
-					s
+					g = ''
 				end
+				raise unless %r|\A\d+\Z|.match(s)
+				case s.length
+				when 1
+					if s == '0'
+						'0.0'
+					else
+						g+'0.0'+s
+					end
+				when 2
+					if s[1] == '0'
+						g+'0.'+s[0]
+					else
+						g+'0.'+s
+					end
+				else
+					i, d = s[0..(-3)], s[(-2)..(-1)]
+					d = d[0] if d[1] == '0'
+					g+i.gsub(/(\d)(?=(\d{3})+(?!\d))/, '\1,') + '.' + d
+				end
+			rescue
+				self.to_s
 			end
 		end
 		refine Rational do
@@ -78,9 +95,13 @@ module Mgmg
 		end
 		attr_accessor :name
 	end
-	class BrokenRecipeError < StandardError
-		def initialize
-			super("Neither String nor Enumerable recipe was set.")
+	class InvalidRecipeError < StandardError
+		def initialize(msg=nil)
+			if msg.nil?
+				super("Neither String nor Enumerable recipe was set.")
+			else
+				super(msg)
+			end
 		end
 	end
 	class SearchCutException < StandardError; end

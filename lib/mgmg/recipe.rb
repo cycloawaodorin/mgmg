@@ -1,6 +1,6 @@
 module Mgmg
 	class Recipe
-		def initialize(recipe, para: :power, **kw)
+		def initialize(recipe, para=:power, **kw)
 			@recipe = recipe
 			@recipe.each(&:freeze) if @recipe.kind_of?(Enumerable)
 			@recipe.freeze
@@ -113,7 +113,7 @@ module Mgmg
 			when Enumerable
 				opt.irep.para_call(para, smith, armor, comp)
 			else
-				raise BrokenRecipeError
+				raise InvalidRecipeError
 			end
 		end
 		def ir(**kw)
@@ -137,15 +137,22 @@ module Mgmg
 				ir(**kw).method(sym).call(s, c, out_sourcing)
 			end
 		end
+		def poly(para=@para)
+			if @recipe.kind_of?(String)
+				@recipe.poly(para)
+			else
+				raise InvalidRecipeError, "Mgmg::Recipe#poly is available only for String recipes."
+			end
+		end
 	end
 end
 class String
-	def to_recipe(**kw)
-		Mgmg::Recipe.new(self, **kw)
+	def to_recipe(para=:power, **kw)
+		Mgmg::Recipe.new(self, para, **kw)
 	end
 end
 module Enumerable
-	def to_recipe(**kw)
-		Mgmg::Recipe.new(self, **kw)
+	def to_recipe(para=:power, **kw)
+		Mgmg::Recipe.new(self, para, **kw)
 	end
 end
