@@ -22,6 +22,9 @@ module Mgmg
 					ret.method((key.to_s+'=').to_sym).call(value)
 					ret.update_sa_min(@recipe) if key == :target_weight
 					ret.irep.add_reinforcement(value) if key == :reinforcement || key == :buff
+					if key == :left_associative
+						ret.irep = @recipe.ir(opt: ret).add_reinforcement(ret.reinforcement)
+					end
 				end
 				ret
 			end
@@ -30,10 +33,14 @@ module Mgmg
 			@option = temp_opt(*kw)
 			@option
 		end
-		def replace(new_recipe, **kw)
+		def option=(new_option)
+			@option = new_option.set_default(@recipe)
+		end
+		def replace(new_recipe, para: @para, **kw)
 			@recipe = new_recipe
 			@recipe.each(&:freeze) if @recipe.kind_of?(Enumerable)
 			@recipe.freeze
+			@para = para
 			@option = Option.new(**kw).set_default(@recipe)
 			self
 		end
@@ -137,11 +144,28 @@ module Mgmg
 				ir(**kw).method(sym).call(s, c, out_sourcing)
 			end
 		end
-		def poly(para=@para)
+		def poly(para=@para, **kw)
+			opt = temp_opt(**kw)
 			if @recipe.kind_of?(String)
-				@recipe.poly(para)
+				@recipe.poly(para, opt: opt)
 			else
 				raise InvalidRecipeError, "Mgmg::Recipe#poly is available only for String recipes."
+			end
+		end
+		def phydef_optimize(smith=nil, comp=smith, **kw)
+			opt = temp_opt(**kw)
+			if @recipe.kind_of?(String)
+				@recipe.phydef_optimize(smith, comp, opt: opt)
+			else
+				raise InvalidRecipeError, "Mgmg::Recipe#phydef_optimize is available only for String recipes."
+			end
+		end
+		def buster_optimize(smith=nil, comp=smith, **kw)
+			opt = temp_opt(**kw)
+			if @recipe.kind_of?(String)
+				@recipe.buster_optimize(smith, comp, opt: opt)
+			else
+				raise InvalidRecipeError, "Mgmg::Recipe#buster_optimize is available only for String recipes."
 			end
 		end
 	end

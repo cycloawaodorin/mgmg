@@ -1,6 +1,9 @@
 # リファレンス
 本ライブラリで定義される主要なメソッドを以下に解説します．
 
+## `String#to_recipe(para=:power, **kw)`，`Enumerable#to_recipe(para=:power, **kw)`
+レシピ文字列である`self`と，注目パラメータ`para`，オプション`Mgmg.option(**kw)`をセットにした[後述](#mgmgrecipe)の`Mgmg::Recipe`オブジェクトを生成して返します．デフォルト値としてセットされたパラメータを使用する以外は，レシピ文字列と同様に扱えます．
+
 ## `String#build(smith=-1, comp=smith, opt: Mgmg.option())`
 レシピ文字列である`self`を解釈し，鍛冶・防具製作Lvを`smith`，道具製作Lvを`comp`として鍛冶・防具製作及び武器・防具合成を行った結果を[後述](#mgmgequip)の`Mgmg::Equip`クラスのインスタンスとして生成し，返します．例えば，
 ```ruby
@@ -145,7 +148,8 @@
 返り値は`[逆転しない最大目標値, 逆転時の最小para値]`です．前者は逆転目標値の下限，後者は，目標値が前者よりも少しだけ大きいときの`para`値です．
 ここで，最小経験値が小さい方，または最小経験値が同じなら，そのときの`para`値が大きい方をよりよいものと解釈します．
 `term`は`start`より大きい値とします．目標値`term`における優劣が，目標値`start`における優劣と同じ場合，`Mgmg::SearchCutException`を発生します．
-`a`と`b`は`String`でもその`Enumerable`でも構いません．
+
+`a`と`b`は`String`でもその`Enumerable`でも構いません．`Mgmg::Recipe`が与えられた場合，`opt_a`，`opt_b`は無視され，代わりに`a.option`，`b.option`が使用されます．`a.para`，`b.para`は無視され，引数で与えた`para`を使用します．
 
 `opt_a`，`opt_b`には，それぞれ`a`と`b`に関するオプションパラメータを指定します．`smith_min`，`armor_min`，`min_smith`，`left_associative`，`reinforcement`，`irep`を使用します．
 
@@ -451,3 +455,55 @@ alias として`*`があるほか`scalar(1.quo(value))`として`quo`，`/`，`s
 |irep|`recipe.ir()`|`Mgmg::IR`の使い回しによる高速化|`String#search`など，内部的に使用|
 |cut_exp|`Float::INFINITY`|探索時の総経験値の打ち切り値|`String#search`など，内部的に使用|
 
+## `Mgmg::Recipe`
+レシピ文字列，注目パラメータ，オプションをセットにして扱うためのクラスです．
+それぞれ`Mgmg::Recipe#recipe`，`Mgmg::Recipe#para`，`Mgmg::Recipe#option`でアクセスできます．
+
+## `Mgmg::Recipe#option(**kw)`
+オプションパラメータを`kw`で上書きして，新しい`Mgmg::Option`インスタンスを返します．
+渡したバラメータだけ上書きします．パラメータを渡さない場合，単にセットになってるオプションオブジェクトを返します．
+`target_weight`を上書きした場合，`smith_min`，`armor_min`は自動的に再計算されます．
+
+与えるパラメータ以外をデフォルト値に戻したい場合，`recipe.option=Mgmg.option(**kw)`のように`Mgmg::Recipe#option=(new_option)`を使用します．
+
+## `Mgmg::Recipe#replace(new_recipe, para: self.para, **kw)`
+レシピ文字列を`new_recipe`で置き換え，`kw`でオプションを設定します．`para`を与えた場合，注目パラメータも引数で置き換えます．
+レシピ文字列とオプションの対応を保つため，`Mgmg::Recipe#recipe=`メソッドは定義していません．代わりにこれを使います．
+
+## `Mgmg::Recipe#build(smith=-1, armor=smith, comp=armor.tap{armor=smith}, **kw)`
+`self.recipe.build`を呼び出して返します．`kw`が与えられた場合，オプションのうち，与えられたパラメータのみ一時的に上書きします．
+
+`smith`に`nil`を与えた場合，製作Lvを`self.option.smith_min`，`self.option.armor_min`，`self.option.comp_min`とします．
+
+## `Mgmg::Recipe#search(target, para: self.para, **kw)`
+`self.recipe.search`を呼び出して返します．注目パラメータはセットされたものを自動的に渡しますが，別のパラメータを使いたい場合，キーワード引数で指定します．その他のキーワード引数を与えた場合，オプションのうち，与えられたパラメータのみ一時的に上書きします．
+
+## `Mgmg::Recipe#min_level(w=self.option.target_weight, include_outsourcing=false)`
+`self.recipe.min_level(w, include_outsourcing)`を返します．`w`のデフォルトパラメータが`target_weight`になっている以外は`String#min_level`または`Enumerable#min_level`と同じです．
+
+## `Mgmg::Recipe#min_weight, max_weight, min_levels, min_levels_max, min_smith, min_comp`
+`self.recipe`の同名メソッドをそのまま呼び出して返します．
+
+## `Mgmg::Recipe#ir(**kw)`
+`self.recipe`に対応した`Mgmg::IR`インスタンスを返します．
+
+`kw`を与えた場合一時的に置き換えたオプションに対応した`Mgmg::IR`インスタンスを返します．`left_associative`が与えられれば再構築し，`reinforcement`が与えられれば，スキル・料理の効果を与えた引数に差し替えます．その他のキーワードを与えても特に影響はありません．
+
+## `Mgmg::Recipe#para_call(smith=-1, armor=smith, comp=armor.tap{armor=smith}, para: self.para, **kw)`
+`self.ir.para_call`を呼び出して返します．キーワード引数が与えられた場合，与えられた分だけ一時的に上書きします．
+
+`smith`に`nil`を与えた場合，製作Lvを`self.option.smith_min`，`self.option.armor_min`，`self.option.comp_min`とします．製作Lvに負の値が与えられた場合，`0`に修正して計算して返します．
+
+パラメータとして，以下が指定でき，これらは直接メソッドとしても定義されています(`Mgmg::Recipe#attack`など)．製作Lvの与え方は`para_call`と同様です．
+
+```ruby
+:attack, :phydef, :magdef, :hp, :mp, :str, :dex, :speed, :magic
+:atkstr, :atk_sd, :dex_as, :mag_das, :magic2, :magmag, :pmdef
+:power, :fpower, :smith_cost, :comp_cost, :cost
+```
+
+## `Mgmg::Recipe#poly(para=self.para, **kw)`
+`self.recipe.poly(para, opt: self.option)`を返します．`kw`が与えられた場合，オプションのうち，与えられたパラメータのみ一時的に上書きします．
+
+## `Mgmg::Recipe#phydef_optimize(smith=nil, comp=smith, **kw)`，`Mgmg::Recipe#buster_optimize(smith=nil, comp=smith, **kw)`
+`self.recipe.phydef_optimize(smith, comp, opt: self.option)`，`self.recipe.buster_optimize(smith, comp, opt: self.option)`を返します．`kw`が与えられた場合，オプションのうち，与えられたパラメータのみ一時的に上書きします．
