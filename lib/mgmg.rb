@@ -13,6 +13,7 @@ require_relative './mgmg/search'
 require_relative './mgmg/optimize'
 
 class String
+	using Mgmg::Refiner
 	def min_weight(opt: Mgmg::Option.new)
 		build(build(opt: opt).min_levels_max, opt: opt).weight
 	end
@@ -110,10 +111,10 @@ class String
 		built = build(smith, comp, opt: opt)
 		pstr = '%.3f' % built.para_call(para)
 		pstr.sub!(/\.?0+\Z/, '')
-		puts "Building"
+		puts "With levels (#{smith}, #{comp}: #{Mgmg.exp(smith, comp).comma3}), building"
 		puts "  #{self}"
-		rein = rein.empty? ? '' : " reinforced by {#{rein.join(',')}}"
-		puts "with levels (#{smith}, #{comp})#{rein} yields (#{pstr}, #{built.total_cost})"
+		rein = rein.empty? ? '' : "reinforced by {#{rein.join(',')}} "
+		puts "#{rein}yields (#{pstr}, #{built.total_cost})"
 		puts "  #{built}"
 	end
 	def phydef_optimize(smith=nil, comp=smith, opt: Mgmg::Option.new)
@@ -124,6 +125,7 @@ class String
 	end
 end
 module Enumerable
+	using Mgmg::Refiner
 	def build(smith=-1, armor=smith, comp=armor.tap{armor=smith}, opt: Mgmg::Option.new)
 		opt = opt.dup
 		rein = opt.reinforcement
@@ -151,10 +153,10 @@ module Enumerable
 		built = self.build(smith, armor, comp, opt: opt)
 		pstr = '%.3f' % built.para_call(para)
 		pstr.sub!(/\.?0+\Z/, '')
-		puts "Building"
+		puts "With levels (#{smith}, #{armor}, #{comp}: #{Mgmg.exp(smith, armor, comp).comma3}), building"
 		puts "  #{self.join(', ')}"
-		rein = rein.empty? ? '' : " reinforced by {#{rein.join(',')}}"
-		puts "with levels (#{smith}, #{armor}, #{comp})#{rein} yields (#{pstr}, #{built.total_cost})"
+		rein = rein.empty? ? '' : "reinforced by {#{rein.join(',')}} "
+		puts "#{rein}yields (#{pstr}, #{built.total_cost})"
 		puts "  #{built}"
 	end
 	def min_weight(opt: Mgmg::Option.new)
