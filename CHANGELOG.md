@@ -132,7 +132,7 @@
 	- `Mgmg::Option#smith_min`，`Mgmg::Option#armor_min`のデフォルト値を，`String#min_level`，`Enumerable#min_level`を用いて設定する仕様とし，その目標重量を`Mgmg::Option#target_weight`で指定するようにした．
 - `String#min_comp`，`String#min_smith`，`Enumerable#min_comp`，`Enumerable#min_smith`において，既製品のみである，合成を行わないなど，該当スキルが必要ないレシピである場合の返り値を`-1`に変更した．
 
-## 1.5.1
+## 1.5.1 2022/06/24
 - `Mgmg::Recipe`を実装し，レシピ`String`または`Enumerable`と，注目パラメータ`Symbol`，オプション`Mgmg::Option`をセットで取り扱えるようにした．
 	- `String#to_recipe(para=:power, allow_over20: false, **kw)`または`Enumerable#to_recipe(para=:power, **kw)`で生成できる．
 	- `Mgmg::Recipe#build`，`Mgmg::Recipe#search`など`String`等に対する操作と同様にでき，注目パラメータとオプションは，`to_recipe`でセットしたものがデフォルトで使われるようになる．各メソッド呼び出し時にキーワード引数を与えることで，一時的に上書きすることもできる．
