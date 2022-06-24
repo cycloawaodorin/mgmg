@@ -13,7 +13,7 @@ module Mgmg
 		def initialize_copy(other)
 			@kind = other.kind
 			@weight = other.weight
-			@star = other.star
+			@star = other.star.dup
 			@main = other.main
 			@sub = other.sub
 			@para = other.para.dup
@@ -193,8 +193,8 @@ module Mgmg
 		def +(other)
 			self.dup.add!(other)
 		end
-		Zero = self.new(28, 0, Vec.new(6, 0), 12, 12, Vec.new(9, 0), Vec.new(3, 0))
-		Zero.history.clear
+		Zero = self.new(28, 0, Vec.new(6, 0).freeze, 12, 12, Vec.new(9, 0).freeze, Vec.new(3, 0).freeze)
+		Zero.total_cost.freeze; Zero.history.clear.freeze
 		Zero.freeze
 	end
 	
