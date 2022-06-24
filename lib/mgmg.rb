@@ -14,8 +14,10 @@ require_relative './mgmg/optimize'
 
 class String
 	using Mgmg::Refiner
-	def to_recipe(para=:power, **kw)
-		Mgmg::Recipe.new(self, para, **kw)
+	def to_recipe(para=:power, allow_over20: false, **kw)
+		ret = Mgmg::Recipe.new(self, para, **kw)
+		raise Mgmg::Over20Error, ret.ir.star if (!allow_over20 and 20<ret.ir.star)
+		ret
 	end
 	def min_weight(opt: Mgmg::Option.new)
 		build(build(opt: opt).min_levels_max, opt: opt).weight

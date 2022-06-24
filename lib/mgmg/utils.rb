@@ -104,6 +104,11 @@ module Mgmg
 			end
 		end
 	end
+	class Over20Error < StandardError
+		def initialize(star)
+			super("The star of given recipe is #{star}. It can't be built since the star is over 20.")
+		end
+	end
 	class SearchCutException < StandardError; end
 	class UnexpectedError < StandardError
 		def initialize()

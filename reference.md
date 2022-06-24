@@ -1,8 +1,10 @@
 # リファレンス
 本ライブラリで定義される主要なメソッドを以下に解説します．
 
-## `String#to_recipe(para=:power, **kw)`，`Enumerable#to_recipe(para=:power, **kw)`
+## `String#to_recipe(para=:power, allow_over20: false, **kw)`，`Enumerable#to_recipe(para=:power, **kw)`
 レシピ文字列である`self`と，注目パラメータ`para`，オプション`Mgmg.option(**kw)`をセットにした[後述](#mgmgrecipe)の`Mgmg::Recipe`オブジェクトを生成して返します．デフォルト値としてセットされたパラメータを使用する以外は，レシピ文字列と同様に扱えます．
+
+`allow_over20`が偽の場合，レシピの☆を確認し，20を超える場合は，例外`Mgmg::Over20Error`を発生します．このチェックを抑制したい場合は，真にしてください．
 
 ## `String#build(smith=-1, comp=smith, opt: Mgmg.option())`
 レシピ文字列である`self`を解釈し，鍛冶・防具製作Lvを`smith`，道具製作Lvを`comp`として鍛冶・防具製作及び武器・防具合成を行った結果を[後述](#mgmgequip)の`Mgmg::Equip`クラスのインスタンスとして生成し，返します．例えば，
