@@ -152,7 +152,7 @@ module Mgmg
 		attr_accessor :kind, :star, :main, :sub, :para, :rein
 		def initialize_copy(other)
 			@kind = other.kind
-			@star = other.star
+			@star = other.star.dup
 			@main = other.main
 			@sub = other.sub
 			@para = other.para.dup
@@ -313,7 +313,8 @@ module Mgmg
 		def +(other)
 			self.dup.add!(other)
 		end
-		Zero = self.new(28, Vec.new(6, 0), 12, 12, Array.new(9){Const.new(0)})
+		Zero = self.new(28, Vec.new(6, 0).freeze, 12, 12, Array.new(9){Const.new(0)}.freeze)
+		Zero.rein.freeze; Zero.freeze
 	end
 	class << IR
 		def build(str, left_associative: true, reinforcement: [])

@@ -17,16 +17,33 @@ module Mgmg
 		refine Float do
 			alias :cdiv :quo # Floatの場合は普通の割り算
 			def comma3
-				s = self.to_s
-				case s
-				when %r|e|
-					s
-				when %r|\.|
-					ary = s.split('.')
-					ary[0].gsub(/(\d)(?=(\d{3})+(?!\d))/, '\1,') + '.' + ary[1]
+				s = (self*100).round.to_s
+				if s[0] == '-'
+					g, s = '-', s[1..(-1)]
 				else
-					s
+					g = ''
 				end
+				raise unless %r|\A\d+\Z|.match(s)
+				case s.length
+				when 1
+					if s == '0'
+						'0.0'
+					else
+						g+'0.0'+s
+					end
+				when 2
+					if s[1] == '0'
+						g+'0.'+s[0]
+					else
+						g+'0.'+s
+					end
+				else
+					i, d = s[0..(-3)], s[(-2)..(-1)]
+					d = d[0] if d[1] == '0'
+					g+i.gsub(/(\d)(?=(\d{3})+(?!\d))/, '\1,') + '.' + d
+				end
+			rescue
+				self.to_s
 			end
 		end
 		refine Rational do
@@ -78,6 +95,20 @@ module Mgmg
 		end
 		attr_accessor :name
 	end
+	class InvalidRecipeError < StandardError
+		def initialize(msg=nil)
+			if msg.nil?
+				super("Neither String nor Enumerable recipe was set.")
+			else
+				super(msg)
+			end
+		end
+	end
+	class Over20Error < StandardError
+		def initialize(star)
+			super("The star of given recipe is #{star}. It can't be built since the star is over 20.")
+		end
+	end
 	class SearchCutException < StandardError; end
 	class UnexpectedError < StandardError
 		def initialize()
@@ -121,6 +152,11 @@ module Mgmg
 	end
 	module_function def invexp3(exp, sa, comp)
 		Math.sqrt(exp - ((sa-1)**2) - (2*((comp-1)**2)) - 4).round + 1
+	end
+	module_function def option(recipe=nil, **kw)
+		ret = Option.new(**kw)
+		ret.set_default(recipe) unless recipe.nil?
+		ret
 	end
 	
 	CharacterList = /[^\(\)\+0123456789\[\]あきくしすたてなねのびりるイウガクグサジスタダチツデトドニノフブペボムラリルロンヴー一万二光兜典刀剣劣匠双古名吹咆品哮地大天太子安宝小帽弓弩当息悪戦手指斧書服木本杖業樹歴殺水氷法火炎牙物玉王産用界異的皮盾短石砕竜紫綿耳聖脛腕腿般良色衣袋覇質軍軽輝輪重量金鉄鎧闇陽靴額飾首骨鬼龍]/.freeze

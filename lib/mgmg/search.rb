@@ -228,7 +228,18 @@ module Mgmg
 		if term <= start
 			raise ArgumentError, "start < term is needed, (start, term) = (#{start}, #{term}) are given"
 		end
-		opt_a, opt_b = opt_a.dup.set_default(a), opt_b.dup.set_default(b)
+		if a.kind_of?(Recipe)
+			opt_a = a.option.dup
+			a = a.recipe
+		else
+			opt_a = opt_a.dup.set_default(a)
+		end
+		if b.kind_of?(Recipe)
+			opt_b = b.option.dup
+			b = b.recipe
+		else
+			opt_b = opt_b.dup.set_default(b)
+		end
 		sca, scb = a.search(para, start, opt: opt_a), b.search(para, start, opt: opt_b)
 		ea, eb = Mgmg.exp(*sca), Mgmg.exp(*scb)
 		if eb < ea || ( ea == eb && opt_a.irep.para_call(para, *sca) < opt_b.irep.para_call(para, *scb) )
@@ -263,7 +274,18 @@ module Mgmg
 		if start <= term
 			raise ArgumentError, "term < start is needed, (start, term) = (#{start}, #{term}) are given"
 		end
-		opt_a, opt_b = opt_a.dup.set_default(a), opt_b.dup.set_default(b)
+		if a.kind_of?(Recipe)
+			opt_a = a.option.dup
+			a = a.recipe
+		else
+			opt_a = opt_a.dup.set_default(a)
+		end
+		if b.kind_of?(Recipe)
+			opt_b = b.option.dup
+			b = b.recipe
+		else
+			opt_b = opt_b.dup.set_default(b)
+		end
 		sca, scb = a.search(para, start, opt: opt_a), b.search(para, start, opt: opt_b)
 		ea, eb = Mgmg.exp(*sca), Mgmg.exp(*scb)
 		if ea < eb || ( ea == eb && opt_b.irep.para_call(para, *scb) < opt_a.irep.para_call(para, *sca) )
