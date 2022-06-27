@@ -70,9 +70,9 @@ module Mgmg
 			smith, armor, comp = opt.smith_min, opt.armor_min, opt.comp_min if smith.nil?
 			case @recipe
 			when String
-				recipe.build(smith, comp, opt: opt)
+				recipe.build(smith, comp, opt:)
 			when Enumerable
-				recipe.build(smith, armor, comp, opt: opt)
+				recipe.build(smith, armor, comp, opt:)
 			else
 				raise BrokenRecipeError
 			end
@@ -82,16 +82,16 @@ module Mgmg
 			smith, armor, comp = opt.smith_min, opt.armor_min, opt.comp_min if smith.nil?
 			case @recipe
 			when String
-				recipe.show(smith, comp, para: para, opt: opt)
+				recipe.show(smith, comp, para:, opt:)
 			when Enumerable
-				recipe.show(smith, armor, comp, para: para, opt: opt)
+				recipe.show(smith, armor, comp, para:, opt:)
 			else
 				raise BrokenRecipeError
 			end
 		end
 		def search(target, para: @para, **kw)
 			opt = temp_opt(**kw)
-			@recipe.search(para, target, opt: opt)
+			@recipe.search(para, target, opt:)
 		end
 		private def correct_level(s, ac, x, opt)
 			if s.nil?
@@ -147,7 +147,7 @@ module Mgmg
 		def poly(para=@para, **kw)
 			opt = temp_opt(**kw)
 			if @recipe.kind_of?(String)
-				@recipe.poly(para, opt: opt)
+				@recipe.poly(para, opt:)
 			else
 				raise InvalidRecipeError, "Mgmg::Recipe#poly is available only for String recipes."
 			end
@@ -155,7 +155,7 @@ module Mgmg
 		def phydef_optimize(smith=nil, comp=smith, **kw)
 			opt = temp_opt(**kw)
 			if @recipe.kind_of?(String)
-				@recipe.phydef_optimize(smith, comp, opt: opt)
+				@recipe.phydef_optimize(smith, comp, opt:)
 			else
 				raise InvalidRecipeError, "Mgmg::Recipe#phydef_optimize is available only for String recipes."
 			end
@@ -163,7 +163,7 @@ module Mgmg
 		def buster_optimize(smith=nil, comp=smith, **kw)
 			opt = temp_opt(**kw)
 			if @recipe.kind_of?(String)
-				@recipe.buster_optimize(smith, comp, opt: opt)
+				@recipe.buster_optimize(smith, comp, opt:)
 			else
 				raise InvalidRecipeError, "Mgmg::Recipe#buster_optimize is available only for String recipes."
 			end

@@ -323,10 +323,8 @@ module Mgmg
 			SystemEquip.store(k.sub(/脛当て\Z/, 'すね当て'), SystemEquip[k])
 		end
 	end
-	SystemEquip.freeze
 	SystemEquipRegexp = Hash.new
-	SystemEquip.keys.each do |k|
-		SystemEquipRegexp.store(k.freeze, Regexp.compile(k))
+	SystemEquip.each_key do |k|
+		SystemEquipRegexp.store(k, Regexp.compile(k).freeze)
 	end
-	SystemEquipRegexp.freeze
 end
