@@ -4,9 +4,9 @@ module Mgmg
 		InvList = [%w|帽子 フード サンダル|.freeze, %w|宝1 骨1 木1 木2 骨2|.freeze, %w|宝1 骨1 木1|.freeze].freeze
 		def phydef_optimize(str, smith, comp=smith, opt: Option.new)
 			best = if smith.nil? then
-				[str, str.poly(:phydef, opt: opt), str.poly(:magdef, opt: opt), str.poly(:cost, opt: opt)]
+				[str, str.poly(:phydef, opt:), str.poly(:magdef, opt:), str.poly(:cost, opt:)]
 			else
-				[str, str.build(smith, comp, opt: opt)]
+				[str, str.build(smith, comp, opt:)]
 			end
 			str = Mgmg.check_string(str)
 			ai = 0
@@ -23,7 +23,7 @@ module Mgmg
 			m = /([^\+]*\([^\(]+[綿皮]1\))\]*\Z/.match(str)
 			if m
 				if smith
-					if m[1].sub(/綿1\)/, '皮1)').build(smith, opt: opt).weight == m[1].sub(/皮1\)/, '綿1)').build(smith, opt: opt).weight
+					if m[1].sub(/綿1\)/, '皮1)').build(smith, opt:).weight == m[1].sub(/皮1\)/, '綿1)').build(smith, opt:).weight
 						skin = true
 					end
 				else
@@ -40,9 +40,9 @@ module Mgmg
 				while b
 					r = pd_apply_idx(str, a, b)
 					best = if smith.nil? then
-						pd_better(best, [r, r.poly(:phydef, opt: opt), r.poly(:magdef, opt: opt), r.poly(:cost, opt: opt)], opt.magdef_maximize)
+						pd_better(best, [r, r.poly(:phydef, opt:), r.poly(:magdef, opt:), r.poly(:cost, opt:)], opt.magdef_maximize)
 					else
-						pd_better(best, [r, r.build(smith, comp, opt: opt)], opt.magdef_maximize)
+						pd_better(best, [r, r.build(smith, comp, opt:)], opt.magdef_maximize)
 					end
 					b = pd_next_b(b)
 				end
@@ -58,9 +58,9 @@ module Mgmg
 					while b
 						r = pd_apply_idx(str, a, b)
 						best = if smith.nil? then
-							pd_better(best, [r, r.poly(:phydef, opt: opt), r.poly(:magdef, opt: opt), r.poly(:cost, opt: opt)], opt.magdef_maximize)
+							pd_better(best, [r, r.poly(:phydef, opt:), r.poly(:magdef, opt:), r.poly(:cost, opt:)], opt.magdef_maximize)
 						else
-							pd_better(best, [r, r.build(smith, comp, opt: opt)], opt.magdef_maximize)
+							pd_better(best, [r, r.build(smith, comp, opt:)], opt.magdef_maximize)
 						end
 						b = pd_next_b(b)
 					end
@@ -159,7 +159,7 @@ module Mgmg
 		
 		MwList = %w|綿 皮 骨 木 水|.freeze
 		def buster_optimize(str, smith, comp=smith, opt: Option.new)
-			best = ( smith.nil? ? [str, str.poly(:mag_das, opt: opt)] : [str, str.build(smith, comp, opt: opt)] )
+			best = ( smith.nil? ? [str, str.poly(:mag_das, opt:)] : [str, str.build(smith, comp, opt:)] )
 			str = Mgmg.check_string(str)
 			ai = -1
 			org = nil
@@ -174,7 +174,7 @@ module Mgmg
 			a = Array.new(ai){ [0, 0, 0] }
 			while a
 				r = bus_apply_idx(str, a)
-				best = bus_better(best, ( smith.nil? ? [r, r.poly(:mag_das, opt: opt)] : [r, r.build(smith, comp, opt: opt)] ))
+				best = bus_better(best, ( smith.nil? ? [r, r.poly(:mag_das, opt:)] : [r, r.build(smith, comp, opt:)] ))
 				a = bus_next_a(a)
 			end
 			best[0]
