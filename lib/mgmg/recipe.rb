@@ -30,7 +30,7 @@ module Mgmg
 			end
 		end
 		def option(**kw)
-			@option = temp_opt(*kw)
+			@option = temp_opt(**kw)
 			@option
 		end
 		def option=(new_option)
