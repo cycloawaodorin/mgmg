@@ -22,6 +22,55 @@ module Mgmg
 			"料理[攻撃:#{self.attack}, 物防:#{self.phydef}, 魔防:#{self.magdef}]"
 		end
 		alias :inspect :to_s
+		
+		MainFood = {
+			'獣肉'         => Vec[10,  0,  0],
+			'ウッチ'       => Vec[ 0, 10, 10],
+			'ゴッチ'       => Vec[ 0, 12, 12],
+			'ガガッチ'     => Vec[ 0, 14, 14],
+			'ドランギョ'   => Vec[15, 15, 10],
+			'ドラバーン'   => Vec[20, 20, 15],
+			'フレドラン'   => Vec[50,  0,  0],
+			'アースドラン' => Vec[ 0, 50,  0],
+			'アクアドラン' => Vec[ 0,  0, 50],
+			'ダークドン'   => Vec[30, 30, 30],
+		}
+		SubFood = {
+			'氷酒'     => Vec[ 50,  70,  50],
+			'氷水酒'   => Vec[ 50,  90,  50],
+			'氷河酒'   => Vec[ 50, 110,  50],
+			'カエン酒' => Vec[ 70,  50,  70],
+			'爆炎酒'   => Vec[ 90,  50,  90],
+			'煉獄酒'   => Vec[110,  50, 110],
+		}
+		Cookery = {
+			'焼き' => Vec[50, 50, 30],
+			'蒸す' => Vec[30, 75, 75],
+		}
+		Cookery.store('丸焼き', Cookery['焼き'])
+		Cookery.store('すき焼き', Cookery['焼き'])
+		Cookery.store('焼く', Cookery['焼き'])
+		Cookery.store('焼', Cookery['焼き'])
+		Cookery.store('蒸し焼き', Cookery['蒸す'])
+		Cookery.store('ボイル', Cookery['蒸す'])
+		Cookery.store('蒸し', Cookery['蒸す'])
+		Cookery.store('蒸', Cookery['蒸す'])
+		
+		class << self
+			def cook(cookery_s, main_s, sub_s, level)
+				begin
+					c = Cookery[cookery_s]
+					m = MainFood[main_s]
+					s = SubFood[sub_s]
+					v = Vec[1, 1, 1]
+					v.e_mul!(m).e_mul!(c).e_mul!(s.dup.add!(100+level)).e_div!(10000)
+					new(v)
+				rescue
+					arg = [cookery_s, main_s, sub_s, level].inspect
+					raise ArgumentError, "Some of arguments for cooking seems to be wrong. #{arg} is given, but they should be [cookery (String), main food (String), sub food (String), cooking level (Integer)]. Not all of cookeries and foods are supported."
+				end
+			end
+		end
 	end
 	
 	SystemCuisine = {
@@ -69,55 +118,6 @@ module Mgmg
 				raise UnexpectedError
 			end
 			SystemCuisine.store("#{ary[0]}の#{ary[1]}#{c}", SystemCuisine[k])
-		end
-	end
-	
-	MainFood = {
-		'獣肉'         => Vec[10,  0,  0],
-		'ウッチ'       => Vec[ 0, 10, 10],
-		'ゴッチ'       => Vec[ 0, 12, 12],
-		'ガガッチ'     => Vec[ 0, 14, 14],
-		'ドランギョ'   => Vec[15, 15, 10],
-		'ドラバーン'   => Vec[20, 20, 15],
-		'フレドラン'   => Vec[50,  0,  0],
-		'アースドラン' => Vec[ 0, 50,  0],
-		'アクアドラン' => Vec[ 0,  0, 50],
-		'ダークドン'   => Vec[30, 30, 30],
-	}
-	SubFood = {
-		'氷酒'     => Vec[ 50,  70,  50],
-		'氷水酒'   => Vec[ 50,  90,  50],
-		'氷河酒'   => Vec[ 50, 110,  50],
-		'カエン酒' => Vec[ 70,  50,  70],
-		'爆炎酒'   => Vec[ 90,  50,  90],
-		'煉獄酒'   => Vec[110,  50, 110],
-	}
-	Cookery = {
-		'焼き' => Vec[50, 50, 30],
-		'蒸す' => Vec[30, 75, 75],
-	}
-	Cookery.store('丸焼き', Cookery['焼き'])
-	Cookery.store('すき焼き', Cookery['焼き'])
-	Cookery.store('焼く', Cookery['焼き'])
-	Cookery.store('焼', Cookery['焼き'])
-	Cookery.store('蒸し焼き', Cookery['蒸す'])
-	Cookery.store('ボイル', Cookery['蒸す'])
-	Cookery.store('蒸し', Cookery['蒸す'])
-	Cookery.store('蒸', Cookery['蒸す'])
-	
-	class << Cuisine
-		def cook(cookery_s, main_s, sub_s, level)
-			begin
-				c = Cookery[cookery_s]
-				m = MainFood[main_s]
-				s = SubFood[sub_s]
-				v = Vec[1, 1, 1]
-				v.e_mul!(m).e_mul!(c).e_mul!(s.dup.add!(100+level)).e_div!(10000)
-				new(v)
-			rescue
-				arg = [cookery_s, main_s, sub_s, level].inspect
-				raise ArgumentError, "Some of arguments for cooking seems to be wrong. #{arg} is given, but they should be [cookery (String), main food (String), sub food (String), cooking level (Integer)]. Not all of cookeries and foods are supported."
-			end
 		end
 	end
 	

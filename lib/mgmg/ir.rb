@@ -1,6 +1,7 @@
 module Mgmg
 	using Refiner
 	class IR
+		Cache = Hash.new
 		class Const
 			def initialize(value)
 				@value = value
@@ -94,44 +95,44 @@ module Mgmg
 			def to_s
 				@body.map(&:to_s).join('+')
 			end
-		end
-		class << Multi
-			def sum(a, b)
-				unconsts, const = [], Const.new(0)
-				case a
-				when Multi
-					if a.body[0].kind_of?(Const)
-						const.value += a.body[0].value
-						unconsts = a.body[1..(-1)]
+			class << self
+				def sum(a, b)
+					unconsts, const = [], Const.new(0)
+					case a
+					when Multi
+						if a.body[0].kind_of?(Const)
+							const.value += a.body[0].value
+							unconsts = a.body[1..(-1)]
+						else
+							unconsts = a.body.dup
+						end
+					when Const
+						const.value += a.value
 					else
-						unconsts = a.body.dup
+						unconsts << a
 					end
-				when Const
-					const.value += a.value
-				else
-					unconsts << a
-				end
-				case b
-				when Multi
-					if b.body[0].kind_of?(Const)
-						const.value += b.body[0].value
-						unconsts.concat(b.body[1..(-1)])
+					case b
+					when Multi
+						if b.body[0].kind_of?(Const)
+							const.value += b.body[0].value
+							unconsts.concat(b.body[1..(-1)])
+						else
+							unconsts.concat(b.body)
+						end
+					when Const
+						const.value += b.value
 					else
-						unconsts.concat(b.body)
+						unconsts << b
 					end
-				when Const
-					const.value += b.value
-				else
-					unconsts << b
-				end
-				body = ( const.value == 0 ? unconsts : [const, *unconsts] )
-				case body.size
-				when 0
-					const
-				when 1
-					body[0]
-				else
-					new(body)
+					body = ( const.value == 0 ? unconsts : [const, *unconsts] )
+					case body.size
+					when 0
+						const
+					when 1
+						body[0]
+					else
+						new(body)
+					end
 				end
 			end
 		end
@@ -315,87 +316,92 @@ module Mgmg
 		end
 		Zero = self.new(28, Vec.new(6, 0).freeze, 12, 12, Array.new(9){Const.new(0)}.freeze)
 		Zero.rein.freeze; Zero.freeze
-	end
-	class << IR
-		def build(str, left_associative: true, reinforcement: [])
-			str = Mgmg.check_string(str)
-			stack, str = build_sub0([], str)
-			build_sub(stack, str, left_associative).add_reinforcement(reinforcement)
-		end
-		private def build_sub0(stack, str)
-			SystemEquip.each do |k, v|
-				if SystemEquipRegexp[k].match(str)
-					stack << from_equip(v)
-					str = str.gsub(k, "<#{stack.length-1}>")
-				end
-			end
-			[stack, str]
-		end
-		private def build_sub(stack, str, lassoc)
-			if m = /\A(.*\+?)\[([^\[\]]+)\](\+?[^\[]*)\Z/.match(str)
-				stack << build_sub(stack, m[2], lassoc)
-				build_sub(stack, "#{m[1]}<#{stack.length-1}>#{m[3]}", lassoc)
-			elsif m = ( lassoc ? /\A(.+)\+(.+?)\Z/ : /\A(.+?)\+(.+)\Z/ ).match(str)
-				compose(build_sub(stack, m[1], lassoc), build_sub(stack, m[2], lassoc))
-			elsif m = /\A\<(\d+)\>\Z/.match(str)
-				stack[m[1].to_i]
-			else
-				smith(str)
-			end
-		end
 		
-		def compose(main, sub)
-			main_k, sub_k = main.kind, sub.kind
-			main_s, sub_s = main.star, sub.star
-			main_main, sub_main = main.main, sub.main
-			main_sub, sub_sub = main.sub, sub.sub
-			
-			coef = Equip9[main_k].dup
-			coef.sub!(Equip9[sub_k])
-			coef.add!( 100 + (main_s-sub_s)*5 - ( ( main_main==sub_main && main_main != 9 ) ? 30 : 0 ) )
-			coef.add!(Material9[main_main]).sub!(Material9[sub_main])
-			den = ( main_k==sub_k ? 200 : 100 )
-			para = Array.new(9) do |i|
-				if EquipFilter[main_k][i] == 0
-					main.para[i]
+		class << self
+			def build(str, left_associative: true, reinforcement: [], include_system_equips: true)
+				str = Mgmg.check_string(str)
+				stack = []
+				stack, str = build_sub0(stack, str) if include_system_equips
+				build_sub(stack, str, left_associative).add_reinforcement(reinforcement)
+			end
+			private def build_sub0(stack, str)
+				SystemEquip.each do |k, v|
+					if SystemEquipRegexp[k].match(str)
+						stack << from_equip(v)
+						str = str.gsub(k, "<#{stack.length-1}>")
+					end
+				end
+				[stack, str]
+			end
+			private def build_sub(stack, str, lassoc)
+				if m = /\A(.*\+?)\[([^\[\]]+)\](\+?[^\[]*)\Z/.match(str)
+					stack << build_sub(stack, m[2], lassoc)
+					build_sub(stack, "#{m[1]}<#{stack.length-1}>#{m[3]}", lassoc)
+				elsif m = ( lassoc ? /\A(.+)\+(.+?)\Z/ : /\A(.+?)\+(.+)\Z/ ).match(str)
+					compose(build_sub(stack, m[1], lassoc), build_sub(stack, m[2], lassoc))
+				elsif m = /\A\<(\d+)\>\Z/.match(str)
+					stack[m[1].to_i]
 				else
-					Mgmg::IR::Compose.new(main.para[i], sub.para[i], Equip9[main_k][i], coef[i], den)
+					smith(str)
 				end
 			end
 			
-			new(main_k, main_s+sub_s, main_sub, sub_main, para)
-		end
-		def smith(str)
-			str = Mgmg.check_string(str)
-			unless m = /\A(.+)\((.+\d+),?(.+\d+)\)\Z/.match(str)
-				raise InvalidSmithError.new(str)
-			end
-			kind = EquipIndex[m[1].to_sym]
-			unless kind
-				raise InvalidEquipClassError.new(m[1])
-			end
-			main_m, main_s, main_mc = Mgmg.parse_material(m[2])
-			sub_m, sub_s, sub_mc = Mgmg.parse_material(m[3])
-			sa = ( Mgmg::EquipPosition[kind] == 0 ? :s : :a )
-			
-			coef = Equip9[kind].dup
-			coef.e_mul!(Main9[main_m]).e_div!(100)
-			den = ( main_mc==sub_mc ? 200 : 100 )
-			para = Array.new(9) do |i|
-				if coef[i] == 0
-					Mgmg::IR::Const.new(0)
-				else
-					Mgmg::IR::Smith.new(Sub9[sub_m][i], coef[i], den, sa)
+			def compose(main, sub)
+				main_k, sub_k = main.kind, sub.kind
+				main_s, sub_s = main.star, sub.star
+				main_main, sub_main = main.main, sub.main
+				main_sub, sub_sub = main.sub, sub.sub
+				
+				coef = Equip9[main_k].dup
+				coef.sub!(Equip9[sub_k])
+				coef.add!( 100 + (main_s-sub_s)*5 - ( ( main_main==sub_main && main_main != 9 ) ? 30 : 0 ) )
+				coef.add!(Material9[main_main]).sub!(Material9[sub_main])
+				den = ( main_k==sub_k ? 200 : 100 )
+				para = Array.new(9) do |i|
+					if EquipFilter[main_k][i] == 0
+						main.para[i]
+					else
+						Mgmg::IR::Compose.new(main.para[i], sub.para[i], Equip9[main_k][i], coef[i], den)
+					end
 				end
+				
+				new(main_k, main_s+sub_s, main_sub, sub_main, para)
 			end
-			
-			new(kind, (main_s+sub_s).div(2), main_mc, sub_mc, para)
-		end
-		def from_equip(equip)
-			para = equip.para.map do |value|
-				Mgmg::IR::Const.new(value)
+			def smith(str)
+				str = Mgmg.check_string(str)
+				return Cache[str].dup if Cache.has_key?(str)
+				unless m = /\A(.+)\((.+\d+),?(.+\d+)\)\Z/.match(str)
+					raise InvalidSmithError.new(str)
+				end
+				kind = EquipIndex[m[1].to_sym]
+				unless kind
+					raise InvalidEquipClassError.new(m[1])
+				end
+				main_m, main_s, main_mc = Mgmg.parse_material(m[2])
+				sub_m, sub_s, sub_mc = Mgmg.parse_material(m[3])
+				sa = ( Mgmg::EquipPosition[kind] == 0 ? :s : :a )
+				
+				coef = Equip9[kind].dup
+				coef.e_mul!(Main9[main_m]).e_div!(100)
+				den = ( main_mc==sub_mc ? 200 : 100 )
+				para = Array.new(9) do |i|
+					if coef[i] == 0
+						Mgmg::IR::Const.new(0)
+					else
+						Mgmg::IR::Smith.new(Sub9[sub_m][i], coef[i], den, sa)
+					end
+				end
+				
+				ret = new(kind, (main_s+sub_s).div(2), main_mc, sub_mc, para)
+				Cache.store(str, ret.freeze)
+				ret.dup
 			end
-			new(equip.kind, equip.star, equip.main, equip.sub, para)
+			def from_equip(equip)
+				para = equip.para.map do |value|
+					Mgmg::IR::Const.new(value)
+				end
+				new(equip.kind, equip.star, equip.main, equip.sub, para)
+			end
 		end
 	end
 end
