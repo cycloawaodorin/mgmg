@@ -1,11 +1,16 @@
 module Mgmg
 	class Option
+		Defaults = {
+			left_associative: true, include_system_equips: true,
+			smith_max: 10000, armor_max: 10000, comp_max: 10000
+		}
 		def initialize(
-			left_associative: true,
-			smith_min: nil, armor_min:nil, comp_min: nil, smith_max: 10000, armor_max: 10000, comp_max: 10000,
+			left_associative: Defaults[:left_associative],
+			smith_min: nil, armor_min:nil, comp_min: nil, smith_max: Defaults[:smith_max], armor_max: Defaults[:armor_max], comp_max: Defaults[:comp_max],
 			step: 1, magdef_maximize: true,
 			target_weight: 0, reinforcement: [], buff: nil,
-			irep: nil, cut_exp: Float::INFINITY
+			irep: nil, cut_exp: Float::INFINITY,
+			include_system_equips: Defaults[:include_system_equips]
 		)
 			@left_associative = left_associative
 			@smith_min = smith_min
@@ -27,9 +32,10 @@ module Mgmg
 			end
 			@irep = irep
 			@cut_exp = cut_exp
+			@include_system_equips = include_system_equips
 		end
 		attr_accessor :left_associative, :smith_min, :armor_min, :comp_min, :smith_max, :armor_max, :comp_max
-		attr_accessor :step, :magdef_maximize, :target_weight, :reinforcement, :irep, :cut_exp
+		attr_accessor :step, :magdef_maximize, :target_weight, :reinforcement, :irep, :cut_exp, :include_system_equips
 		def initialize_copy(other)
 			@left_associative = other.left_associative
 			@smith_min = other.smith_min
@@ -44,6 +50,7 @@ module Mgmg
 			@reinforcement = other.reinforcement.dup
 			@irep = other.irep
 			@cut_exp = other.cut_exp
+			@include_system_equips = other.include_system_equips
 		end
 		def update_sa_min(recipe, force=true)
 			case recipe
@@ -69,9 +76,11 @@ module Mgmg
 			self
 		end
 		def set_default(recipe, force: false)
+			@include_system_equips = false if @include_system_equips && !Mgmg::SystemEquipRegexp.values.any?{|re| re.match(recipe)}
 			update_sa_min(recipe, force)
 			@comp_min = recipe.min_comp(opt: self) if force || @comp_min.nil?
 			@irep = recipe.ir(opt: self) if force || @irep.nil?
+			
 			self
 		end
 		def buff
@@ -80,5 +89,11 @@ module Mgmg
 		def buff=(v)
 			@reinforcement = v
 		end
+	end
+	
+	module_function def option(recipe=nil, **kw)
+		ret = Option.new(**kw)
+		ret.set_default(recipe) unless recipe.nil?
+		ret
 	end
 end

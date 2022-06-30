@@ -30,6 +30,13 @@ class String
 		end
 	end
 	def min_level(w=0, include_outsourcing=false, opt: Mgmg::Option.new)
+		key = [self.dup.freeze, w, include_outsourcing, opt.left_associative].freeze
+		return Mgmg::CacheMLS[key] if Mgmg::CacheMLS.has_key?(key)
+		ret = __min_level_sub(w, include_outsourcing, opt)
+		Mgmg::CacheMLS.store(key, ret)
+		ret
+	end
+	private def __min_level_sub(w, include_outsourcing, opt)
 		built = build(-1, opt:)
 		w = build(built.min_levels_max, -1, opt:).weight - w if w <= 0
 		return -1 if include_outsourcing && built.weight <= w
@@ -59,10 +66,10 @@ class String
 		Mgmg::Equip.min_comp(self, opt:)
 	end
 	def build(smith=-1, comp=smith, opt: Mgmg::Option.new)
-		Mgmg::Equip.build(self, smith, comp, left_associative: opt.left_associative).reinforce(*opt.reinforcement)
+		Mgmg::Equip.build(self, smith, comp, left_associative: opt.left_associative, include_system_equips: opt.include_system_equips).reinforce(*opt.reinforcement)
 	end
 	def ir(opt: Mgmg::Option.new)
-		Mgmg::IR.build(self, left_associative: opt.left_associative, reinforcement: opt.reinforcement)
+		Mgmg::IR.build(self, left_associative: opt.left_associative, reinforcement: opt.reinforcement, include_system_equips: opt.include_system_equips)
 	end
 	def poly(para=:cost, opt: Mgmg::Option.new)
 		case para
@@ -83,7 +90,7 @@ class String
 			md = self.poly(:magmag, opt:)
 			pd <= md ? pd : md
 		when :cost
-			if Mgmg::SystemEquip.has_key?(self)
+			if opt.include_system_equips and Mgmg::SystemEquip.has_key?(self) then
 				return Mgmg::TPolynomial.new(Mgmg::Mat.new(1, 1, 0.quo(1)), 28, 0, 12, 12)
 			end
 			built = self.build(-1, opt:)
@@ -94,7 +101,7 @@ class String
 			ret.mat.body[0][0] += const
 			ret
 		else
-			Mgmg::TPolynomial.build(self, para, left_associative: opt.left_associative)
+			Mgmg::TPolynomial.build(self, para, left_associative: opt.left_associative, include_system_equips: opt.include_system_equips)
 		end
 	end
 	def eff(para, smith, comp=smith, opt: Mgmg::Option.new)

@@ -1,6 +1,7 @@
 module Mgmg
 	using Refiner
 	class TPolynomial
+		Cache = Hash.new
 		def initialize(mat, kind, star, main_m, sub_m)
 			@mat, @kind, @star, @main, @sub = mat, kind, star, main_m, sub_m
 		end
@@ -285,71 +286,77 @@ module Mgmg
 				1
 			end
 		end
-	end
-	class << TPolynomial
-		ParamIndex = Hash.new
-		%i|attack phydef magdef hp mp str dex speed magic|.each.with_index do |s, i|
-			ParamIndex.store(s, i)
-			ParamIndex.store(i, i)
-			ParamIndex.store(Equip::ParamList[i], i)
-		end
-		def from_equip(equip, para)
-			new(Mat.new(1, 1, equip.para[ParamIndex[para]]), equip.kind, equip.star, equip.main, equip.sub)
-		end
-		def smith(str, para)
-			unless m = /\A(.+)\((.+\d+),?(.+\d+)\)\Z/.match(str)
-				raise ArgumentError.new("given string `#{str}' is unparsable as a smithing recipe")
+		
+		class << self
+			ParamIndex = Hash.new
+			%i|attack phydef magdef hp mp str dex speed magic|.each.with_index do |s, i|
+				ParamIndex.store(s, i)
+				ParamIndex.store(i, i)
+				ParamIndex.store(Equip::ParamList[i], i)
 			end
-			kind = EquipIndex[m[1].to_sym]
-			main_m, main_s, main_mc = Mgmg.parse_material(m[2])
-			sub_m, sub_s, sub_mc = Mgmg.parse_material(m[3])
-			para = ParamIndex[para]
-			
-			c = ( Equip9[kind][para] * Main9[main_m][para] ).cdiv(100).quo( main_mc==sub_mc ? 200 : 100 )
-			new(Mat.v_array(c*Sub9[sub_m][para], c), kind, (main_s+sub_s).div(2), main_mc, sub_mc)
-		end
-		def compose(main, sub, para)
-			main_k, sub_k = main.kind, sub.kind
-			main_s, sub_s = main.star, sub.star
-			main_main, sub_main = main.main, sub.main
-			main_sub, sub_sub = main.sub, sub.sub
-			para = ParamIndex[para]
-			
-			if Equip9[main_k][para] == 0
-				c = 0.quo(1)
-			else
-				c = ( 100 + Equip9[main_k][para] - Equip9[sub_k][para] + Material9[main_main][para] - Material9[sub_main][para] +
-					(main_s-sub_s)*5 - ( ( main_main==sub_main && main_main != 9 ) ? 30 : 0 ) ).quo( main_k==sub_k ? 40000 : 20000 )
+			def from_equip(equip, para)
+				new(Mat.new(1, 1, equip.para[ParamIndex[para]]), equip.kind, equip.star, equip.main, equip.sub)
 			end
-			mat = main.mat.padd(sub.mat.pprod(Mat.h_array(c*Equip9[main_k][para], c)))
-			new(mat, main_k, main_s+sub_s, main_sub, sub_main)
-		end
-		def build(str, para, left_associative: true)
-			str = Mgmg.check_string(str)
-			_para = ParamIndex[para]
-			if _para.nil?
-				raise ArgumentError, "unknown parameter symbol `#{para.inspect}' given"
+			def smith(str, para)
+				key = [str.freeze, para].freeze
+				return Cache[key].dup if Cache.has_key?(key)
+				unless m = /\A(.+)\((.+\d+),?(.+\d+)\)\Z/.match(str)
+					raise ArgumentError.new("given string `#{str}' is unparsable as a smithing recipe")
+				end
+				kind = EquipIndex[m[1].to_sym]
+				main_m, main_s, main_mc = Mgmg.parse_material(m[2])
+				sub_m, sub_s, sub_mc = Mgmg.parse_material(m[3])
+				para = ParamIndex[para]
+				
+				c = ( Equip9[kind][para] * Main9[main_m][para] ).cdiv(100).quo( main_mc==sub_mc ? 200 : 100 )
+				ret = new(Mat.v_array(c*Sub9[sub_m][para], c), kind, (main_s+sub_s).div(2), main_mc, sub_mc)
+				Cache.store(key, ret.freeze)
+				ret.dup
 			end
-			stack, str = build_sub0([], str, _para)
-			build_sub(stack, str, _para, left_associative)
-		end
-		private def build_sub0(stack, str, para)
-			SystemEquip.each do |k, v|
-				stack << from_equip(v, para)
-				str = str.gsub(k, "<#{stack.length-1}>")
+			def compose(main, sub, para)
+				main_k, sub_k = main.kind, sub.kind
+				main_s, sub_s = main.star, sub.star
+				main_main, sub_main = main.main, sub.main
+				main_sub, sub_sub = main.sub, sub.sub
+				para = ParamIndex[para]
+				
+				if Equip9[main_k][para] == 0
+					c = 0.quo(1)
+				else
+					c = ( 100 + Equip9[main_k][para] - Equip9[sub_k][para] + Material9[main_main][para] - Material9[sub_main][para] +
+						(main_s-sub_s)*5 - ( ( main_main==sub_main && main_main != 9 ) ? 30 : 0 ) ).quo( main_k==sub_k ? 40000 : 20000 )
+				end
+				mat = main.mat.padd(sub.mat.pprod(Mat.h_array(c*Equip9[main_k][para], c)))
+				new(mat, main_k, main_s+sub_s, main_sub, sub_main)
 			end
-			[stack, str]
-		end
-		private def build_sub(stack, str, para, lassoc)
-			if m = /\A(.*\+?)\[([^\[\]]+)\](\+?[^\[]*)\Z/.match(str)
-				stack << build_sub(stack, m[2], para, lassoc)
-				build_sub(stack, "#{m[1]}<#{stack.length-1}>#{m[3]}", para, lassoc)
-			elsif m = ( lassoc ? /\A(.+)\+(.+?)\Z/ : /\A(.+?)\+(.+)\Z/ ).match(str)
-				compose(build_sub(stack, m[1], para, lassoc), build_sub(stack, m[2], para, lassoc), para)
-			elsif m = /\A\<(\d+)\>\Z/.match(str)
-				stack[m[1].to_i]
-			else
-				smith(str, para)
+			def build(str, para, left_associative: true, include_system_equips: true)
+				str = Mgmg.check_string(str)
+				_para = ParamIndex[para]
+				if _para.nil?
+					raise ArgumentError, "unknown parameter symbol `#{para.inspect}' given"
+				end
+				stack = []
+				stack, str = build_sub0(stack, str, _para) if include_system_equips
+				build_sub(stack, str, _para, left_associative)
+			end
+			private def build_sub0(stack, str, para)
+				SystemEquip.each do |k, v|
+					stack << from_equip(v, para)
+					str = str.gsub(k, "<#{stack.length-1}>")
+				end
+				[stack, str]
+			end
+			private def build_sub(stack, str, para, lassoc)
+				if m = /\A(.*\+?)\[([^\[\]]+)\](\+?[^\[]*)\Z/.match(str)
+					stack << build_sub(stack, m[2], para, lassoc)
+					build_sub(stack, "#{m[1]}<#{stack.length-1}>#{m[3]}", para, lassoc)
+				elsif m = ( lassoc ? /\A(.+)\+(.+?)\Z/ : /\A(.+?)\+(.+)\Z/ ).match(str)
+					compose(build_sub(stack, m[1], para, lassoc), build_sub(stack, m[2], para, lassoc), para)
+				elsif m = /\A\<(\d+)\>\Z/.match(str)
+					stack[m[1].to_i]
+				else
+					smith(str, para)
+				end
 			end
 		end
 	end
