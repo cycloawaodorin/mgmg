@@ -444,7 +444,7 @@ alias として`*`があるほか`scalar(1.quo(value))`として`quo`，`/`，`s
 `Defaults`対応が「対応」となっているキーワード引数については，`Mgmg::Option::Defaults[:include_system_equips]=false`などとすることで，デフォルト値をグローバルに変更することができます．デフォルト値にかかわらず，メソッド呼び出し時に個別に指定すればその値が優先されます．
 
 |キーワード|デフォルト値|`Defaults`対応|意味|主なメソッド，備考|
-|:-|:-|:-|:-|
+|:-|:-|:-|:-|:-|
 |left_associative|`true`|対応|レシピ文字列を左結合で解釈する|`Mgmg::Option`を使用するすべてのメソッド|
 |smith_min|`recipe.min_level(target_weight)`|非対応|鍛冶Lvに関する探索範囲の最小値|`String#search`など|
 |armor_min|`recipe.min_level(*target_weight)[1]`|非対応|防具製作Lvに関する探索範囲の最小値|`Enumerable#search`など．`String`系では代わりに`smith_min`を使う|
