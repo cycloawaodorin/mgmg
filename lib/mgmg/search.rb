@@ -230,13 +230,13 @@ module Mgmg
 		end
 		if a.kind_of?(Recipe)
 			opt_a = a.option.dup
-			a = a.recipe
+			a = a.recipe.dup
 		else
 			opt_a = opt_a.dup.set_default(a)
 		end
 		if b.kind_of?(Recipe)
 			opt_b = b.option.dup
-			b = b.recipe
+			b = b.recipe.dup
 		else
 			opt_b = opt_b.dup.set_default(b)
 		end

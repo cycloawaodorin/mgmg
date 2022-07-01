@@ -309,7 +309,8 @@ module Mgmg
 			
 			def min_level(str, weight=1)
 				str = Mgmg.check_string(str)
-				return CacheML[str] if CacheML.has_key?(str)
+				key = [str.dup.freeze, weight].freeze
+				return CacheML[key] if CacheML.has_key?(key)
 				unless m = /\A(.+)\((.+\d+),?(.+\d+)\)\Z/.match(str)
 					raise InvalidSmithError.new(str)
 				end
@@ -320,7 +321,7 @@ module Mgmg
 				q, r = ((weight+1)*10000).divmod(MainWeight[main_m])
 				l = ( EquipWeight[kind] + SubWeight[sub_m] - q + ( r==0 ? 1 : 0 ) )*2
 				ret = [(main_s-1)*3, (sub_s-1)*3, l].max
-				CacheML.store(str, ret)
+				CacheML.store(key, ret)
 				ret
 			end
 			

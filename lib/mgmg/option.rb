@@ -76,7 +76,16 @@ module Mgmg
 			self
 		end
 		def set_default(recipe, force: false)
-			@include_system_equips = false if @include_system_equips && !Mgmg::SystemEquipRegexp.values.any?{|re| re.match(recipe)}
+			if @include_system_equips
+				case recipe
+				when String
+					@include_system_equips = false unless Mgmg::SystemEquipRegexp.values.any?{|re| re.match(recipe)}
+				when Enumerable
+					@include_system_equips = false unless recipe.any?{|str| Mgmg::SystemEquipRegexp.values.any?{|re| re.match(str)}}
+				else
+					raise ArgumentError, 'recipe should be String or Enumerable'
+				end
+			end
 			update_sa_min(recipe, force)
 			@comp_min = recipe.min_comp(opt: self) if force || @comp_min.nil?
 			@irep = recipe.ir(opt: self) if force || @irep.nil?
