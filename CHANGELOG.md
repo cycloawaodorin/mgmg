@@ -157,7 +157,7 @@
 - `Enumerable#to_recipe`が動かなくなったバグを修正．
 - `String#min_level`において，正しい答えを返さなくなったバグを修正．
 
-## 1.5.6 2022/0717
+## 1.5.6 2022/07/17
 - `String#find_lowerbound`，`String#find_upperbound`における探索刻み幅を1から1/8に変更し，コーナーケースでの精度を上昇させた．
 - `Enumerable#min_level`が，原料☆によるレベル制限を無視した値を返すことがあったバグを修正．
 - `String#find_lowerbound`や`Mgmg::IR#atk_sd` などにおいて，返り値が，分母が1の`Rational`である場合，代わりに`Integer`を返すように修正．
