@@ -94,13 +94,13 @@ module Mgmg
 			attack()+str()
 		end
 		def atk_sd
-			attack()+str().quo(2)+dex().quo(2)
+			( attack()+str().quo(2)+dex().quo(2) ).to_ii
 		end
 		def dex_as
-			attack().quo(2)+str().quo(2)+dex()
+			( attack().quo(2)+str().quo(2)+dex() ).to_ii
 		end
 		def mag_das
-			magic()+dex_as().quo(2)
+			( magic()+dex_as().quo(2) ).to_ii
 		end
 		def magic2
 			magic()*2
@@ -122,18 +122,18 @@ module Mgmg
 			when 6, 7
 				[magic()*2, atkstr()].max
 			when 28
-				@para.sum-((hp()+mp())*3.quo(4))
+				( @para.sum-((hp()+mp())*3.quo(4)) ).to_ii
 			else
 				ret = @para.max
 				if ret == magdef()
-					ret+magic().quo(2)
+					( ret+magic().quo(2) ).to_ii
 				else
 					ret
 				end
 			end
 		end
 		def magmag
-			magdef()+magic().quo(2)
+			( magdef()+magic().quo(2) ).to_ii
 		end
 		def fpower
 			power().to_f

@@ -13,6 +13,8 @@ module Mgmg
 					self.div(other)
 				end
 			end
+			
+			alias :to_ii :itself
 		end
 		refine Float do
 			alias :cdiv :quo # Floatの場合は普通の割り算
@@ -53,6 +55,14 @@ module Mgmg
 					self.numerator.comma3
 				else
 					self.to_f.comma3
+				end
+			end
+			
+			def to_ii
+				if self.denominator == 1
+					self.numerator
+				else
+					self
 				end
 			end
 		end
