@@ -196,26 +196,26 @@ module Mgmg
 						ret *= (100+r.vec[i]).quo(100)
 					end
 				end
-				ret
+				ret.to_ii
 			end
 		end
 		def atkstr(s, ac, x=nil)
 			attack(s, ac, x)+str(s, ac, x)
 		end
 		def atk_sd(s, ac, x=nil)
-			attack(s, ac, x)+str(s, ac, x).quo(2)+dex(s, ac, x).quo(2)
+			( attack(s, ac, x)+str(s, ac, x).quo(2)+dex(s, ac, x).quo(2) ).to_ii
 		end
 		def dex_as(s, ac, x=nil)
-			attack(s, ac, x).quo(2)+str(s, ac, x).quo(2)+dex(s, ac, x)
+			( attack(s, ac, x).quo(2)+str(s, ac, x).quo(2)+dex(s, ac, x) ).to_ii
 		end
 		def mag_das(s, ac, x=nil)
-			magic(s, ac, x)+dex_as(s, ac, x).quo(2)
+			( magic(s, ac, x)+dex_as(s, ac, x).quo(2) ).to_ii
 		end
 		def magic2(s, ac, x=nil)
 			magic(s, ac, x)*2
 		end
 		def magmag(s, ac, x=nil)
-			magdef(s, ac, x)+magic(s, ac, x).quo(2)
+			( magdef(s, ac, x)+magic(s, ac, x).quo(2) ).to_ii
 		end
 		def pmdef(s, ac, x=nil)
 			[phydef(s, ac, x), magmag(s, ac, x)].min
@@ -234,7 +234,7 @@ module Mgmg
 			when 6, 7
 				[magic(s, c)*2, atkstr(s, c)].max
 			when 28
-				@para.enum_for(:sum).with_index do |e, i|
+				( @para.enum_for(:sum).with_index do |e, i|
 					x = e.evaluate3(s, a, c)
 					@rein.each do |r|
 						if r.vec[i] != 0
@@ -242,7 +242,7 @@ module Mgmg
 						end
 					end
 					x
-				end-((hp(s, a, c)+mp(s, a, c))*3.quo(4))
+				end - ((hp(s, a, c)+mp(s, a, c))*3.quo(4)) ).to_ii
 			else
 				ret = @para.map.with_index do |e, i|
 					x = e.evaluate3(s, a, c)
@@ -252,9 +252,9 @@ module Mgmg
 						end
 					end
 					x
-				end.max
+				end.max.to_ii
 				if ret == magdef(s, a, c)
-					ret+magic(s, a, c).quo(2)
+					( ret+magic(s, a, c).quo(2) ).to_ii
 				else
 					ret
 				end

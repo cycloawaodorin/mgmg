@@ -224,6 +224,8 @@ module Enumerable
 end
 
 module Mgmg
+	Eighth = 1.quo(8)
+	using Refiner
 	module_function def find_lowerbound(a, b, para, start, term, opt_a: Option.new, opt_b: Option.new)
 		if term <= start
 			raise ArgumentError, "start < term is needed, (start, term) = (#{start}, #{term}) are given"
@@ -245,7 +247,7 @@ module Mgmg
 		if eb < ea || ( ea == eb && opt_a.irep.para_call(para, *sca) < opt_b.irep.para_call(para, *scb) )
 			a, b, opt_a, opt_b, sca, scb, ea, eb = b, a, opt_b, opt_a, scb, sca, eb, ea
 		end
-		tag = opt_a.irep.para_call(para, *sca) + 1
+		tag = opt_a.irep.para_call(para, *sca) + Eighth
 		sca, scb = a.search(para, term, opt: opt_a), b.search(para, term, opt: opt_b)
 		ea, eb = Mgmg.exp(*sca), Mgmg.exp(*scb)
 		if ea < eb || ( ea == eb && opt_b.irep.para_call(para, *scb) < opt_a.irep.para_call(para, *sca) )
@@ -256,15 +258,15 @@ module Mgmg
 			ea, eb = Mgmg.exp(*sca), Mgmg.exp(*scb)
 			pa, pb = opt_a.irep.para_call(para, *sca), opt_b.irep.para_call(para, *scb)
 			if eb < ea
-				return [tag-1, pb]
+				return [(tag-Eighth).to_ii, pb]
 			elsif ea == eb
 				if pa < pb
-					return [tag-1, pa]
+					return [(tag-Eighth).to_ii, pa]
 				else
-					tag = pb + 1
+					tag = pb + Eighth
 				end
 			else
-				tag = pa + 1
+				tag = pa + Eighth
 			end
 		end
 		raise UnexpectedError
@@ -309,22 +311,22 @@ module Mgmg
 				pa, pb = opt_a.irep.para_call(para, *sca), opt_b.irep.para_call(para, *scb)
 				if ea < eb
 					ret = tagl
-					sca = a.search(para, pa + 1, opt: opt_a)
+					sca = a.search(para, pa + Eighth, opt: opt_a)
 					tagl = opt_a.irep.para_call(para, *sca)
 					scb = b.search(para, tagl, opt: opt_b)
 				elsif ea == eb
 					if pb < pa
 						ret = tagl
-						sca = a.search(para, pa + 1, opt: opt_a)
+						sca = a.search(para, pa + Eighth, opt: opt_a)
 						tagl = opt_a.irep.para_call(para, *sca)
 						scb = b.search(para, tagl, opt: opt_b)
 					else
-						scb = b.search(para, pb + 1, opt: opt_b)
+						scb = b.search(para, pb + Eighth, opt: opt_b)
 						tagl = opt_b.irep.para_call(para, *scb)
 						sca = a.search(para, tagl, opt: opt_a)
 					end
 				else
-					sca = a.search(para, pa + 1, opt: opt_a)
+					sca = a.search(para, pa + Eighth, opt: opt_a)
 					tagl = opt_a.irep.para_call(para, *sca)
 					scb = b.search(para, tagl, opt: opt_b)
 				end
@@ -337,11 +339,17 @@ module Mgmg
 					tagl = term
 				end
 			else
-				pa = opt_a.irep.para_call(para, *a.search(para, ret+1, opt: opt_a))
-				pb = opt_b.irep.para_call(para, *b.search(para, ret+1, opt: opt_b))
-				return [ret, [pa, pb].min]
+				pa = opt_a.irep.para_call(para, *a.search(para, ret+Eighth, opt: opt_a))
+				pb = opt_b.irep.para_call(para, *b.search(para, ret+Eighth, opt: opt_b))
+				return [ret.to_ii, [pa, pb].min]
 			end
 		end
 		raise UnexpectedError
+	end
+	
+	module_function def find_lubounds(a, b, para, lower, upper, opt_a: Mgmg::Option.new, opt_b: Mgmg::Option.new)
+		xl, yl = find_lowerbound(a, b, para, lower, upper, opt_a:, opt_b:)
+		xu, yu = find_upperbound(a, b, para, upper, lower, opt_a:, opt_b:)
+		[xl, yl, xu, yu]
 	end
 end

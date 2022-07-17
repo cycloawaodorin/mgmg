@@ -226,7 +226,7 @@ module Enumerable
 		built = recipe.build(opt:)
 		w = recipe.build(built.min_levels_max[i], opt:).weight - w if w <= 0
 		return -1 if include_outsourcing && built.weight <= w
-		return ms if build(ms, opt:).weight <= w
+		return ms if recipe.build(ms, opt:).weight <= w
 		ary = [ms]
 		4.downto(1) do |wi|
 			built.min_levels(wi).values.each do |v|

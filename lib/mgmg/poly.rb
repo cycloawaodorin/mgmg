@@ -109,7 +109,7 @@ module Mgmg
 			if a == c
 				return( b == d )
 			else
-				return( (d-b).quo(a-c) )
+				return( (d-b).quo(a-c).to_ii )
 			end
 		end
 		def smith_fix(smith, fmt=nil)
