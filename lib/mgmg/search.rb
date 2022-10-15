@@ -1,3 +1,4 @@
+using Mgmg::Refiner
 class String
 	def smith_search(para, target, comp, opt: Mgmg::Option.new)
 		opt = opt.dup.set_default(self)
@@ -55,9 +56,9 @@ class String
 		opt.comp_max = comp_search(para, target, opt.smith_min, opt:)
 		ret = nil
 		exp = Mgmg.exp(opt.smith_min, opt.comp_max)
-		opt.cut_exp, ret = exp, [opt.smith_min, opt.comp_max] if exp < opt.cut_exp
+		opt.cut_exp, ret = exp, [opt.smith_min, opt.comp_max] if exp <= opt.cut_exp
 		exp = Mgmg.exp(opt.smith_max, opt.comp_min)
-		opt.cut_exp, ret = exp, [opt.smith_max, opt.comp_min] if exp < opt.cut_exp
+		opt.cut_exp, ret = exp, [opt.smith_max, opt.comp_min] if ( exp < opt.cut_exp || (ret.nil? && exp==opt.cut_exp) )
 		(opt.comp_min+opt.step).step(opt.comp_max-1, opt.step) do |comp|
 			break if opt.cut_exp < Mgmg.exp(opt.smith_min, comp)
 			smith = smith_search(para, target, comp, opt:)
@@ -71,7 +72,24 @@ class String
 			end
 		rescue Mgmg::SearchCutException
 		end
-		raise Mgmg::SearchCutException, "the result exceeds given cut_exp=#{opt.cut_exp}" if ret.nil?
+		if ret.nil?
+			max = opt.irep.para_call(para, *find_max(para, opt.cut_exp, opt:))
+			raise Mgmg::SearchCutException, "the maximum output with given cut_exp=#{opt.cut_exp.comma3} is #{max.comma3}, which does not reach given target=#{target.comma3}"
+		end
+		ret
+	end
+	
+	def find_max(para, max_exp, opt: Mgmg::Option.new)
+		opt = opt.dup.set_default(self)
+		exp = Mgmg.exp(opt.smith_min, opt.comp_min)
+		raise Mgmg::SearchCutException, "the recipe requires #{exp.comma3} experiment points, which exceeds given max_exp=#{max_exp.comma3}" if max_exp < exp
+		ret = [Mgmg.invexp2(max_exp, opt.comp_min), opt.comp_min]
+		max = opt.irep.para_call(para, *ret)
+		(opt.comp_min+1).step(Mgmg.invexp2c(max_exp, opt.smith_min), opt.step) do |comp|
+			smith = Mgmg.invexp2(max_exp, comp)
+			cur = opt.irep.para_call(para, smith, comp)
+			ret, max = [smith, comp], cur if ( max < cur || ( max == cur && Mgmg.exp(smith, comp) < Mgmg.exp(*ret) ) )
+		end
 		ret
 	end
 end
@@ -138,10 +156,10 @@ module Enumerable
 		opt.armor_max = armor_search(para, target, opt.smith_min, comp, opt: opt_nocut)
 		ret = nil
 		exp = Mgmg.exp(opt.smith_min, opt.armor_max, comp)
-		opt.cut_exp, ret = exp, [opt.smith_min, opt.armor_max] if exp < opt.cut_exp
+		opt.cut_exp, ret = exp, [opt.smith_min, opt.armor_max] if exp <= opt.cut_exp
 		exp2 = Mgmg.exp(opt.smith_max, opt.armor_min, comp)
 		if exp2 < exp
-			opt.cut_exp, ret = exp2, [opt.smith_max, opt.armor_min] if exp2 < opt.cut_exp
+			opt.cut_exp, ret = exp2, [opt.smith_max, opt.armor_min] if exp2 <= opt.cut_exp
 			(opt.armor_min+1).upto(opt.armor_max-1) do |armor|
 				break if opt.cut_exp < Mgmg.exp(opt.smith_min, armor, comp)
 				smith = smith_search(para, target, armor, comp, opt:)
@@ -196,15 +214,16 @@ module Enumerable
 	def search(para, target, opt: Mgmg::Option.new)
 		opt = opt.dup.set_default(self)
 		opt.comp_min = comp_search(para, target, opt.smith_max, opt.armor_max, opt:)
-		opt.smith_max, opt.armor_max = sa_search(para, target, opt.comp_min, opt:)
-		opt.smith_min, opt.armor_min = sa_search(para, target, opt.comp_max, opt:)
+		opt_nocut = opt.dup; opt_nocut.cut_exp = Float::INFINITY
+		opt.smith_max, opt.armor_max = sa_search(para, target, opt.comp_min, opt: opt_nocut)
+		opt.smith_min, opt.armor_min = sa_search(para, target, opt.comp_max, opt: opt_nocut)
 		raise Mgmg::SearchCutException if opt.cut_exp < Mgmg.exp(opt.smith_min, opt.armor_min, opt.comp_min)
 		opt.comp_max = comp_search(para, target, opt.smith_min, opt.armor_min, opt:)
 		ret = nil
 		exp = Mgmg.exp(opt.smith_min, opt.armor_min, opt.comp_max)
-		opt.cut_exp, ret = exp, [opt.smith_min, opt.armor_min,opt. comp_max] if exp < opt.cut_exp
+		opt.cut_exp, ret = exp, [opt.smith_min, opt.armor_min,opt. comp_max] if exp <= opt.cut_exp
 		exp = Mgmg.exp(opt.smith_max, opt.armor_max, opt.comp_min)
-		opt.cut_exp, ret = exp, [opt.smith_max, opt.armor_max, opt.comp_min] if exp < opt.cut_exp
+		opt.cut_exp, ret = exp, [opt.smith_max, opt.armor_max, opt.comp_min] if ( exp < opt.cut_exp || (ret.nil? && exp==opt.cut_exp) )
 		(opt.comp_min+1).upto(opt.comp_max-1) do |comp|
 			break if opt.cut_exp < Mgmg.exp(opt.smith_min, opt.armor_min, comp)
 			smith, armor = sa_search(para, target, comp, opt:)
@@ -218,14 +237,32 @@ module Enumerable
 			end
 		rescue Mgmg::SearchCutException
 		end
-		raise Mgmg::SearchCutException, "the result exceeds given cut_exp=#{opt.cut_exp}" if ret.nil?
+		if ret.nil?
+			max = opt.irep.para_call(para, *find_max(para, opt.cut_exp, opt:))
+			raise Mgmg::SearchCutException, "the maximum output with given cut_exp=#{opt.cut_exp.comma3} is #{max.comma3}, which does not reach given target=#{target.comma3}"
+		end
+		ret
+	end
+	
+	def find_max(para, max_exp, opt: Mgmg::Option.new)
+		opt = opt.dup.set_default(self)
+		exp = Mgmg.exp(opt.smith_min, opt.armor_min, opt.comp_min)
+		raise Mgmg::SearchCutException, "the recipe requires #{exp.comma3} experiment points, which exceeds given max_exp=#{max_exp.comma3}" if max_exp < exp
+		ret = [Mgmg.invexp3(max_exp, opt.armor_min, opt.comp_min), opt.armor_min, opt.comp_min]
+		max = opt.irep.para_call(para, *ret)
+		(opt.comp_min+1).step(Mgmg.invexp3c(max_exp, opt.smith_min, opt.armor_min), opt.step) do |comp|
+			opt.armor_min.upto(Mgmg.invexp3(max_exp, opt.smith_min, comp)) do |armor|
+				smith = Mgmg.invexp3(max_exp, armor, comp)
+				cur = opt.irep.para_call(para, smith, armor, comp)
+				ret, max = [smith, armor, comp], cur if ( max < cur || ( max == cur && Mgmg.exp(smith, armor, comp) < Mgmg.exp(*ret) ) )
+			end
+		end
 		ret
 	end
 end
 
 module Mgmg
 	Eighth = 1.quo(8)
-	using Refiner
 	module_function def find_lowerbound(a, b, para, start, term, opt_a: Option.new, opt_b: Option.new)
 		if term <= start
 			raise ArgumentError, "start < term is needed, (start, term) = (#{start}, #{term}) are given"

@@ -130,7 +130,7 @@
 `opt`は，`comp_min`，`comp_max`，`left_associative`，`reinforcement`，`irep`を使用します．
 
 ## `String#search(para, target, opt: Mgmg.option())`
-`c_min=comp_search(para, target, opt.smith_max, opt: opt)` から `c_max=comp_search(para, target, opt.smith_min, opt: opt)` まで，`opt.step`ずつ動かして，
+道具製作Lvを `c_min=comp_search(para, target, opt.smith_max, opt: opt)` から `c_max=comp_search(para, target, opt.smith_min, opt: opt)` まで，`opt.step`ずつ動かして，
 `smith_search`を行い，その過程で得られた最小経験値の鍛冶・防具製作Lvと道具製作Lvからなる配列を返します．
 レシピ中の，対象パラメータの種別値がすべて奇数，または全て偶数であるなら，`opt.step`を`2`にしても探索すべき範囲を網羅できます．
 その他は`String#smith_seach`と同様です．
@@ -139,11 +139,17 @@
 
 ## `Enumerable#search(para, target, opt: Mgmg.option())`
 複数装備の組について，`para`の値が`target`以上となる最小経験値の`[鍛冶Lv，防具製作Lv，道具製作Lv]`を返します．
-武器のみなら防具製作Lvは`0`，防具のみなら鍛冶Lvは`0`，合成なしなら道具製作Lvは`0`となります．
+武器のみなら防具製作Lvは`-1`，防具のみなら鍛冶Lvは`-1`，合成なしなら道具製作Lvは`0`となります．
 
 `opt.smith_min`および`opt.armor_min`のデフォルト値は，武器・防具の各総重量を`opt.target_weight`で製作するのに必要な鍛冶・防具製作Lv (`self.min_level(*opt.target_weight)`)です．`opt.target_weight`には2要素からなる配列を指定しますが，整数が与えられた場合，それを2つ並べた配列と同等のものとして扱います．合計重量を指定することにはならないので注意してください．`opt.target_weight`のデフォルト値は`0`です．
 
 その他は，`String#smith_seach`と同様です．
+
+## `String#find_max(para, max_exp, opt: Mgmg.option())`
+経験値の合計が`max_exp`以下の範囲で，`para`の値が最大となる鍛冶・防具製作Lvと道具製作Lvからなる配列を返します．`para`の値が最大となる組が複数存在する場合，経験値が小さい方が優先されます．
+
+## `Enumerable#find_max(para, max_exp, opt: Mgmg.option())`
+複数装備の組について，経験値の合計が`max_exp`以下の範囲で，`para`の値が最大となる鍛冶Lv，防具製作Lv，道具製作Lvからなる配列を返します．`para`の値が最大となる組が複数存在する場合，経験値が小さい方が優先されます．
 
 ## `Mgmg.#find_lowerbound(a, b, para, start, term, opt_a: Mgmg.option(), opt_b: Mgmg.option())`
 レシピ`a`とレシピ`b`について，`para`の値を目標値以上にする最小経験値の組において，目標値`start`における優劣が逆転する目標値の下限を探索し，返します．
@@ -481,6 +487,9 @@ alias として`*`があるほか`scalar(1.quo(value))`として`quo`，`/`，`s
 
 ## `Mgmg::Recipe#search(target, para: self.para, **kw)`
 `self.recipe.search`を呼び出して返します．注目パラメータはセットされたものを自動的に渡しますが，別のパラメータを使いたい場合，キーワード引数で指定します．その他のキーワード引数を与えた場合，オプションのうち，与えられたパラメータのみ一時的に上書きします．
+
+## `Mgmg::Recipe#find_max(max_exp, para: self.para, **kw)`
+`self.recipe.find_max`を呼び出して返します．注目パラメータはセットされたものを自動的に渡しますが，別のパラメータを使いたい場合，キーワード引数で指定します．その他のキーワード引数を与えた場合，オプションのうち，与えられたパラメータのみ一時的に上書きします．
 
 ## `Mgmg::Recipe#min_level(w=self.option.target_weight, include_outsourcing=false)`
 `self.recipe.min_level(w, include_outsourcing)`を返します．`w`のデフォルトパラメータが`target_weight`になっている以外は`String#min_level`または`Enumerable#min_level`と同じです．

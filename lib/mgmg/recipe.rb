@@ -93,6 +93,10 @@ module Mgmg
 			opt = temp_opt(**kw)
 			@recipe.search(para, target, opt:)
 		end
+		def find_max(max_exp, para: @para, **kw)
+			opt = temp_opt(**kw)
+			@recipe.find_max(para, max_exp, opt:)
+		end
 		private def correct_level(s, ac, x, opt)
 			if s.nil?
 				if x.equal?(false)
