@@ -158,7 +158,11 @@ module Mgmg
 		end
 	end
 	module_function def invexp2(exp, comp)
-		ret = Math.sqrt(exp - (2*((comp-1)**2)) - 3).floor + 2
+		begin
+			ret = Math.sqrt(exp - (2*((comp-1)**2)) - 3).floor + 2
+		rescue Math::DomainError
+			return -1
+		end
 		if Mgmg.exp(ret, comp) <= exp
 			ret
 		else
@@ -166,7 +170,11 @@ module Mgmg
 		end
 	end
 	module_function def invexp2c(exp, s)
-		ret = Math.sqrt((exp - (((s-1)**2)) - 3).quo(2)).floor + 2
+		begin
+			ret = Math.sqrt((exp - (((s-1)**2)) - 3).quo(2)).floor + 2
+		rescue Math::DomainError
+			return -1
+		end
 		if Mgmg.exp(s, ret) <= exp
 			ret
 		else
@@ -174,7 +182,12 @@ module Mgmg
 		end
 	end
 	module_function def invexp3(exp, sa, comp)
-		ret = Math.sqrt(exp - ((sa-1)**2) - (2*((comp-1)**2)) - 4).floor + 2
+		return invexp2(exp, comp) if sa < 0
+		begin
+			ret = Math.sqrt(exp - ((sa-1)**2) - (2*((comp-1)**2)) - 4).floor + 2
+		rescue Math::DomainError
+			return -1
+		end
 		if Mgmg.exp(ret, sa, comp) <= exp
 			ret
 		else
@@ -182,7 +195,16 @@ module Mgmg
 		end
 	end
 	module_function def invexp3c(exp, smith, armor)
-		ret = Math.sqrt((exp - ((smith-1)**2) - ((armor-1)**2) - 4).quo(2)).floor + 2
+		if smith < 0
+			return invexp2c(exp, armor)
+		elsif armor < 0
+			return invexp2c(exp, smith)
+		end
+		begin
+			ret = Math.sqrt((exp - ((smith-1)**2) - ((armor-1)**2) - 4).quo(2)).floor + 2
+		rescue Math::DomainError
+			return -1
+		end
 		if Mgmg.exp(smith, armor, ret) <= exp
 			ret
 		else
