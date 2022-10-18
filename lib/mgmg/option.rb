@@ -2,7 +2,7 @@ module Mgmg
 	class Option
 		Defaults = {
 			left_associative: true, include_system_equips: true,
-			smith_max: 10000, armor_max: 10000, comp_max: 10000
+			smith_max: 10_000, armor_max: 10_000, comp_max: 10_000
 		}
 		def initialize(
 			left_associative: Defaults[:left_associative],

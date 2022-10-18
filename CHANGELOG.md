@@ -165,3 +165,7 @@
 ## 1.5.7 2022/10/15
 - 経験値上限を指定して，目標パラメータを最大化する製作Lvを返す`Mgmg::Recipe#find_max`を追加．
 - `Mgmg::Recipe#search`において，解の経験値が`cut_exp`ちょうどの場合に例外となっていたバグを修正．
+
+## 1.6.0 2022/10/18
+- `Mgmg.#find_upperbound`のアルゴリズムを改善し，探索下限目標値の引数を削除．
+- `Enumerable#search`，`Enumerable#find_max`が正しい解を返さない場合があったバグを修正．
