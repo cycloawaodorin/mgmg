@@ -369,6 +369,13 @@ module Mgmg
 		pa, pb = opt_a.irep.para_call(para, *sca), opt_b.irep.para_call(para, *scb)
 		if eb < ea || ( ea == eb && pa < pb )
 			a, b, opt_a, opt_b, sca, scb, ea, eb = b, a, opt_b, opt_a, scb, sca, eb, ea
+		elsif eb == ea && pa == pb
+			raise Mgmg::SearchCutException, "given recipes are equivalent at start target=#{start.comma3}"
+		end
+		scat, scbt = a.search(para, term, opt: opt_a), b.search(para, term, opt: opt_b)
+		eat, ebt = Mgmg.exp(*scat), Mgmg.exp(*scbt)
+		if eat < ebt || ( eat == ebt && opt_b.irep.para_call(para, *scbt) <= opt_a.irep.para_call(para, *scat) )
+			raise Mgmg::SearchCutException, "given recipes will never be reversed from start target=#{start.comma3} until term target=#{term.comma3}"
 		end
 		
 		loop do
@@ -419,13 +426,18 @@ module Mgmg
 		pa, pb = opt_a.irep.para_call(para, *sca), opt_b.irep.para_call(para, *scb)
 		if ea < eb || ( ea == eb && pb < pa )
 			a, b, opt_a, opt_b, sca, scb, ea, eb = b, a, opt_b, opt_a, scb, sca, eb, ea
+		elsif eb == ea && pa == pb
+			raise Mgmg::SearchCutException, "given recipes are equivalent at start target=#{start.comma3}"
 		end
+		
 		
 		loop do
 			loop do
 				foo = a.find_max(para, eb, opt: opt_a)
 				break if sca == foo
-				sca, pa = foo, opt_a.irep.para_call(para, *foo)
+				bar = opt_a.irep.para_call(para, *foo)
+				break if pa < bar
+				sca, pa = foo, bar
 				scb = b.search(para, pa, opt: opt_b)
 				foo = Mgmg.exp(*scb)
 				break if eb == foo

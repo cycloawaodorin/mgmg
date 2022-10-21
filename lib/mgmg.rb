@@ -89,6 +89,8 @@ class String
 			pd = self.poly(:phydef, opt:)
 			md = self.poly(:magmag, opt:)
 			pd <= md ? pd : md
+		when :hs
+			self.poly(:hp, opt:) + self.poly(:str, opt:)
 		when :cost
 			if opt.include_system_equips and Mgmg::SystemEquip.has_key?(self) then
 				return Mgmg::TPolynomial.new(Mgmg::Mat.new(1, 1, 0.quo(1)), 28, 0, 12, 12)
@@ -140,7 +142,13 @@ class String
 end
 module Enumerable
 	using Mgmg::Refiner
-	def to_recipe(para=:power, **kw)
+	def to_recipe(para=:power, allow_over20: false, **kw)
+		unless allow_over20
+			self.each do |e|
+				foo = e.build(-1).star
+				raise Mgmg::Over20Error, foo if 20 < foo
+			end
+		end
 		Mgmg::Recipe.new(self, para, **kw)
 	end
 	def build(smith=-1, armor=smith, comp=armor.tap{armor=smith}, opt: Mgmg::Option.new)

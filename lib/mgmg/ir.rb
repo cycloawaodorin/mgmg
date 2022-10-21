@@ -220,6 +220,9 @@ module Mgmg
 		def pmdef(s, ac, x=nil)
 			[phydef(s, ac, x), magmag(s, ac, x)].min
 		end
+		def hs(s, ac, x=nil)
+			hp(s, ac, x)+str(s, ac, x)
+		end
 		
 		def power(s, a=s, c=a.tap{a=s})
 			case @kind
