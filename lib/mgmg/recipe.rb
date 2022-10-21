@@ -130,7 +130,7 @@ module Mgmg
 		def ir(**kw)
 			temp_opt(**kw).irep
 		end
-		%i|attack phydef magdef hp mp str dex speed magic atkstr atk_sd dex_as mag_das magic2 magmag pmdef|.each do |sym|
+		%i|attack phydef magdef hp mp str dex speed magic atkstr atk_sd dex_as mag_das magic2 magmag pmdef hs|.each do |sym|
 			define_method(sym) do |s, ac=s, x=false, **kw|
 				s, ac, x = correct_level(s, ac, x, temp_opt(**kw))
 				ir(**kw).method(sym).call(s, ac, x)

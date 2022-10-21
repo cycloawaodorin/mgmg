@@ -169,3 +169,8 @@
 ## 1.6.0 2022/10/18
 - `Mgmg.#find_upperbound`のアルゴリズムを改善し，探索下限目標値の引数を削除．
 - `Enumerable#search`，`Enumerable#find_max`が正しい解を返さない場合があったバグを修正．
+
+## 1.6.1 2022/10/21
+- `Mgmg.#find_lowerbound`，`Mgmg.#find_upperbound`において，同値レシピを指定した場合などを例外とするように修正．
+- `Enumerable#to_recipe`にも`allow_over20`キーワード引数を導入し，デフォルトで☆20を超えるレシピを含む場合に例外とするように修正．
+- 実効HP(最大HP+腕力)を表す`Mgmg::Equip#hs`を追加．
