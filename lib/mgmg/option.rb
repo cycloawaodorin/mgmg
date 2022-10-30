@@ -33,9 +33,10 @@ module Mgmg
 			@irep = irep
 			@cut_exp = cut_exp
 			@include_system_equips = include_system_equips
+			@system_equips_checked = false
 		end
 		attr_accessor :left_associative, :smith_min, :armor_min, :comp_min, :smith_max, :armor_max, :comp_max
-		attr_accessor :step, :magdef_maximize, :target_weight, :reinforcement, :irep, :cut_exp, :include_system_equips
+		attr_accessor :step, :magdef_maximize, :target_weight, :reinforcement, :irep, :cut_exp, :include_system_equips, :system_equips_checked
 		def initialize_copy(other)
 			@left_associative = other.left_associative
 			@smith_min = other.smith_min
@@ -76,7 +77,7 @@ module Mgmg
 			self
 		end
 		def set_default(recipe, force: false)
-			if @include_system_equips
+			if (!@system_equips_checked) and @include_system_equips then
 				case recipe
 				when String
 					@include_system_equips = false unless Mgmg::SystemEquipRegexp.values.any?{|re| re.match(recipe)}
@@ -85,6 +86,7 @@ module Mgmg
 				else
 					raise ArgumentError, 'recipe should be String or Enumerable'
 				end
+				@system_equips_checked = true
 			end
 			update_sa_min(recipe, force)
 			@comp_min = recipe.min_comp(opt: self) if force || @comp_min.nil?
