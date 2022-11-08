@@ -455,7 +455,8 @@ alias として`*`があるほか`scalar(1.quo(value))`として`quo`，`/`，`s
 |smith_min|`recipe.min_level(target_weight)`|非対応|鍛冶Lvに関する探索範囲の最小値|`String#search`など|
 |armor_min|`recipe.min_level(*target_weight)[1]`|非対応|防具製作Lvに関する探索範囲の最小値|`Enumerable#search`など．`String`系では代わりに`smith_min`を使う|
 |comp_min|`recipe.min_comp`|非対応|道具製作Lvに関する探索範囲の最小値|`String#search`など|
-|smith_max, armor_max, comp_max|`10,000`|対応|各製作Lvの探索範囲の最大値|`String#search`など|
+|smith_max, armor_max|`1,000,000,000`|対応|各製作Lvの探索範囲の最大値|`String#search`など|
+|comp_max|`10,000`|対応|道具製作Lvの探索範囲の最大値|`String#search`など|
 |target_weight|`0`|非対応|`smith_min`のデフォルト値計算に使う目標重量|`String#search`など|
 |step|`1`|非対応|探索時において道具製作Lvを動かす幅|`String#search`など|
 |magdef_maximize|`true`|非対応|目標を魔防最大(真)かコスト最小(偽)にするためのスイッチ|`String#phydef_optimize`|
