@@ -7,7 +7,7 @@ module Mgmg
 		def initialize(
 			left_associative: Defaults[:left_associative],
 			smith_min: nil, armor_min:nil, comp_min: nil, smith_max: Defaults[:smith_max], armor_max: Defaults[:armor_max], comp_max: Defaults[:comp_max],
-			step: 1, magdef_maximize: true,
+			magdef_maximize: true,
 			target_weight: 0, reinforcement: [], buff: nil,
 			irep: nil, cut_exp: Float::INFINITY,
 			include_system_equips: Defaults[:include_system_equips]
@@ -19,7 +19,6 @@ module Mgmg
 			@smith_max = smith_max
 			@armor_max = armor_max
 			@comp_max = comp_max
-			@step = step
 			@magdef_maximize = magdef_maximize
 			@target_weight = target_weight
 			@reinforcement = reinforcement
@@ -36,7 +35,7 @@ module Mgmg
 			@system_equips_checked = false
 		end
 		attr_accessor :left_associative, :smith_min, :armor_min, :comp_min, :smith_max, :armor_max, :comp_max
-		attr_accessor :step, :magdef_maximize, :target_weight, :reinforcement, :irep, :cut_exp, :include_system_equips, :system_equips_checked
+		attr_accessor :magdef_maximize, :target_weight, :reinforcement, :irep, :cut_exp, :include_system_equips, :system_equips_checked
 		def initialize_copy(other)
 			@left_associative = other.left_associative
 			@smith_min = other.smith_min
@@ -45,7 +44,6 @@ module Mgmg
 			@smith_max = other.smith_max
 			@armor_max = other.armor_max
 			@comp_max = other.comp_max
-			@step = other.step
 			@magdef_maximize = other.magdef_maximize
 			@target_weight = other.target_weight
 			@reinforcement = other.reinforcement.dup

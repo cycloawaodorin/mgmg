@@ -130,9 +130,8 @@
 `opt`は，`comp_min`，`comp_max`，`left_associative`，`reinforcement`，`irep`を使用します．
 
 ## `String#search(para, target, opt: Mgmg.option())`
-道具製作Lvを `c_min=comp_search(para, target, opt.smith_max, opt: opt)` から `c_max=comp_search(para, target, opt.smith_min, opt: opt)` まで，`opt.step`ずつ動かして，
+道具製作Lvを `c_min=comp_search(para, target, opt.smith_max, opt: opt)` から `c_max=comp_search(para, target, opt.smith_min, opt: opt)` まで，1ずつ動かして，
 `smith_search`を行い，その過程で得られた最小経験値の鍛冶・防具製作Lvと道具製作Lvからなる配列を返します．
-レシピ中の，対象パラメータの種別値がすべて奇数，または全て偶数であるなら，`opt.step`を`2`にしても探索すべき範囲を網羅できます．
 その他は`String#smith_seach`と同様です．
 
 `opt`は，`String#smith_search`または`String#comp_search`で使われるすべてのパラメータを使用します．
@@ -458,7 +457,6 @@ alias として`*`があるほか`scalar(1.quo(value))`として`quo`，`/`，`s
 |smith_max, armor_max|`1,000,000,000`|対応|各製作Lvの探索範囲の最大値|`String#search`など|
 |comp_max|`10,000`|対応|道具製作Lvの探索範囲の最大値|`String#search`など|
 |target_weight|`0`|非対応|`smith_min`のデフォルト値計算に使う目標重量|`String#search`など|
-|step|`1`|非対応|探索時において道具製作Lvを動かす幅|`String#search`など|
 |magdef_maximize|`true`|非対応|目標を魔防最大(真)かコスト最小(偽)にするためのスイッチ|`String#phydef_optimize`|
 |reinforcement|`[]`|非対応|[前述](#mgmgequipreinforcearg)の`Mgmg::Equip#reinforce`による強化リスト|一部を除くすべてのメソッド|
 |buff|`[]`|非対応|`reinforcement`のエイリアス|どちらか一方のみを指定する|

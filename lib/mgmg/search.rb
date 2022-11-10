@@ -59,7 +59,9 @@ class String
 		opt.cut_exp, ret = exp, [opt.smith_min, opt.comp_max] if exp <= opt.cut_exp
 		exp = Mgmg.exp(opt.smith_max, opt.comp_min)
 		opt.cut_exp, ret = exp, [opt.smith_max, opt.comp_min] if ( exp < opt.cut_exp || (ret.nil? && exp==opt.cut_exp) )
-		(opt.comp_min+opt.step).step(opt.comp_max-1, opt.step) do |comp|
+		eo = opt.irep.eo_para(para)
+		(opt.comp_min+1).upto(opt.comp_max-1) do |comp|
+			next if eo & (2**(comp&1)) == 0
 			break if opt.cut_exp < Mgmg.exp(opt.smith_min, comp)
 			smith = smith_search(para, target, comp, opt:)
 			exp = Mgmg.exp(smith, comp)
@@ -234,7 +236,9 @@ module Enumerable
 		opt.cut_exp, ret = exp, [-1, opt.armor_min, opt.comp_max] if exp <= opt.cut_exp
 		exp = Mgmg.exp(opt.armor_max, opt.comp_min)
 		opt.cut_exp, ret = exp, [-1, opt.armor_max, opt.comp_min] if ( exp < opt.cut_exp || (ret.nil? && exp==opt.cut_exp) )
-		(opt.comp_min+opt.step).step(opt.comp_max-1, opt.step) do |comp|
+		eo = opt.irep.eo_para(para)
+		(opt.comp_min+1).upto(opt.comp_max-1) do |comp|
+			next if eo & (2**(comp&1)) == 0
 			break if opt.cut_exp < Mgmg.exp(opt.armor_min, comp)
 			armor = armor_search(para, target, -1, comp, opt:)
 			exp = Mgmg.exp(armor, comp)
@@ -264,7 +268,9 @@ module Enumerable
 		opt.cut_exp, ret = exp, [opt.smith_min, -1, opt.comp_max] if exp <= opt.cut_exp
 		exp = Mgmg.exp(opt.smith_max, opt.comp_min)
 		opt.cut_exp, ret = exp, [opt.smith_max, -1, opt.comp_min] if ( exp < opt.cut_exp || (ret.nil? && exp==opt.cut_exp) )
-		(opt.comp_min+opt.step).step(opt.comp_max-1, opt.step) do |comp|
+		eo = opt.irep.eo_para(para)
+		(opt.comp_min+1).upto(opt.comp_max-1) do |comp|
+			next if eo & (2**(comp&1)) == 0
 			break if opt.cut_exp < Mgmg.exp(opt.smith_min, comp)
 			smith = smith_search(para, target, -1, comp, opt:)
 			exp = Mgmg.exp(smith, comp)
@@ -295,7 +301,9 @@ module Enumerable
 		opt.comp_max = comp_search(para, target, opt.smith_min, opt.armor_min, opt:)
 		exp = Mgmg.exp(opt.smith_min, opt.armor_min, opt.comp_max)
 		opt.cut_exp, ret = exp, [opt.smith_min, opt.armor_min,opt. comp_max] if exp <= opt.cut_exp
+		eo = opt.irep.eo_para(para)
 		(opt.comp_min).upto(opt.comp_max-1) do |comp|
+			next if ( comp_min<comp  and eo & (2**(comp&1)) == 0 )
 			break if opt.cut_exp < Mgmg.exp(opt.smith_min, opt.armor_min, comp)
 			smith, armor = sa_search(para, target, comp, opt:)
 			exp = Mgmg.exp(smith, armor, comp)
@@ -333,7 +341,9 @@ module Enumerable
 		raise Mgmg::SearchCutException, "the recipe requires #{exp.comma3} experiment points, which exceeds given max_exp=#{max_exp.comma3}" if max_exp < exp
 		ret = [Mgmg.invexp3(max_exp, opt.armor_min, opt.comp_min), opt.armor_min, opt.comp_min]
 		max = opt.irep.para_call(para, *ret)
-		(opt.comp_min).step(Mgmg.invexp3c(max_exp, opt.smith_min, opt.armor_min), opt.step) do |comp|
+		eo = opt.irep.eo_para(para)
+		(opt.comp_min).upto(Mgmg.invexp3c(max_exp, opt.smith_min, opt.armor_min)) do |comp|
+			next if ( comp_min<comp  and eo & (2**(comp&1)) == 0 )
 			opt.armor_min.upto(Mgmg.invexp3(max_exp, opt.smith_min, comp)) do |armor|
 				smith = Mgmg.invexp3(max_exp, armor, comp)
 				cur = opt.irep.para_call(para, smith, armor, comp)

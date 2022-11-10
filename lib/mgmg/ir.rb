@@ -136,8 +136,44 @@ module Mgmg
 				end
 			end
 		end
-		def initialize(kind, star, main_m, sub_m, para, rein=[])
-			@kind, @star, @main, @sub, @para = kind, star, main_m, sub_m, para
+		class Reined
+			def initialize(body, rein)
+				@body, @rein = body, rein
+			end
+			attr_accessor :body, :rein
+			def initialize_copy(other)
+				@body, @rein = other.body.dup, other.rein.dup
+			end
+			def evaluate(s, c)
+				ret = @body.evaluate(s, c)
+				@rein.each do |r|
+					if r != 0
+						ret *= (100+r).quo(100)
+					end
+				end
+				ret
+			end
+			def evaluate3(s, a, c)
+				ret = @body.evaluate3(s, a, c)
+				@rein.each do |r|
+					if r != 0
+						ret *= (100+r).quo(100)
+					end
+				end
+				ret
+			end
+			def to_s
+				ret = @body.to_s
+				@rein.each do |r|
+					if r != 0
+						ret += "(#{100+r}/100)"
+					end
+				end
+				ret
+			end
+		end
+		def initialize(kind, star, main_m, sub_m, para, eo, rein=[])
+			@kind, @star, @main, @sub, @para, @eo = kind, star, main_m, sub_m, para, eo
 			add_reinforcement(rein)
 		end
 		def add_reinforcement(rein)
@@ -150,13 +186,14 @@ module Mgmg
 			end
 			self
 		end
-		attr_accessor :kind, :star, :main, :sub, :para, :rein
+		attr_accessor :kind, :star, :main, :sub, :para, :eo, :rein
 		def initialize_copy(other)
 			@kind = other.kind
 			@star = other.star.dup
 			@main = other.main
 			@sub = other.sub
 			@para = other.para.dup
+			@eo = other.eo.dup
 			@rein = other.rein.dup
 		end
 		
@@ -182,11 +219,41 @@ module Mgmg
 			end
 		end
 		
+		def eo_para(para)
+			case para
+			when :atkstr
+				self.class.eo_add(eo_para(:attack), eo_para(:str))
+			when :atk_sd
+				self.class.eo_add(self.class.eo_add(eo_para(:attack), eo_para(:str)), eo_para(:dex))
+			when :dex_as
+				self.class.eo_add(self.class.eo_add(eo_para(:dex), eo_para(:attack)), eo_para(:str))
+			when :mag_das
+				self.class.eo_add(eo_para(:magic), eo_para(:dex_as))
+			when :magic2
+				eo_para(:magic)
+			when :magmag
+				self.class.eo_add(eo_para(:magdef), eo_para(:magic))
+			when :pmdef
+				self.class.eo_add(eo_para(:phydef), eo_para(:magmag))
+			when :hs
+				self.class.eo_add(eo_para(:hp), eo_para(:str))
+			when :cost
+				ret = nil
+				@eo.each do |foo|
+					ret = self.class.eo_add(ret, foo)
+				end
+				ret
+			else
+				@eo[%i|attack phydef magdef hp mp str dex speed magic|.index(para)]
+			end
+		end
+		
 		%i|attack phydef magdef hp mp str dex speed magic|.each.with_index do |sym, i|
 			define_method(sym) do |s=nil, ac=s, x=nil|
-				ret = if s.nil?
-					@para[i]
-				elsif x.nil?
+				if s.nil?
+					return Reined.new(@para[i], @rein.map{|r| r.vec[i]})
+				end
+				ret = if x.nil?
 					@para[i].evaluate(s, ac)
 				else
 					@para[i].evaluate3(s, ac, x)
@@ -312,12 +379,15 @@ module Mgmg
 			@para = Array.new(9) do |i|
 				Multi.sum(self.para[i], other.para[i])
 			end
+			@eo.map!.with_index do |seo, i|
+				self.class.eo_add(seo, other.eo[i])
+			end
 			self
 		end
 		def +(other)
 			self.dup.add!(other)
 		end
-		Zero = self.new(28, Vec.new(6, 0).freeze, 12, 12, Array.new(9){Const.new(0)}.freeze)
+		Zero = self.new(28, Vec.new(6, 0).freeze, 12, 12, Array.new(9){Const.new(0)}.freeze, Array.new(9, nil).freeze)
 		Zero.rein.freeze; Zero.freeze
 		
 		class << self
@@ -368,7 +438,15 @@ module Mgmg
 					end
 				end
 				
-				new(main_k, main_s+sub_s, main_sub, sub_main, para)
+				eo = Array.new(9) do |i|
+					if EquipFilter[main_k][i] == 0
+						main.eo[i]
+					else
+						eo_add(main.eo[i], eo_mul(2**(Equip9[main_k][i]&1), sub.eo[i]))
+					end
+				end
+				
+				new(main_k, main_s+sub_s, main_sub, sub_main, para, eo)
 			end
 			def smith(str)
 				str = Mgmg.check_string(str)
@@ -395,7 +473,15 @@ module Mgmg
 					end
 				end
 				
-				ret = new(kind, (main_s+sub_s).div(2), main_mc, sub_mc, para)
+				eo = Array.new(9) do |i|
+					if coef[i] == 0
+						nil
+					else
+						0
+					end
+				end
+				
+				ret = new(kind, (main_s+sub_s).div(2), main_mc, sub_mc, para, eo)
 				Cache.store(str, ret.freeze)
 				ret.dup
 			end
@@ -403,7 +489,33 @@ module Mgmg
 				para = equip.para.map do |value|
 					Mgmg::IR::Const.new(value)
 				end
-				new(equip.kind, equip.star, equip.main, equip.sub, para)
+				eo = equip.para.map do |value|
+					if value == 0
+						nil
+					else
+						0
+					end
+				end
+				new(equip.kind, equip.star, equip.main, equip.sub, para, eo)
+			end
+			
+			def eo_add(eo0, eo1)
+				if eo0
+					if eo1
+						eo0 | eo1
+					else
+						eo0
+					end
+				else
+					eo1
+				end
+			end
+			def eo_mul(eq, seo)
+				if seo
+					eq | seo
+				else
+					nil
+				end
 			end
 		end
 	end
