@@ -617,7 +617,6 @@ module Mgmg
 			raise Mgmg::SearchCutException, "given recipes are equivalent at start target=#{start.comma3}"
 		end
 		
-		
 		loop do
 			loop do
 				foo = a.find_max(para, eb, opt: opt_a)
@@ -631,38 +630,40 @@ module Mgmg
 				eb = foo
 			end
 			ea = Mgmg.exp(*sca)
-			while ea==eb do
-				res = 0
-				begin
-					sca = a.find_max(para, ea-1, opt: opt_a)
-				rescue Mgmg::SearchCutException
-					res += 1
-				end
-				begin
-					scb = b.find_max(para, eb-1, opt: opt_b)
-				rescue Mgmg::SearchCutException
-					res += 1
-				end
-				ea, eb = Mgmg.exp(*sca), Mgmg.exp(*scb)
-				pa, pb = opt_a.irep.para_call(para, *sca), opt_b.irep.para_call(para, *scb)
-				if ea < eb || ( ea == eb && pb < pa )
-					until pa < pb
-						scb = b.search(para, pb+Eighth, opt: opt_b)
-						pb = opt_b.irep.para_call(para, *scb)
-					end
-					return [pa, pb]
-				elsif res == 2
-					raise Mgmg::SearchCutException, "given recipes are never reversed from the start target=#{start.comma3} until #{pa.comma3}"
-				end
-			end
-			if ea < eb
-				pb = opt_b.irep.para_call(para, *scb)
+			pb = opt_b.irep.para_call(para, *scb)
+			if ea <= eb and pb <= pa and (ea+pb)!=(eb+pa) then
 				until pa < pb
 					scb = b.search(para, pb+Eighth, opt: opt_b)
 					pb = opt_b.irep.para_call(para, *scb)
 				end
 				return [pa, pb]
+			elsif ea < eb
+				return [pa, pb] if scb == b.search(para, pa, opt: opt_b)
 			end
+			tag = [ea, eb].min - 1
+			begin
+				scb = b.find_max(para, tag, opt: opt_b)
+			rescue Mgmg::SearchCutException
+				eb, pb = Mgmg.exp(*scb), opt_b.irep.para_call(para, *scb)
+				begin
+					sca = a.find_max(para, eb, opt: opt_a)
+					ea, pa = Mgmg.exp(*sca), opt_a.irep.para_call(para, *sca)
+					while eb <= ea
+						sca = a.find_max(para, ea-1, opt: opt_a)
+						ea, pa = Mgmg.exp(*sca), opt_a.irep.para_call(para, *sca)
+					end
+				rescue Mgmg::SearchCutException
+					raise Mgmg::SearchCutException, "given recipes are never reversed from the start target=#{start.comma3} until #{pa.comma3}"
+				end
+				return [pa, pb]
+			end
+			begin
+				sca = a.find_max(para, tag, opt: opt_a)
+			rescue Mgmg::SearchCutException
+				raise Mgmg::SearchCutException, "given recipes are never reversed from the start target=#{start.comma3} until #{opt_a.irep.para_call(para, *sca).comma3}"
+			end
+			ea, eb = Mgmg.exp(*sca), Mgmg.exp(*scb)
+			pa, pb = opt_a.irep.para_call(para, *sca), opt_b.irep.para_call(para, *scb)
 		end
 		raise UnexpectedError
 	end

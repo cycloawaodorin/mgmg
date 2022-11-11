@@ -67,9 +67,9 @@ module Mgmg
 					ms
 				else
 					if ms == '0'
-						"[[#{ss}[(c+#{@equip9})/2]/100]/#{@den}]"
+						"[[#{ss}[(c+#{@equip9})/2]/100](#{@coef})/#{@den}]"
 					else
-						"#{ms}+[[#{ss}[(c+#{@equip9})/2]/100]/#{@den}]"
+						"#{ms}+[[#{ss}[(c+#{@equip9})/2]/100](#{@coef})/#{@den}]"
 					end
 				end
 			end
