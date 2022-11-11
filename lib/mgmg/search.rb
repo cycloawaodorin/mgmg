@@ -46,6 +46,28 @@ class String
 		end
 		opt.comp_max
 	end
+	private def eval_comp(para, target, comp, opt, eo)
+		return [nil, Float::INFINITY] if (comp < opt.comp_min or opt.comp_max < comp)
+		comp -= 1 if ( opt.comp_min<comp  and eo & (2**(comp&1)) == 0 )
+		smith = smith_search(para, target, comp, opt:)
+		exp = Mgmg.exp(smith, comp)
+		[[smith, comp], exp]
+	rescue Mgmg::SearchCutException
+		[nil, Float::INFINITY]
+	end
+	private def fine(exp_best, ret, para, target, comp, opt, eo)
+		return [exp_best, ret] if eo & (2**(comp&1)) == 0
+		smith = smith_search(para, target, comp, opt:)
+		exp = Mgmg.exp(smith, comp)
+		if exp < exp_best
+			exp_best, ret = exp, [smith, comp]
+		elsif exp == exp_best
+			if ret.nil? or opt.irep.para_call(para, *ret) < opt.irep.para_call(para, smith, comp) then
+				ret = [smith, comp]
+			end
+		end
+		[exp_best, ret]
+	end
 	def search(para, target, opt: Mgmg::Option.new)
 		opt = opt.dup.set_default(self)
 		opt_nocut = opt.dup; opt_nocut.cut_exp = Float::INFINITY
@@ -60,19 +82,38 @@ class String
 		exp = Mgmg.exp(opt.smith_max, opt.comp_min)
 		opt.cut_exp, ret = exp, [opt.smith_max, opt.comp_min] if ( exp < opt.cut_exp || (ret.nil? && exp==opt.cut_exp) )
 		eo = opt.irep.eo_para(para)
-		(opt.comp_min+1).upto(opt.comp_max-1) do |comp|
-			next if eo & (2**(comp&1)) == 0
-			break if opt.cut_exp < Mgmg.exp(opt.smith_min, comp)
-			smith = smith_search(para, target, comp, opt:)
-			exp = Mgmg.exp(smith, comp)
-			if exp < opt.cut_exp
-				opt.cut_exp, ret = exp, [smith, comp]
-			elsif exp == opt.cut_exp
-				if ret.nil? or opt.irep.para_call(para, *ret) < opt.irep.para_call(para, smith, comp) then
-					ret = [smith, comp]
-				end
+		comps = Mgmg.comp_init(opt.comp_min, opt.comp_max)
+		values = comps.map do |comp|
+			r, e = eval_comp(para, target, comp, opt_nocut, eo)
+			opt.cut_exp, ret = e, r if e < opt.cut_exp
+			e
+		end
+		while 3 < comps[3]-comps[0]
+			if values[1] <= values[2]
+				comp = comps[0] + comps[2]-comps[1]
+				comps = [comps[0], comp, comps[1], comps[2]]
+				r, e = eval_comp(para, target, comp, opt_nocut, eo)
+				opt.cut_exp, ret = e, r if e < opt.cut_exp
+				values = [values[0], e, values[1], values[2]]
+			else
+				comp = comps[1] + comps[3]-comps[2]
+				comps = [comps[1], comps[2], comp, comps[3]]
+				r, e = eval_comp(para, target, comp, opt_nocut, eo)
+				opt.cut_exp, ret = e, r if e < opt.cut_exp
+				values = [values[1], values[2], e, values[3]]
 			end
+		end
+		exp_best = opt.cut_exp
+		opt.cut_exp = exp_best + (exp_best*opt.comp_ext[0]).to_i.clamp(opt.comp_ext[1], opt.comp_ext[2])
+		(comps[0]-1).downto(opt.comp_min) do |comp|
+			exp_best, ret = fine(exp_best, ret, para, target, comp, opt, eo)
 		rescue Mgmg::SearchCutException
+			break
+		end
+		(comps[3]+1).upto(opt.comp_max) do |comp|
+			exp_best, ret = fine(exp_best, ret, para, target, comp, opt, eo)
+		rescue Mgmg::SearchCutException
+			break
 		end
 		if ret.nil?
 			max = opt.irep.para_call(para, *find_max(para, opt.cut_exp, opt:))
@@ -98,7 +139,9 @@ class String
 		raise Mgmg::SearchCutException, "the recipe requires #{exp.comma3} experiment points, which exceeds given max_exp=#{max_exp.comma3}" if max_exp < exp
 		ret = [Mgmg.invexp2(max_exp, opt.comp_min), opt.comp_min]
 		max = opt.irep.para_call(para, *ret)
+		eo = opt.irep.eo_para(para)
 		(opt.comp_min+1).upto(Mgmg.invexp2c(max_exp, opt.smith_min)) do |comp|
+			next if ( eo & (2**(comp&1)) == 0 )
 			smith = Mgmg.invexp2(max_exp, comp)
 			cur = opt.irep.para_call(para, smith, comp)
 			smith = minimize_smith(para, smith, comp, cur, opt) if max <= cur
@@ -225,6 +268,28 @@ module Enumerable
 		end
 		opt.comp_max
 	end
+	private def eval_comp_a(para, target, comp, opt, eo)
+		return [nil, Float::INFINITY] if (comp < opt.comp_min or opt.comp_max < comp)
+		comp -= 1 if ( opt.comp_min<comp  and eo & (2**(comp&1)) == 0 )
+		armor = armor_search(para, target, -1, comp, opt:)
+		exp = Mgmg.exp(armor, comp)
+		[[-1, armor, comp], exp]
+	rescue Mgmg::SearchCutException
+		[nil, Float::INFINITY]
+	end
+	private def fine_a(exp_best, ret, para, target, comp, opt, eo)
+		return [exp_best, ret] if eo & (2**(comp&1)) == 0
+		armor = armor_search(para, target, -1, comp, opt:)
+		exp = Mgmg.exp(armor, comp)
+		if exp < exp_best
+			exp_best, ret = exp, [-1, armor, comp]
+		elsif exp == exp_best
+			if ret.nil? or opt.irep.para_call(para, *ret) < opt.irep.para_call(para, -1, armor, comp) then
+				ret = [-1, armor, comp]
+			end
+		end
+		[exp_best, ret]
+	end
 	private def search_aonly(para, target, opt: Mgmg::Option.new)
 		opt_nocut = opt.dup; opt_nocut.cut_exp = Float::INFINITY
 		opt.armor_max = armor_search(para, target, -1, opt.comp_min, opt: opt_nocut)
@@ -237,25 +302,66 @@ module Enumerable
 		exp = Mgmg.exp(opt.armor_max, opt.comp_min)
 		opt.cut_exp, ret = exp, [-1, opt.armor_max, opt.comp_min] if ( exp < opt.cut_exp || (ret.nil? && exp==opt.cut_exp) )
 		eo = opt.irep.eo_para(para)
-		(opt.comp_min+1).upto(opt.comp_max-1) do |comp|
-			next if eo & (2**(comp&1)) == 0
-			break if opt.cut_exp < Mgmg.exp(opt.armor_min, comp)
-			armor = armor_search(para, target, -1, comp, opt:)
-			exp = Mgmg.exp(armor, comp)
-			if exp < opt.cut_exp
-				opt.cut_exp, ret = exp, [-1, armor, comp]
-			elsif exp == opt.cut_exp
-				if ret.nil? or opt.irep.para_call(para, *ret) < opt.irep.para_call(para, -1, armor, comp) then
-					ret = [-1, armor, comp]
-				end
+		comps = Mgmg.comp_init(opt.comp_min, opt.comp_max)
+		values = comps.map do |comp|
+			r, e = eval_comp_a(para, target, comp, opt_nocut, eo)
+			opt.cut_exp, ret = e, r if e < opt.cut_exp
+			e
+		end
+		while 3 < comps[3]-comps[0]
+			if values[1] <= values[2]
+				comp = comps[0] + comps[2]-comps[1]
+				comps = [comps[0], comp, comps[1], comps[2]]
+				r, e = eval_comp_a(para, target, comp, opt_nocut, eo)
+				opt.cut_exp, ret = e, r if e < opt.cut_exp
+				values = [values[0], e, values[1], values[2]]
+			else
+				comp = comps[1] + comps[3]-comps[2]
+				comps = [comps[1], comps[2], comp, comps[3]]
+				r, e = eval_comp_a(para, target, comp, opt_nocut, eo)
+				opt.cut_exp, ret = e, r if e < opt.cut_exp
+				values = [values[1], values[2], e, values[3]]
 			end
+		end
+		exp_best = opt.cut_exp
+		opt.cut_exp = exp_best + (exp_best*opt.comp_ext[0]).to_i.clamp(opt.comp_ext[1], opt.comp_ext[2])
+		(comps[0]-1).downto(opt.comp_min) do |comp|
+			exp_best, ret = fine_a(exp_best, ret, para, target, comp, opt, eo)
 		rescue Mgmg::SearchCutException
+			break
+		end
+		(comps[3]+1).upto(opt.comp_max) do |comp|
+			exp_best, ret = fine_a(exp_best, ret, para, target, comp, opt, eo)
+		rescue Mgmg::SearchCutException
+			break
 		end
 		if ret.nil?
 			max = opt.irep.para_call(para, *find_max(para, opt.cut_exp, opt:))
 			raise Mgmg::SearchCutException, "the maximum output with given cut_exp=#{opt.cut_exp.comma3} is #{max.comma3}, which does not reach given target=#{target.comma3}"
 		end
 		ret
+	end
+	private def eval_comp_s(para, target, comp, opt, eo)
+		return [nil, Float::INFINITY] if (comp < opt.comp_min or opt.comp_max < comp)
+		comp -= 1 if ( opt.comp_min<comp  and eo & (2**(comp&1)) == 0 )
+		smith = smith_search(para, target, -1, comp, opt:)
+		exp = Mgmg.exp(smith, comp)
+		[[smith, -1, comp], exp]
+	rescue Mgmg::SearchCutException
+		[nil, Float::INFINITY]
+	end
+	private def fine_s(exp_best, ret, para, target, comp, opt, eo)
+		return [exp_best, ret] if eo & (2**(comp&1)) == 0
+		smith = smith_search(para, target, -1, comp, opt:)
+		exp = Mgmg.exp(smith, comp)
+		if exp < exp_best
+			exp_best, ret = exp, [smith, -1, comp]
+		elsif exp == exp_best
+			if ret.nil? or opt.irep.para_call(para, *ret) < opt.irep.para_call(para, smith, -1, comp) then
+				ret = [smith, -1, comp]
+			end
+		end
+		[exp_best, ret]
 	end
 	private def search_sonly(para, target, opt: Mgmg::Option.new)
 		opt_nocut = opt.dup; opt_nocut.cut_exp = Float::INFINITY
@@ -269,25 +375,66 @@ module Enumerable
 		exp = Mgmg.exp(opt.smith_max, opt.comp_min)
 		opt.cut_exp, ret = exp, [opt.smith_max, -1, opt.comp_min] if ( exp < opt.cut_exp || (ret.nil? && exp==opt.cut_exp) )
 		eo = opt.irep.eo_para(para)
-		(opt.comp_min+1).upto(opt.comp_max-1) do |comp|
-			next if eo & (2**(comp&1)) == 0
-			break if opt.cut_exp < Mgmg.exp(opt.smith_min, comp)
-			smith = smith_search(para, target, -1, comp, opt:)
-			exp = Mgmg.exp(smith, comp)
-			if exp < opt.cut_exp
-				opt.cut_exp, ret = exp, [smith, -1, comp]
-			elsif exp == opt.cut_exp
-				if ret.nil? or opt.irep.para_call(para, *ret) < opt.irep.para_call(para, smith, -1, comp) then
-					ret = [smith, -1, comp]
-				end
+		comps = Mgmg.comp_init(opt.comp_min, opt.comp_max)
+		values = comps.map do |comp|
+			r, e = eval_comp_s(para, target, comp, opt_nocut, eo)
+			opt.cut_exp, ret = e, r if e < opt.cut_exp
+			e
+		end
+		while 3 < comps[3]-comps[0]
+			if values[1] <= values[2]
+				comp = comps[0] + comps[2]-comps[1]
+				comps = [comps[0], comp, comps[1], comps[2]]
+				r, e = eval_comp_s(para, target, comp, opt_nocut, eo)
+				opt.cut_exp, ret = e, r if e < opt.cut_exp
+				values = [values[0], e, values[1], values[2]]
+			else
+				comp = comps[1] + comps[3]-comps[2]
+				comps = [comps[1], comps[2], comp, comps[3]]
+				r, e = eval_comp_s(para, target, comp, opt_nocut, eo)
+				opt.cut_exp, ret = e, r if e < opt.cut_exp
+				values = [values[1], values[2], e, values[3]]
 			end
+		end
+		exp_best = opt.cut_exp
+		opt.cut_exp = exp_best + (exp_best*opt.comp_ext[0]).to_i.clamp(opt.comp_ext[1], opt.comp_ext[2])
+		(comps[0]-1).downto(opt.comp_min) do |comp|
+			exp_best, ret = fine_s(exp_best, ret, para, target, comp, opt, eo)
 		rescue Mgmg::SearchCutException
+			break
+		end
+		(comps[3]+1).upto(opt.comp_max) do |comp|
+			exp_best, ret = fine_s(exp_best, ret, para, target, comp, opt, eo)
+		rescue Mgmg::SearchCutException
+			break
 		end
 		if ret.nil?
 			max = opt.irep.para_call(para, *find_max(para, opt.cut_exp, opt:))
 			raise Mgmg::SearchCutException, "the maximum output with given cut_exp=#{opt.cut_exp.comma3} is #{max.comma3}, which does not reach given target=#{target.comma3}"
 		end
 		ret
+	end
+	private def eval_comp_sa(para, target, comp, opt, eo)
+		return [nil, Float::INFINITY] if (comp < opt.comp_min or opt.comp_max < comp)
+		comp -= 1 if ( opt.comp_min<comp  and eo & (2**(comp&1)) == 0 )
+		sa = sa_search(para, target, comp, opt:)
+		exp = Mgmg.exp(*sa, comp)
+		[[*sa, comp], exp]
+	rescue Mgmg::SearchCutException
+		[nil, Float::INFINITY]
+	end
+	private def fine_sa(exp_best, ret, para, target, comp, opt, eo)
+		return [exp_best, ret] if eo & (2**(comp&1)) == 0
+		sa = sa_search(para, target, comp, opt:)
+		exp = Mgmg.exp(*sa, comp)
+		if exp < exp_best
+			exp_best, ret = exp, [*sa, comp]
+		elsif exp == exp_best
+			if ret.nil? or opt.irep.para_call(para, *ret) < opt.irep.para_call(para, *sa, comp) then
+				ret = [*sa, comp]
+			end
+		end
+		[exp_best, ret]
 	end
 	def search(para, target, opt: Mgmg::Option.new)
 		opt = opt.dup.set_default(self)
@@ -302,19 +449,38 @@ module Enumerable
 		exp = Mgmg.exp(opt.smith_min, opt.armor_min, opt.comp_max)
 		opt.cut_exp, ret = exp, [opt.smith_min, opt.armor_min,opt. comp_max] if exp <= opt.cut_exp
 		eo = opt.irep.eo_para(para)
-		(opt.comp_min).upto(opt.comp_max-1) do |comp|
-			next if ( comp_min<comp  and eo & (2**(comp&1)) == 0 )
-			break if opt.cut_exp < Mgmg.exp(opt.smith_min, opt.armor_min, comp)
-			smith, armor = sa_search(para, target, comp, opt:)
-			exp = Mgmg.exp(smith, armor, comp)
-			if exp < opt.cut_exp
-				opt.cut_exp, ret = exp, [smith, armor, comp]
-			elsif exp == opt.cut_exp
-				if ret.nil? or opt.irep.para_call(para, *ret) < opt.irep.para_call(para, smith, armor, comp) then
-					ret = [smith, armor, comp]
-				end
+		comps = Mgmg.comp_init(opt.comp_min, opt.comp_max)
+		values = comps.map do |comp|
+			r, e = eval_comp_sa(para, target, comp, opt_nocut, eo)
+			opt.cut_exp, ret = e, r if e < opt.cut_exp
+			e
+		end
+		while 3 < comps[3]-comps[0]
+			if values[1] <= values[2]
+				comp = comps[0] + comps[2]-comps[1]
+				comps = [comps[0], comp, comps[1], comps[2]]
+				r, e = eval_comp_sa(para, target, comp, opt_nocut, eo)
+				opt.cut_exp, ret = e, r if e < opt.cut_exp
+				values = [values[0], e, values[1], values[2]]
+			else
+				comp = comps[1] + comps[3]-comps[2]
+				comps = [comps[1], comps[2], comp, comps[3]]
+				r, e = eval_comp_sa(para, target, comp, opt_nocut, eo)
+				opt.cut_exp, ret = e, r if e < opt.cut_exp
+				values = [values[1], values[2], e, values[3]]
 			end
+		end
+		exp_best = opt.cut_exp
+		opt.cut_exp = exp_best + (exp_best*opt.comp_ext[0]).to_i.clamp(opt.comp_ext[1], opt.comp_ext[2])
+		(comps[0]-1).downto(opt.comp_min) do |comp|
+			exp_best, ret = fine_sa(exp_best, ret, para, target, comp, opt, eo)
 		rescue Mgmg::SearchCutException
+			break
+		end
+		(comps[3]+1).upto(opt.comp_max) do |comp|
+			exp_best, ret = fine_sa(exp_best, ret, para, target, comp, opt, eo)
+		rescue Mgmg::SearchCutException
+			break
 		end
 		if ret.nil?
 			max = opt.irep.para_call(para, *find_max(para, opt.cut_exp, opt:))
@@ -343,7 +509,7 @@ module Enumerable
 		max = opt.irep.para_call(para, *ret)
 		eo = opt.irep.eo_para(para)
 		(opt.comp_min).upto(Mgmg.invexp3c(max_exp, opt.smith_min, opt.armor_min)) do |comp|
-			next if ( comp_min<comp  and eo & (2**(comp&1)) == 0 )
+			next if ( opt.comp_min<comp and eo & (2**(comp&1)) == 0 )
 			opt.armor_min.upto(Mgmg.invexp3(max_exp, opt.smith_min, comp)) do |armor|
 				smith = Mgmg.invexp3(max_exp, armor, comp)
 				cur = opt.irep.para_call(para, smith, armor, comp)
@@ -353,6 +519,17 @@ module Enumerable
 			end
 		end
 		ret
+	end
+end
+
+class << Mgmg
+	def comp_init(comp_min, comp_max)
+		z = comp_min-1
+		a, b = 2, 3
+		while z + b < comp_max do
+			a, b = b, a+b
+		end
+		[z, z+b-a, z+a, z+b]
 	end
 end
 

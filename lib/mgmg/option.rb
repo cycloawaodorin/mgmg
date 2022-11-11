@@ -2,11 +2,13 @@ module Mgmg
 	class Option
 		Defaults = {
 			left_associative: true, include_system_equips: true,
-			smith_max: 1_000_000_000, armor_max: 1_000_000_000, comp_max: 10_000
+			smith_max: 1_000_000_000, armor_max: 1_000_000_000, comp_max: 1_000_000_000,
+			comp_ext: [0.01, 100, 10_000]
 		}
 		def initialize(
 			left_associative: Defaults[:left_associative],
 			smith_min: nil, armor_min:nil, comp_min: nil, smith_max: Defaults[:smith_max], armor_max: Defaults[:armor_max], comp_max: Defaults[:comp_max],
+			comp_ext: Defaults[:comp_ext],
 			magdef_maximize: true,
 			target_weight: 0, reinforcement: [], buff: nil,
 			irep: nil, cut_exp: Float::INFINITY,
@@ -19,6 +21,7 @@ module Mgmg
 			@smith_max = smith_max
 			@armor_max = armor_max
 			@comp_max = comp_max
+			@comp_ext = comp_ext
 			@magdef_maximize = magdef_maximize
 			@target_weight = target_weight
 			@reinforcement = reinforcement
@@ -34,7 +37,7 @@ module Mgmg
 			@include_system_equips = include_system_equips
 			@system_equips_checked = false
 		end
-		attr_accessor :left_associative, :smith_min, :armor_min, :comp_min, :smith_max, :armor_max, :comp_max
+		attr_accessor :left_associative, :smith_min, :armor_min, :comp_min, :smith_max, :armor_max, :comp_max, :comp_ext
 		attr_accessor :magdef_maximize, :target_weight, :reinforcement, :irep, :cut_exp, :include_system_equips, :system_equips_checked
 		def initialize_copy(other)
 			@left_associative = other.left_associative
@@ -44,6 +47,7 @@ module Mgmg
 			@smith_max = other.smith_max
 			@armor_max = other.armor_max
 			@comp_max = other.comp_max
+			@comp_ext = other.comp_ext
 			@magdef_maximize = other.magdef_maximize
 			@target_weight = other.target_weight
 			@reinforcement = other.reinforcement.dup

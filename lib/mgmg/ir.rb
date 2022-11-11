@@ -164,11 +164,13 @@ module Mgmg
 			end
 			def to_s
 				ret = @body.to_s
+				buff = ''
 				@rein.each do |r|
 					if r != 0
-						ret += "(#{100+r}/100)"
+						buff += "(#{100+r}/100)"
 					end
 				end
+				ret = '('+ret+')'+buff unless buff.empty?
 				ret
 			end
 		end

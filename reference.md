@@ -130,11 +130,9 @@
 `opt`は，`comp_min`，`comp_max`，`left_associative`，`reinforcement`，`irep`を使用します．
 
 ## `String#search(para, target, opt: Mgmg.option())`
-道具製作Lvを `c_min=comp_search(para, target, opt.smith_max, opt: opt)` から `c_max=comp_search(para, target, opt.smith_min, opt: opt)` まで，1ずつ動かして，
-`smith_search`を行い，その過程で得られた最小経験値の鍛冶・防具製作Lvと道具製作Lvからなる配列を返します．
-その他は`String#smith_seach`と同様です．
+合計経験値が最小となる鍛冶・防具製作Lvと道具製作Lvの組を探索します．道具製作Lvを決定変数として，`smith_search`の返り値との合計経験値を最小化する道具製作Lvをフィボナッチ探索で探索した後，得られた解 c の前後を探索し，最適化します．道具製作Lv c における合計経験値`exp`に対して，`exp+(exp*opt.comp_ext[0]).to_i.clamp(opt.comp_ext[1], opt.comp_ext[2])`を超えない範囲を探索します．この目的関数は単峰ではないため，フィボナッチ探索のみでは最適解が得られないことがあります．
 
-`opt`は，`String#smith_search`または`String#comp_search`で使われるすべてのパラメータを使用します．
+その他は`String#smith_seach`と同様で，`opt`は，`String#smith_search`または`String#comp_search`で使われるすべてのパラメータと，`comp_ext`を使用します．
 
 ## `Enumerable#search(para, target, opt: Mgmg.option())`
 複数装備の組について，`para`の値が`target`以上となる最小経験値の`[鍛冶Lv，防具製作Lv，道具製作Lv]`を返します．
@@ -454,8 +452,8 @@ alias として`*`があるほか`scalar(1.quo(value))`として`quo`，`/`，`s
 |smith_min|`recipe.min_level(target_weight)`|非対応|鍛冶Lvに関する探索範囲の最小値|`String#search`など|
 |armor_min|`recipe.min_level(*target_weight)[1]`|非対応|防具製作Lvに関する探索範囲の最小値|`Enumerable#search`など．`String`系では代わりに`smith_min`を使う|
 |comp_min|`recipe.min_comp`|非対応|道具製作Lvに関する探索範囲の最小値|`String#search`など|
-|smith_max, armor_max|`1,000,000,000`|対応|各製作Lvの探索範囲の最大値|`String#search`など|
-|comp_max|`10,000`|対応|道具製作Lvの探索範囲の最大値|`String#search`など|
+|smith_max, armor_max, comp_max|`1_000_000_000`|対応|各製作Lvの探索範囲の最大値|`String#search`など|
+|comp_ext|`[0.01, 100, 10_000]`|対応|フィボナッチ探索後に追加探索を行う範囲|`String#search`など|
 |target_weight|`0`|非対応|`smith_min`のデフォルト値計算に使う目標重量|`String#search`など|
 |magdef_maximize|`true`|非対応|目標を魔防最大(真)かコスト最小(偽)にするためのスイッチ|`String#phydef_optimize`|
 |reinforcement|`[]`|非対応|[前述](#mgmgequipreinforcearg)の`Mgmg::Equip#reinforce`による強化リスト|一部を除くすべてのメソッド|
