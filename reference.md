@@ -140,10 +140,12 @@
 
 `opt.smith_min`および`opt.armor_min`のデフォルト値は，武器・防具の各総重量を`opt.target_weight`で製作するのに必要な鍛冶・防具製作Lv (`self.min_level(*opt.target_weight)`)です．`opt.target_weight`には2要素からなる配列を指定しますが，整数が与えられた場合，それを2つ並べた配列と同等のものとして扱います．合計重量を指定することにはならないので注意してください．`opt.target_weight`のデフォルト値は`0`です．
 
-その他は，`String#smith_seach`と同様です．
+その他は，`String#seach`と同様です．
 
 ## `String#find_max(para, max_exp, opt: Mgmg.option())`
 経験値の合計が`max_exp`以下の範囲で，`para`の値が最大となる鍛冶・防具製作Lvと道具製作Lvからなる配列を返します．`para`の値が最大となる組が複数存在する場合，経験値が小さい方が優先されます．
+
+`String#search`と同様に，道具製作Lvをフィボナッチ探索で探索した後，得られた解 c の前後を探索し，最適化します．道具製作Lv c における最大の`para`値`p_c`に対して，`p_c-(p_c*opt.comp_ext[3]).ceil`を下回らない範囲を探索します．
 
 ## `Enumerable#find_max(para, max_exp, opt: Mgmg.option())`
 複数装備の組について，経験値の合計が`max_exp`以下の範囲で，`para`の値が最大となる鍛冶Lv，防具製作Lv，道具製作Lvからなる配列を返します．`para`の値が最大となる組が複数存在する場合，経験値が小さい方が優先されます．
@@ -453,7 +455,7 @@ alias として`*`があるほか`scalar(1.quo(value))`として`quo`，`/`，`s
 |armor_min|`recipe.min_level(*target_weight)[1]`|非対応|防具製作Lvに関する探索範囲の最小値|`Enumerable#search`など．`String`系では代わりに`smith_min`を使う|
 |comp_min|`recipe.min_comp`|非対応|道具製作Lvに関する探索範囲の最小値|`String#search`など|
 |smith_max, armor_max, comp_max|`1_000_000_000`|対応|各製作Lvの探索範囲の最大値|`String#search`など|
-|comp_ext|`[0.1, 100, 10_000]`|対応|フィボナッチ探索後に追加探索を行う範囲|`String#search`など|
+|comp_ext|`[0.1, 100, 10_000, 0.1]`|対応|フィボナッチ探索後に追加探索を行う範囲|`String#search`など|
 |target_weight|`0`|非対応|`smith_min`のデフォルト値計算に使う目標重量|`String#search`など|
 |magdef_maximize|`true`|非対応|目標を魔防最大(真)かコスト最小(偽)にするためのスイッチ|`String#phydef_optimize`|
 |reinforcement|`[]`|非対応|[前述](#mgmgequipreinforcearg)の`Mgmg::Equip#reinforce`による強化リスト|一部を除くすべてのメソッド|

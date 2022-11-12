@@ -3,7 +3,7 @@ module Mgmg
 		Defaults = {
 			left_associative: true, include_system_equips: true,
 			smith_max: 1_000_000_000, armor_max: 1_000_000_000, comp_max: 1_000_000_000,
-			comp_ext: [0.1, 100, 10_000]
+			comp_ext: [0.1, 100, 10_000, 0.1]
 		}
 		def initialize(
 			left_associative: Defaults[:left_associative],

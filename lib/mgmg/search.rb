@@ -82,7 +82,7 @@ class String
 		exp = Mgmg.exp(opt.smith_max, opt.comp_min)
 		opt.cut_exp, ret = exp, [opt.smith_max, opt.comp_min] if ( exp < opt.cut_exp || (ret.nil? && exp==opt.cut_exp) )
 		eo = opt.irep.eo_para(para)
-		comps = Mgmg.comp_init(opt.comp_min, opt.comp_max)
+		comps = Mgmg.fib_init(opt.comp_min, opt.comp_max)
 		values = comps.map do |comp|
 			r, e = eval_comp(para, target, comp, opt_nocut, eo)
 			opt.cut_exp, ret = e, r if e < opt.cut_exp
@@ -133,6 +133,14 @@ class String
 		end
 		smith
 	end
+	private def eval_comp_fm(para, comp, eo, opt, max, max_exp)
+		return [-Float::INFINITY, Float::INFINITY] if (comp < opt.comp_min or opt.comp_max < comp)
+		comp -= 1 if ( opt.comp_min<comp and ( eo & (2**(comp&1)) == 0 ) )
+		smith = Mgmg.invexp2(max_exp, comp)
+		cur = opt.irep.para_call(para, smith, comp)
+		smith = minimize_smith(para, smith, comp, cur, opt) if max <= cur
+		[cur, smith]
+	end
 	def find_max(para, max_exp, opt: Mgmg::Option.new)
 		opt = opt.dup.set_default(self)
 		exp = Mgmg.exp(opt.smith_min, opt.comp_min)
@@ -140,12 +148,40 @@ class String
 		ret = [Mgmg.invexp2(max_exp, opt.comp_min), opt.comp_min]
 		max = opt.irep.para_call(para, *ret)
 		eo = opt.irep.eo_para(para)
-		(opt.comp_min+1).upto(Mgmg.invexp2c(max_exp, opt.smith_min)) do |comp|
-			next if ( eo & (2**(comp&1)) == 0 )
-			smith = Mgmg.invexp2(max_exp, comp)
-			cur = opt.irep.para_call(para, smith, comp)
-			smith = minimize_smith(para, smith, comp, cur, opt) if max <= cur
+		opt.comp_max = Mgmg.invexp2c(max_exp, opt.smith_min)
+		comps = Mgmg.fib_init(opt.comp_min+1, opt.comp_max)
+		values = comps.map do |comp|
+			cur, smith = eval_comp_fm(para, comp, eo, opt, max, max_exp)
 			ret, max = [smith, comp], cur if ( max < cur || ( max == cur && Mgmg.exp(smith, comp) < Mgmg.exp(*ret) ) )
+			cur
+		end
+		while 3 < comps[3]-comps[0]
+			if values[2] <= values[1]
+				comp = comps[0] + comps[2]-comps[1]
+				comps = [comps[0], comp, comps[1], comps[2]]
+				cur, smith = eval_comp_fm(para, comp, eo, opt, max, max_exp)
+				ret, max = [smith, comp], cur if ( max < cur || ( max == cur && Mgmg.exp(smith, comp) < Mgmg.exp(*ret) ) )
+				values = [values[0], cur, values[1], values[2]]
+			else
+				comp = comps[1] + comps[3]-comps[2]
+				comps = [comps[1], comps[2], comp, comps[3]]
+				cur, smith = eval_comp_fm(para, comp, eo, opt, max, max_exp)
+				ret, max = [smith, comp], cur if ( max < cur || ( max == cur && Mgmg.exp(smith, comp) < Mgmg.exp(*ret) ) )
+				values = [values[1], values[2], cur, values[3]]
+			end
+		end
+		th = max - (max*opt.comp_ext[3]).ceil
+		(comps[0]-1).downto(opt.comp_min) do |comp|
+			next if ( eo & (2**(comp&1)) == 0 )
+			cur, smith = eval_comp_fm(para, comp, eo, opt, max, max_exp)
+			ret, max = [smith, comp], cur if ( max < cur || ( max == cur && Mgmg.exp(smith, comp) < Mgmg.exp(*ret) ) )
+			break if cur < th
+		end
+		(comps[3]+1).upto(opt.comp_max) do |comp|
+			next if ( eo & (2**(comp&1)) == 0 )
+			cur, smith = eval_comp_fm(para, comp, eo, opt, max, max_exp)
+			ret, max = [smith, comp], cur if ( max < cur || ( max == cur && Mgmg.exp(smith, comp) < Mgmg.exp(*ret) ) )
+			break if cur < th
 		end
 		ret
 	end
@@ -302,7 +338,7 @@ module Enumerable
 		exp = Mgmg.exp(opt.armor_max, opt.comp_min)
 		opt.cut_exp, ret = exp, [-1, opt.armor_max, opt.comp_min] if ( exp < opt.cut_exp || (ret.nil? && exp==opt.cut_exp) )
 		eo = opt.irep.eo_para(para)
-		comps = Mgmg.comp_init(opt.comp_min, opt.comp_max)
+		comps = Mgmg.fib_init(opt.comp_min, opt.comp_max)
 		values = comps.map do |comp|
 			r, e = eval_comp_a(para, target, comp, opt_nocut, eo)
 			opt.cut_exp, ret = e, r if e < opt.cut_exp
@@ -375,7 +411,7 @@ module Enumerable
 		exp = Mgmg.exp(opt.smith_max, opt.comp_min)
 		opt.cut_exp, ret = exp, [opt.smith_max, -1, opt.comp_min] if ( exp < opt.cut_exp || (ret.nil? && exp==opt.cut_exp) )
 		eo = opt.irep.eo_para(para)
-		comps = Mgmg.comp_init(opt.comp_min, opt.comp_max)
+		comps = Mgmg.fib_init(opt.comp_min, opt.comp_max)
 		values = comps.map do |comp|
 			r, e = eval_comp_s(para, target, comp, opt_nocut, eo)
 			opt.cut_exp, ret = e, r if e < opt.cut_exp
@@ -449,7 +485,7 @@ module Enumerable
 		exp = Mgmg.exp(opt.smith_min, opt.armor_min, opt.comp_max)
 		opt.cut_exp, ret = exp, [opt.smith_min, opt.armor_min,opt. comp_max] if exp <= opt.cut_exp
 		eo = opt.irep.eo_para(para)
-		comps = Mgmg.comp_init(opt.comp_min, opt.comp_max)
+		comps = Mgmg.fib_init(opt.comp_min, opt.comp_max)
 		values = comps.map do |comp|
 			r, e = eval_comp_sa(para, target, comp, opt_nocut, eo)
 			opt.cut_exp, ret = e, r if e < opt.cut_exp
@@ -501,6 +537,51 @@ module Enumerable
 		end
 		smith
 	end
+	private def eval_arm(para, armor, comp, eo, opt, ret, max, max_exp)
+		smith = Mgmg.invexp3(max_exp, armor, comp)
+		cur = opt.irep.para_call(para, smith, armor, comp)
+		smith = minimize_smith(para, smith, armor, comp, cur, opt) if max <= cur
+		ret, max = [smith, armor, comp], cur if ( max < cur || ( max == cur && Mgmg.exp(smith, armor, comp) < Mgmg.exp(*ret) ) )
+		[cur, ret, max]
+	end
+	private def eval_comp_fm(para, comp, eo, opt, ret, max, max_exp)
+		return [-Float::INFINITY, Float::INFINITY, max] if (comp < opt.comp_min or opt.comp_max < comp)
+		comp -= 1 if ( opt.comp_min<comp and ( eo & (2**(comp&1)) == 0 ) )
+		cur = -Float::INFINITY
+		a_max = [opt.armor_max, Mgmg.invexp3(max_exp, opt.smith_min, comp)].min
+		arms = Mgmg.fib_init(opt.armor_min, a_max)
+		a_vals = arms.map do |armor|
+			cur_i, ret, max = eval_arm(para, armor, comp, eo, opt, ret, max, max_exp)
+			cur_i
+		end
+		while 3 < arms[3]-arms[0]
+			if a_vals[2] <= a_vals[1]
+				armor = arms[0] + arms[2]-arms[1]
+				arms = [arms[0], armor, arms[1], arms[2]]
+				cur_i, ret, max = eval_arm(para, armor, comp, eo, opt, ret, max, max_exp)
+				a_vals = [a_vals[0], cur_i, a_vals[1], a_vals[2]]
+				cur = cur_i if cur < cur_i
+			else
+				armor = arms[1] + arms[3]-arms[2]
+				arms = [arms[1], arms[2], armor, arms[3]]
+				cur_i, ret, max = eval_arm(para, armor, comp, eo, opt, ret, max, max_exp)
+				a_vals = [a_vals[1], a_vals[2], cur_i, a_vals[3]]
+				cur = cur_i if cur < cur_i
+			end
+		end
+		th = max - (max*opt.comp_ext[3]).ceil
+		(arms[0]-1).downto(opt.armor_min) do |armor|
+			cur_i, ret, max = eval_arm(para, armor, comp, eo, opt, ret, max, max_exp)
+			break if cur_i < th
+			cur = cur_i if cur < cur_i
+		end
+		(arms[3]+1).upto(a_max) do |armor|
+			cur_i, ret, max = eval_arm(para, armor, comp, eo, opt, ret, max, max_exp)
+			break if cur_i < th
+			cur = cur_i if cur < cur_i
+		end
+		[cur, ret, max]
+	end
 	def find_max(para, max_exp, opt: Mgmg::Option.new)
 		opt = opt.dup.set_default(self)
 		exp = Mgmg.exp(opt.smith_min, opt.armor_min, opt.comp_min)
@@ -508,25 +589,45 @@ module Enumerable
 		ret = [Mgmg.invexp3(max_exp, opt.armor_min, opt.comp_min), opt.armor_min, opt.comp_min]
 		max = opt.irep.para_call(para, *ret)
 		eo = opt.irep.eo_para(para)
-		(opt.comp_min).upto(Mgmg.invexp3c(max_exp, opt.smith_min, opt.armor_min)) do |comp|
-			next if ( opt.comp_min<comp and eo & (2**(comp&1)) == 0 )
-			opt.armor_min.upto(Mgmg.invexp3(max_exp, opt.smith_min, comp)) do |armor|
-				smith = Mgmg.invexp3(max_exp, armor, comp)
-				cur = opt.irep.para_call(para, smith, armor, comp)
-				smith = minimize_smith(para, smith, armor, comp, cur, opt) if max <= cur
-				ret, max = [smith, armor, comp], cur if ( max < cur || ( max == cur && Mgmg.exp(smith, armor, comp) < Mgmg.exp(*ret) ) )
-				break if armor < 0
+		opt.comp_max = [opt.comp_max, Mgmg.invexp3c(max_exp, opt.smith_min, opt.armor_min)].min
+		comps = Mgmg.fib_init(opt.comp_min, opt.comp_max)
+		values = comps.map do |comp|
+			cur, ret, max = eval_comp_fm(para, comp, eo, opt, ret, max, max_exp)
+			cur
+		end
+		while 3 < comps[3]-comps[0]
+			if values[2] <= values[1]
+				comp = comps[0] + comps[2]-comps[1]
+				comps = [comps[0], comp, comps[1], comps[2]]
+				cur, ret, max = eval_comp_fm(para, comp, eo, opt, ret, max, max_exp)
+				values = [values[0], cur, values[1], values[2]]
+			else
+				comp = comps[1] + comps[3]-comps[2]
+				comps = [comps[1], comps[2], comp, comps[3]]
+				cur, ret, max = eval_comp_fm(para, comp, eo, opt, ret, max, max_exp)
+				values = [values[1], values[2], cur, values[3]]
 			end
+		end
+		th = max - (max*opt.comp_ext[3]).ceil
+		(comps[0]-1).downto(opt.comp_min) do |comp|
+			next if ( eo & (2**(comp&1)) == 0 )
+			cur, ret, max = eval_comp_fm(para, comp, eo, opt, ret, max, max_exp)
+			break if cur < th
+		end
+		(comps[3]+1).upto(opt.comp_max) do |comp|
+			next if ( eo & (2**(comp&1)) == 0 )
+			cur, ret, max = eval_comp_fm(para, comp, eo, opt, ret, max, max_exp)
+			break if cur < th
 		end
 		ret
 	end
 end
 
 class << Mgmg
-	def comp_init(comp_min, comp_max)
-		z = comp_min-1
+	def fib_init(min, max)
+		z = min-1
 		a, b = 2, 3
-		while z + b < comp_max do
+		while z + b < max do
 			a, b = b, a+b
 		end
 		[z, z+b-a, z+a, z+b]
