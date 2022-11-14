@@ -184,3 +184,8 @@
 - `Mgmg.#find_upperbound`のアルゴリズムに誤りがあり，大きく間違えた解を返していた問題を修正．
 - `Mgmg::IR#attack`等において，引数が`nil`(製作Lvを指定せず，多項式を返す)の場合に，例外となっていたバグを修正．
 - オブション`smith/armor/comp_max`のデフォルト値を10^9に変更．
+
+## 1.8.0 2022/11/14
+- オプション`comp_ext`を`fib_ext`に変更し，追加探索の範囲を修正．
+- オプション`smith/armor/comp_max`の扱い方を修正し，デフォルト値を10^5に変更．
+- `Enumerable#find_max`，`Mgmg.#find_lowerbound`のバグを修正．
