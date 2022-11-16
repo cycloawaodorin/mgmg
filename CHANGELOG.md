@@ -189,3 +189,6 @@
 - オプション`comp_ext`を`fib_ext`に変更し，追加探索の範囲を修正．
 - オプション`smith/armor/comp_max`の扱い方を修正し，デフォルト値を10^5に変更．
 - `Enumerable#find_max`，`Mgmg.#find_lowerbound`のバグを修正．
+
+## 1.8.1
+- `Enumerable#build`，`Enumerable#search`で意図せぬ例外が発生していた問題を修正．

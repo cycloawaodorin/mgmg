@@ -155,13 +155,17 @@ module Enumerable
 		opt = opt.dup
 		rein = opt.reinforcement
 		opt.reinforcement = []
-		self.sum(Mgmg::Equip::Zero) do |str|
-			if Mgmg::EquipPosition[str.build(opt:).kind] == 0
-				str.build(smith, comp, opt:)
-			else
-				str.build(armor, comp, opt:)
-			end
-		end.reinforce(*rein)
+		if self.empty?
+			Mgmg::Equip::Zero
+		else
+			self.sum(Mgmg::Equip::Zero) do |str|
+				if Mgmg::EquipPosition[str.build(opt:).kind] == 0
+					str.build(smith, comp, opt:)
+				else
+					str.build(armor, comp, opt:)
+				end
+			end.reinforce(*rein)
+		end
 	end
 	def ir(opt: Mgmg::Option.new)
 		self.sum(Mgmg::IR::Zero) do |str|
