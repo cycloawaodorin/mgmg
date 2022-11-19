@@ -1,10 +1,12 @@
 # リファレンス
 本ライブラリで定義される主要なメソッドを以下に解説します．
 
-## `String#to_recipe(para=:power, allow_over20: false, **kw)`，`Enumerable#to_recipe(para=:power, allow_over20: false, **kw)`
+## `String#to_recipe(para=:power, allow_over20: false, name: nil, **kw)`，`Enumerable#to_recipe(para=:power, allow_over20: false, name: nil, **kw)`
 レシピ文字列である`self`と，注目パラメータ`para`，オプション`Mgmg.option(**kw)`をセットにした[後述](#mgmgrecipe)の`Mgmg::Recipe`オブジェクトを生成して返します．デフォルト値としてセットされたパラメータを使用する以外は，レシピ文字列と同様に扱えます．
 
 `allow_over20`が偽の場合，レシピの☆を確認し，20を超える場合は，例外`Mgmg::Over20Error`を発生します．このチェックを抑制したい場合は，真にしてください．
+
+`name`は，一部のメソッドでレシピ文字列の代わりに使われる文字列を指定します．デフォルト値の`nil`の場合，`String`なら`self`，`Enumerable`なら`self.join(' ')`になります．
 
 ## `String#build(smith=-1, comp=smith, opt: Mgmg.option())`
 レシピ文字列である`self`を解釈し，鍛冶・防具製作Lvを`smith`，道具製作Lvを`comp`として鍛冶・防具製作及び武器・防具合成を行った結果を[後述](#mgmgequip)の`Mgmg::Equip`クラスのインスタンスとして生成し，返します．例えば，
@@ -108,7 +110,7 @@
 
 `opt`は，`left_associative`と`include_system_equips`，`reinforcement`を使用します．
 
-## `String#smith_seach(para, target, comp, opt: Mgmg.option())`
+## `String#smith_search(para, target, comp, opt: Mgmg.option())`
 `para`の値が`target`以上となるのに必要な最小の鍛冶・防具製作Lvを二分探索で探索して返します．
 道具製作Lvは`comp`で固定，鍛冶・防具製作Lvを`opt.smith_min`と`opt.smith_max`で挟み込んで探索します．
 
@@ -123,16 +125,16 @@
 `opt`は，上記の他に`left_associative`，`reinforcement`，`irep`を使用します．
 
 ## `String#comp_search(para, target, smith, opt: Mgmg.option())`
-`String#smith_seach`とは逆に，鍛冶・防具製作Lvを固定して最小の道具製作Lvを探索します．
+`String#smith_search`とは逆に，鍛冶・防具製作Lvを固定して最小の道具製作Lvを探索します．
 探索の起点である`opt.comp_min`のデフォルト値は，製作に必要な最小の道具製作Lv (`self.min_comp`)です．
-その他は`String#smith_seach`と同様です．
+その他は`String#smith_search`と同様です．
 
 `opt`は，`comp_min`，`comp_max`，`left_associative`，`reinforcement`，`irep`を使用します．
 
 ## `String#search(para, target, opt: Mgmg.option())`
 合計経験値が最小となる鍛冶・防具製作Lvと道具製作Lvの組を探索します．道具製作Lvを決定変数として，`smith_search`の返り値との合計経験値を最小化する道具製作Lvをフィボナッチ探索で探索した後，得られた解 c の前後を探索し，最適化します．このとき，道具製作Lv c における合計経験値`exp`，及びフィボナッチ探索で得られた最後の4点の経験値の最大値`exp2`に対して，`exp+(exp2-exp)*opt.fib_ext[0]`を超えない範囲を探索します．この目的関数は単峰ではないため，フィボナッチ探索のみでは最適解が得られないことがあります．
 
-その他は`String#smith_seach`と同様で，`opt`は，`String#smith_search`または`String#comp_search`で使われるすべてのパラメータと，`fib_ext`を使用します．
+その他は`String#smith_search`と同様で，`opt`は，`String#smith_search`または`String#comp_search`で使われるすべてのパラメータと，`fib_ext`を使用します．
 
 ## `Enumerable#search(para, target, opt: Mgmg.option())`
 複数装備の組について，`para`の値が`target`以上となる最小経験値の`[鍛冶Lv，防具製作Lv，道具製作Lv]`を返します．
@@ -140,7 +142,7 @@
 
 `opt.smith_min`および`opt.armor_min`のデフォルト値は，武器・防具の各総重量を`opt.target_weight`で製作するのに必要な鍛冶・防具製作Lv (`self.min_level(*opt.target_weight)`)です．`opt.target_weight`には2要素からなる配列を指定しますが，整数が与えられた場合，それを2つ並べた配列と同等のものとして扱います．合計重量を指定することにはならないので注意してください．`opt.target_weight`のデフォルト値は`0`です．
 
-その他は，`String#seach`と同様です．
+その他は，`String#search`と同様です．
 
 ## `String#find_max(para, max_exp, opt: Mgmg.option())`
 経験値の合計が`max_exp`以下の範囲で，`para`の値が最大となる鍛冶・防具製作Lvと道具製作Lvからなる配列を返します．`para`の値が最大となる組が複数存在する場合，経験値が小さい方が優先されます．
@@ -164,6 +166,46 @@
 `Mgmg.#find_lowerbound`とは逆に，目標値を下げながら，優劣が逆転する最大の目標値を探索し，返します．返り値は`[逆転する最大目標値, 逆転前の最小para値]`です．目標値が，前者よりも少しでも大きいと逆転が起こらず(逆転する目標値の上限)，少しだけ大きい時の`para`値が後者になります．
 
 `opt_a`，`opt_b`は，`Mgmg.#find_lowerbound`と同様です．
+
+## `Mgmg.#efficient_list(recipes, start, term, out=nil, params=[:defaults], separator: ',', header: true, **kw){|former, latter| ...}`
+目標値`start`から`term`までにおいて，最も効率の良いレシピとそのときのpara値を求め，一覧にしたcsvファイルを出力します．
+`recipes`のうち，一度でも最適レシピに選ばれたものを抽出した配列を返します．
+
+具体的には，以下のように動作します．
+`Mgmg::Recipe`の配列`recipes`の各要素`r`に対し，`r.search(start)`を実行し，総経験値が最も少なくなる`r_best`を求めます．
+その後，目標値を`r_best.para_call(*r_best.search(start))+1.quo(8)`に変更し，目標値が`term`を超えるまで繰り返します．
+
+結果は`out`に出力します．`out`が`String`の場合，ファイルパスとみなし，`File.open(out, 'w', **kw)`に対して出力します．
+`out`が`nil`の場合，csvファイルは出力しません．その他の場合，`out.puts`により，`out`そのものに書き込みます．
+
+`params`には，出力したい項目名の`Symbol`を並べた配列を指定します．`:defaults`は，自動的に`:smith, :armor, :comp, :exp, :para, :name`に展開され，
+それぞれ鍛冶Lv，防具製作Lv，道具製作Lv，総経験値，para値，レシピ名です．その他，
+`:attack`，`:phydef`，`:magdef`，`:hp`，`:mp`，`:str`，`:dex`，`:speed`，`:magic`，`:atkstr`，`:atk_sd`，`:dex_as`，`:mag_das`，`:magic2`，`:magmag`，`:pmdef`，`:hs`
+が指定でき，各製作Lvでの個別のパラメータを出力できます．
+
+`separator`は，項目間の区切り文字を指定します．`header`が真の場合，1行目に，項目名を並べたヘッダを出力します．不要な場合は偽を指定してください．
+残りの`kw`は，`File.open(out, 'w', **kw)`にそのまま渡されます．出力結果をExcelで開く場合には`external_encoding: "Windows-31J"`などを指定します．
+`out`が`String`でない場合は，`kw`は無視されます．
+
+ブロック付きで呼び出した場合，ブロックの評価でタイブレイクを行います．必要な経験値が同じだった場合，para値が大きい方を優先しますが，para値も同じ場合，
+`recipes`の並びで前の方を`former`，後ろの方を`latter`としてブロックを実行します．`yield(former, latter)`が真なら`latter`を，偽なら`former`を優先します．
+`fomer`，`latter`は，`Mgmg::ELItem`インスタンスであり，`params`に指定できる項目がそのままメソッド名として定義されている他，
+`Mgmg::ELItem#recipe`により，`recipes`の要素として渡したレシピオブジェクトを取り出せます．
+例えば，双短剣のレシピを比較していて，para値として指定した威力が同じ場合は器用さの高い方を，それも同じ場合は素早さが高い方を優先したい場合，以下のようにします．
+
+```ruby
+Mgmg.efficient_list(recipes, start, term) do |former, latter|
+	if former.dex < latter.dex
+		true
+	elsif former.dex == latter.dex
+		former.speed < latter.speed
+	else
+		false
+	end
+end
+```
+
+ブロックを指定していない場合，常に`former`が優先されます．
 
 ## `String#eff(para, smith, comp=smith, opt: Mgmg.option())`
 [`smith`を1上げたときの`para`値/(`smith`を1上げるのに必要な経験値), `comp`を1上げたときの`para`値/(`comp`を2上げるのに必要な経験値)]を返します．

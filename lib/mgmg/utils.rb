@@ -1,5 +1,13 @@
 module Mgmg
 	module Refiner
+		refine Module do
+			private def private_module_function(sym)
+				module_function(sym)
+				singleton_class.instance_eval do
+					private(sym)
+				end
+			end
+		end
 		refine Integer do
 			def comma3
 				self.to_s.gsub(/(\d)(?=(\d{3})+(?!\d))/, '\1,')

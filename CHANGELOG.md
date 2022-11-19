@@ -191,4 +191,6 @@
 - `Enumerable#find_max`，`Mgmg.#find_lowerbound`のバグを修正．
 
 ## 1.8.1
+- `Mgmg::Recipe`に`name`属性を追加．`String/Enumerable#to_recipe`の際，キーワード引数`name`を追加することで設定できる．
+- `Mgmg.#efficient_list` を追加．
 - `Enumerable#build`，`Enumerable#search`で意図せぬ例外が発生していた問題を修正．

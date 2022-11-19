@@ -117,18 +117,19 @@ class String
 	def peff(para, smith, comp=smith, opt: Mgmg::Option.new)
 		poly(para, opt:).eff(smith, comp)
 	end
-	def show(smith=-1, comp=smith, para: :power, opt: Mgmg::Option.new)
+	def show(smith=-1, comp=smith, para: :power, name: nil, opt: Mgmg::Option.new)
 		rein = case opt.reinforcement
 		when Array
 			opt.reinforcement.map{|r| Mgmg::Reinforcement.compile(r)}
 		else
 			[Mgmg::Reinforcement.compile(opt.reinforcement)]
 		end
+		name = self if name.nil?
 		built = build(smith, comp, opt:)
 		pstr = '%.3f' % built.para_call(para)
 		pstr.sub!(/\.?0+\Z/, '')
 		puts "With levels (#{smith}, #{comp}: #{Mgmg.exp(smith, comp).comma3}), building"
-		puts "  #{self}"
+		puts "  #{name}"
 		rein = rein.empty? ? '' : "reinforced by {#{rein.join(',')}} "
 		puts "#{rein}yields (#{pstr}, #{built.total_cost})"
 		puts "  #{built}"
@@ -172,18 +173,19 @@ module Enumerable
 			str.ir(opt:)
 		end.add_reinforcement(opt.reinforcement)
 	end
-	def show(smith=-1, armor=smith, comp=armor.tap{armor=smith}, para: :power, opt: Mgmg::Option.new)
+	def show(smith=-1, armor=smith, comp=armor.tap{armor=smith}, para: :power, name: nil, opt: Mgmg::Option.new)
 		rein = case opt.reinforcement
 		when Array
 			opt.reinforcement.map{|r| Mgmg::Reinforcement.compile(r)}
 		else
 			[Mgmg::Reinforcement.compile(opt.reinforcement)]
 		end
+		name = self.join(' ') if name.nil?
 		built = self.build(smith, armor, comp, opt:)
 		pstr = '%.3f' % built.para_call(para)
 		pstr.sub!(/\.?0+\Z/, '')
 		puts "With levels (#{smith}, #{armor}, #{comp}: #{Mgmg.exp(smith, armor, comp).comma3}), building"
-		puts "  #{self.join(', ')}"
+		puts "  #{name}"
 		rein = rein.empty? ? '' : "reinforced by {#{rein.join(',')}} "
 		puts "#{rein}yields (#{pstr}, #{built.total_cost})"
 		puts "  #{built}"

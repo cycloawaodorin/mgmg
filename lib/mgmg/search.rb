@@ -679,4 +679,78 @@ module Mgmg
 		pa, pb = opt_a.irep.para_call(para, *sca), opt_b.irep.para_call(para, *scb)
 		[sca, ea, pa, scb, eb, pb]
 	end
+	
+	class ELItem
+		def initialize(recipe=nil, sc=nil)
+			if recipe.nil?
+				@para = -Float::INFINITY
+				@exp = Float::INFINITY
+			else
+				@recipe = recipe
+				if sc.size == 3
+					@smith, @armor, @comp = *sc
+				else
+					if recipe.option.irep.kind < 8
+						@smith, @comp = *sc
+						@armor = -1
+					else
+						@armor, @comp = *sc
+						@smith = -1
+					end
+				end
+				@para = recipe.para_call(*sc)
+				@exp = Mgmg.exp(*sc)
+				@name = recipe.name
+			end
+		end
+		attr_reader :recipe, :smith, :armor, :comp, :para, :exp, :name
+		%i|attack phydef magdef hp mp str dex speed magic atkstr atk_sd dex_as mag_das magic2 magmag pmdef hs|.each do |sym|
+			define_method(sym) do
+				@recipe.para_call(@smith, @armor, @comp, para: sym)
+			end
+		end
+	end
+	private_module_function def _el_sub(f, recipes, start, term, params, header, separator)
+		tag, ret = start, []
+		f.puts params.join(separator) if header && !f.nil?
+		while tag < term
+			best = ELItem.new()
+			recipes.each do |r|
+				cur = ELItem.new(r, r.search(tag))
+				if cur.exp < best.exp
+					best = cur
+				elsif cur.exp == best.exp
+					if best.para < cur.para
+						best = cur
+					elsif best.para == cur.para
+						if block_given?
+							best = cur if yield(best, cur)
+						end
+					end
+				end
+			end
+			f.puts( params.map do |sym|
+				best.method(sym).call
+			end.join(separator) ) unless f.nil?
+			ret << best.recipe unless ret.include?(best.recipe)
+			tag = best.para+Eighth
+		end
+		ret
+	end
+	module_function def efficient_list(recipes, start, term, out=nil, params=[:defaults], separator: ',', header: true, **kw)
+		i = params.index(:defaults)
+		if i
+			params[i] = [:smith, :armor, :comp, :exp, :para, :name]
+			params.flatten!
+		end
+		ret = nil
+		if out.kind_of?(String)
+			File.open(out, 'w', **kw) do |f|
+				ret = _el_sub(f, recipes, start, term, params, header, separator)
+			end
+		else
+			ret = _el_sub(nil, recipes, start, term, params, header, separator)
+		end
+		ret
+	end
 end
