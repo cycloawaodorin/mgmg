@@ -1,14 +1,23 @@
 module Mgmg
 	class Recipe
-		def initialize(recipe, para=:power, **kw)
+		def initialize(recipe, para=:power, name: nil, **kw)
 			@recipe = recipe
 			@recipe.each(&:freeze) if @recipe.kind_of?(Enumerable)
 			@recipe.freeze
 			@para = para
+			if name.nil?
+				if recipe.kind_of?(String)
+					@name = recipe
+				else
+					@name = recipe.join(' ')
+				end
+			else
+				@name = name
+			end
 			@option = Option.new(**kw).set_default(@recipe)
 		end
 		attr_reader :recipe
-		attr_accessor :para
+		attr_accessor :para, :name
 		def initialize_copy(other)
 			@recipe = other.recipe.dup
 			@option = other.option.dup
@@ -82,9 +91,9 @@ module Mgmg
 			smith, armor, comp = opt.smith_min, opt.armor_min, opt.comp_min if smith.nil?
 			case @recipe
 			when String
-				recipe.show(smith, comp, para:, opt:)
+				@recipe.show(smith, comp, para:, name: @name, opt:)
 			when Enumerable
-				recipe.show(smith, armor, comp, para:, opt:)
+				@recipe.show(smith, armor, comp, para:, name: @name, opt:)
 			else
 				raise BrokenRecipeError
 			end
