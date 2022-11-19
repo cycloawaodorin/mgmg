@@ -709,6 +709,9 @@ module Mgmg
 				@recipe.para_call(@smith, @armor, @comp, para: sym)
 			end
 		end
+		def weight
+			@recipe.build(@smith, @armor, @comp).weight
+		end
 	end
 	private_module_function def _el_sub(f, recipes, start, term, params, header, separator)
 		tag, ret = start, []

@@ -173,14 +173,14 @@
 
 具体的には，以下のように動作します．
 `Mgmg::Recipe`の配列`recipes`の各要素`r`に対し，`r.search(start)`を実行し，総経験値が最も少なくなる`r_best`を求めます．
-その後，目標値を`r_best.para_call(*r_best.search(start))+1.quo(8)`に変更し，目標値が`term`を超えるまで繰り返します．
+`r_best`の行を出力した後，目標値を`r_best.para_call(*r_best.search(start))+1.quo(8)`に変更し，目標値が`term`を超えるまで繰り返します．
 
 結果は`out`に出力します．`out`が`String`の場合，ファイルパスとみなし，`File.open(out, 'w', **kw)`に対して出力します．
 `out`が`nil`の場合，csvファイルは出力しません．その他の場合，`out.puts`により，`out`そのものに書き込みます．
 
 `params`には，出力したい項目名の`Symbol`を並べた配列を指定します．`:defaults`は，自動的に`:smith, :armor, :comp, :exp, :para, :name`に展開され，
 それぞれ鍛冶Lv，防具製作Lv，道具製作Lv，総経験値，para値，レシピ名です．その他，
-`:attack`，`:phydef`，`:magdef`，`:hp`，`:mp`，`:str`，`:dex`，`:speed`，`:magic`，`:atkstr`，`:atk_sd`，`:dex_as`，`:mag_das`，`:magic2`，`:magmag`，`:pmdef`，`:hs`
+`:weight`, `:attack`, `:phydef`, `:magdef`, `:hp`, `:mp`, `:str`, `:dex`, `:speed`, `:magic`, `:atkstr`, `:atk_sd`, `:dex_as`, `:mag_das`, `:magic2`, `:magmag`, `:pmdef`, `:hs`
 が指定でき，各製作Lvでの個別のパラメータを出力できます．
 
 `separator`は，項目間の区切り文字を指定します．`header`が真の場合，1行目に，項目名を並べたヘッダを出力します．不要な場合は偽を指定してください．
@@ -480,7 +480,7 @@ alias として`*`があるほか`scalar(1.quo(value))`として`quo`，`/`，`s
 ### 引数4つ
 調理法，主食材，副食材，料理Lvを指定し，対応する料理の効果の**概算値**を計算します．計算式は [Wikiの記述](https://wikiwiki.jp/guruguru/%E3%82%A2%E3%82%A4%E3%83%86%E3%83%A0/%E9%A3%9F%E7%B3%A7%E5%93%81#y1576f2d) に基づきますが，正確ではないことがわかっています．例えば，`('蒸す', 'アースドラン', '氷河酒', 27)`の物防は87ですが，この計算式では88になります．調理法，主食材，副食材は文字列で，料理Lvは整数で指定します．
 
-調理法は「焼き」か「蒸す」，主食材は「獣肉」「ウッチ」「ゴッチ」「ガガッチ」「ドランギョ」「ドラバーン」「フレドラン」「アースドラン」「アクアドラン」「ダークドン」，副食材は「氷酒」「氷水酒」「氷河酒」「カエン酒」「爆炎酒」「煉獄酒」のみ対応しています．攻撃，物防，魔防の強化を考える場合，これらで十分と判断しての選択となっています．なお，副食材の数値は，Wikiの表で順番が間違っていると思われる部分を修正しています．
+調理法は「焼き」か「蒸す」，主食材は「獣肉」「ウッチ」「ゴッチ」「ガガッチ」「ドランギョ」「ドラバーン」「フレドラン」「アースドラン」「アクアドラン」「ダークドン」，副食材は「氷酒」「氷水酒」「氷河酒」「カエン酒」「爆炎酒」「煉獄酒」のみ対応しています．攻撃，物防，魔防の強化を考える場合，これらで十分と判断しての選択となっています．
 
 ## `Mgmg::Option`
 多くのメソッドのオプション引数をまとめるクラスです．このクラスのインスタンスを使ってそれぞれのメソッドに引き渡します．
@@ -488,7 +488,7 @@ alias として`*`があるほか`scalar(1.quo(value))`として`quo`，`/`，`s
 ## `Mgmg.#option(recipe=nil, **kw)`
 `kw`はキーワード引数本体です．定義されているキーワードと意味，使用される主なメソッドは下表の通りです．デフォルト値は簡易的な表示であり，細かい点では不正確です．
 `recipe`にレシピ`String`または`Enumerable`を渡すと，そのレシピを使ってデフォルト値を具体化しますが，各メソッドで自動的に具体化されるため，通常は必要ありません．
-`Defaults`対応が「対応」となっているキーワード引数については，`Mgmg::Option::Defaults[:include_system_equips]=false`などとすることで，デフォルト値をグローバルに変更することができます．デフォルト値にかかわらず，メソッド呼び出し時に個別に指定すればその値が優先されます．
+`Defaults`対応が「対応」となっているキーワード引数については，`Mgmg::Option::Defaults[:include_system_equips]=false`などとすることで，デフォルト値をグローバルに変更することができます．デフォルト値にかかわらず，メソッド呼び出し時に個別に指定すればその値が優先されます．また，デフォルト値を変更しても，すでに生成された`Option`オブジェクトの値は変更されません．
 
 |キーワード|デフォルト値|`Defaults`対応|意味|主なメソッド，備考|
 |:-|:-|:-|:-|:-|
@@ -533,7 +533,7 @@ alias として`*`があるほか`scalar(1.quo(value))`として`quo`，`/`，`s
 `self.recipe.find_max`を呼び出して返します．注目パラメータはセットされたものを自動的に渡しますが，別のパラメータを使いたい場合，キーワード引数で指定します．その他のキーワード引数を与えた場合，オプションのうち，与えられたパラメータのみ一時的に上書きします．
 
 ## `Mgmg::Recipe#min_level(w=self.option.target_weight, include_outsourcing=false)`
-`self.recipe.min_level(w, include_outsourcing)`を返します．`w`のデフォルトパラメータが`target_weight`になっている以外は`String#min_level`または`Enumerable#min_level`と同じです．
+`self.recipe.min_level(w, include_outsourcing)`を返します．`w`のデフォルト値が`target_weight`になっている以外は`String#min_level`または`Enumerable#min_level`と同じです．
 
 ## `Mgmg::Recipe#min_weight, max_weight, min_levels, min_levels_max, min_smith, min_comp`
 `self.recipe`の同名メソッドをそのまま呼び出して返します．

@@ -146,7 +146,7 @@ rs = str.split(/\n/).map do |line|
 	ary = line.split(/ /)
 	ary[0].to_recipe(:atkstr, target_weight: 9, name: ary[1])
 end
-res = Mgmg.efficient_list(rs, 20_000, 50_000, 'csv.csv', external_encoding: 'Windows-31J')
+res = Mgmg.efficient_list(rs, 20_000, 50_000, './csv.csv', external_encoding: 'Windows-31J')
 puts res.map(&:name).join(', ')
 #=> 鍛冶Lv106, 鍛冶Lv94, 鍛冶Lv116
 ```
