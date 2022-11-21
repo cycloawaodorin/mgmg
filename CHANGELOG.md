@@ -194,3 +194,6 @@
 - `Mgmg::Recipe`に`name`属性を追加．`String/Enumerable#to_recipe`の際，キーワード引数`name`を追加することで設定できる．
 - `Mgmg.#efficient_list` を追加．
 - `Enumerable#build`，`Enumerable#search`で意図せぬ例外が発生していた問題を修正．
+
+## 1.8.2 2022/11/21
+- オプション`cut_exp`で探索が打ち切られる場合に，`Mgmg::SearchCutException`でない例外が発生する場合があったバグを修正．

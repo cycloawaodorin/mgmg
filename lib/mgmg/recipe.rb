@@ -86,16 +86,24 @@ module Mgmg
 				raise BrokenRecipeError
 			end
 		end
-		def show(smith=-1, armor=smith, comp=armor.tap{armor=smith}, para: @para, **kw)
+		def show(smith=-1, armor=smith, comp=armor.tap{armor=smith}, para: @para, search: nil, find_max: nil, **kw)
 			opt = temp_opt(**kw)
-			smith, armor, comp = opt.smith_min, opt.armor_min, opt.comp_min if smith.nil?
-			case @recipe
-			when String
-				@recipe.show(smith, comp, para:, name: @name, opt:)
-			when Enumerable
-				@recipe.show(smith, armor, comp, para:, name: @name, opt:)
+			if search
+				sc = @recipe.search(para, search, opt:)
+				@recipe.show(*sc, para:, name: @name, opt:)
+			elsif find_max
+				sc = @recipe.search(para, find_max, opt:)
+				@recipe.show(*sc, para:, name: @name, opt:)
 			else
-				raise BrokenRecipeError
+				smith, armor, comp = opt.smith_min, opt.armor_min, opt.comp_min if smith.nil?
+				case @recipe
+				when String
+					@recipe.show(smith, comp, para:, name: @name, opt:)
+				when Enumerable
+					@recipe.show(smith, armor, comp, para:, name: @name, opt:)
+				else
+					raise BrokenRecipeError
+				end
 			end
 		end
 		def search(target, para: @para, **kw)
