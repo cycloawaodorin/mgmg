@@ -166,6 +166,7 @@ module Mgmg
 		end
 	end
 	module_function def invexp2(exp, comp)
+		raise ArgumentError, "exp must be finite" unless exp.finite?
 		begin
 			ret = Math.sqrt(exp - (2*((comp-1)**2)) - 3).floor + 2
 		rescue Math::DomainError
@@ -178,6 +179,7 @@ module Mgmg
 		end
 	end
 	module_function def invexp2c(exp, s)
+		raise ArgumentError, "exp must be finite" unless exp.finite?
 		begin
 			ret = Math.sqrt((exp - (((s-1)**2)) - 3).quo(2)).floor + 2
 		rescue Math::DomainError
@@ -190,6 +192,7 @@ module Mgmg
 		end
 	end
 	module_function def invexp3(exp, sa, comp)
+		raise ArgumentError, "exp must be finite" unless exp.finite?
 		return invexp2(exp, comp) if sa < 0
 		begin
 			ret = Math.sqrt(exp - ((sa-1)**2) - (2*((comp-1)**2)) - 4).floor + 2
@@ -203,6 +206,7 @@ module Mgmg
 		end
 	end
 	module_function def invexp3c(exp, smith, armor)
+		raise ArgumentError, "exp must be finite" unless exp.finite?
 		if smith < 0
 			return invexp2c(exp, armor)
 		elsif armor < 0

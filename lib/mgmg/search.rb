@@ -69,6 +69,7 @@ class String
 		[exp_best, ret]
 	end
 	def search(para, target, opt: Mgmg::Option.new)
+		org_cut_exp = opt.cut_exp
 		opt = opt.dup.set_default(self)
 		opt_nocut = opt.dup; opt_nocut.cut_exp = Float::INFINITY
 		begin
@@ -109,6 +110,7 @@ class String
 			end
 		end
 		exp_best = opt.cut_exp
+		values = values.filter(&:finite?)
 		diff = values.max-values.min
 		if 0 < diff
 			opt.cut_exp = exp_best + diff*opt.fib_ext[0]
@@ -124,8 +126,8 @@ class String
 			end
 		end
 		if ret.nil?
-			max = opt.irep.para_call(para, *find_max(para, opt.cut_exp, opt:))
-			raise Mgmg::SearchCutException, "the maximum output with given cut_exp=#{opt.cut_exp.comma3} is #{max.comma3}, which does not reach given target=#{target.comma3}"
+			max = opt.irep.para_call(para, *find_max(para, org_cut_exp, opt:))
+			raise Mgmg::SearchCutException, "the maximum output with given cut_exp=#{org_cut_exp.comma3} is #{max.comma3}, which does not reach given target=#{target.comma3}"
 		end
 		ret
 	end
@@ -178,6 +180,7 @@ class String
 				values = [values[1], values[2], cur, values[3]]
 			end
 		end
+		values = values.filter(&:finite?)
 		diff = values.max-values.min
 		if 0 < diff
 			th = max - diff*opt.fib_ext[1]
@@ -338,6 +341,7 @@ module Enumerable
 		[exp_best, ret]
 	end
 	def search(para, target, opt: Mgmg::Option.new)
+		org_cut_exp = opt.cut_exp
 		opt = opt.dup.set_default(self)
 		begin
 			opt.comp_min = comp_search(para, target, opt.smith_max, opt.armor_max, opt:)
@@ -377,6 +381,7 @@ module Enumerable
 			end
 		end
 		exp_best = opt.cut_exp
+		values = values.filter(&:finite?)
 		diff = values.max-values.min
 		if 0 < diff
 			opt.cut_exp = exp_best + diff*opt.fib_ext[0]
@@ -392,8 +397,8 @@ module Enumerable
 			end
 		end
 		if ret.nil?
-			max = opt.irep.para_call(para, *find_max(para, opt.cut_exp, opt:))
-			raise Mgmg::SearchCutException, "the maximum output with given cut_exp=#{opt.cut_exp.comma3} is #{max.comma3}, which does not reach given target=#{target.comma3}"
+			max = opt.irep.para_call(para, *find_max(para, org_cut_exp, opt:))
+			raise Mgmg::SearchCutException, "the maximum output with given cut_exp=#{org_cut_exp.comma3} is #{max.comma3}, which does not reach given target=#{target.comma3}"
 		end
 		ret
 	end
@@ -444,6 +449,7 @@ module Enumerable
 				cur = cur_i if cur < cur_i
 			end
 		end
+		a_vals = a_vals.filter(&:finite?)
 		diff = a_vals.max-a_vals.min
 		if 0 < diff
 			th = max - diff*opt.fib_ext[1]
@@ -486,6 +492,7 @@ module Enumerable
 				values = [values[1], values[2], cur, values[3]]
 			end
 		end
+		values = values.filter(&:finite?)
 		diff = values.max-values.min
 		if 0 < diff
 			th = max - diff*opt.fib_ext[1]
