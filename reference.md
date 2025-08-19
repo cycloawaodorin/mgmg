@@ -208,7 +208,7 @@ end
 ブロックを指定していない場合，常に`former`が優先されます．
 
 ## `String#eff(para, smith, comp=smith, opt: Mgmg.option())`
-[`smith`を1上げたときの`para`値/(`smith`を1上げるのに必要な経験値), `comp`を1上げたときの`para`値/(`comp`を2上げるのに必要な経験値)]を返します．
+[`smith`を1上げたときの`para`値/(`smith`を1上げるのに必要な経験値), `comp`を2上げたときの`para`値/(`comp`を2上げるのに必要な経験値)]を返します．
 `para`は，`Mgmg::Equip`のメソッド名をシンボルで指定(`:power, :fpower`も可)します．
 
 `opt`は`String#build`にそのまま渡されます．
